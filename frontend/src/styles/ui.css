@@ -1,0 +1,120 @@
+.ui-page-shell {
+  width: 100%;
+  max-width: var(--page-shell-max-width, 800px);
+  margin: 0 auto;
+  padding: var(--page-shell-padding, 0 0 var(--space-10));
+}
+
+.ui-page-shell--centered {
+  min-height: 100vh;
+  display: grid;
+  align-items: start;
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
+}
+
+.ui-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--card-padding, var(--space-6));
+}
+
+.ui-card--accent {
+  border-color: var(--color-brand-500);
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  line-height: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-button:focus-visible,
+.ui-text-field__input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.ui-button--primary {
+  background: var(--color-brand-500);
+  color: var(--color-text-inverse);
+}
+
+.ui-button--secondary {
+  background: var(--color-bg-surface);
+  border-color: var(--color-brand-500);
+  color: var(--color-brand-500);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.ui-button--fullWidth {
+  width: 100%;
+}
+
+.ui-button--sm {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.ui-alert {
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: var(--font-size-md);
+  margin-bottom: var(--space-5);
+}
+
+.ui-alert--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.ui-alert--success {
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--color-success);
+}
+
+.ui-text-field {
+  display: block;
+  margin-bottom: var(--space-5);
+}
+
+.ui-text-field__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.ui-text-field__input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.ui-text-field__input::placeholder {
+  color: var(--color-text-secondary);
+}
