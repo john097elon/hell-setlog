@@ -9,10 +9,11 @@ from auth import get_current_user
 from models import User, Workout
 from streak import compute_streak
 
-router = APIRouter(prefix="/me", tags=["streak"])
+router = APIRouter(prefix="", tags=["streak"])
 
 
-@router.get("/streak")
+@router.get("/streak", include_in_schema=False)
+@router.get("/streak/")
 def get_streak(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

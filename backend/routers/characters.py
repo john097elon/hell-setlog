@@ -10,6 +10,25 @@ from schemas import CharacterOut, CharacterUpdate
 router = APIRouter(prefix="/characters", tags=["characters"])
 
 
+@router.get("/me", response_model=CharacterOut)
+def get_my_character(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get the current user's character."""
+    if not current_user.character_id:
+        raise HTTPException(status_code=404, detail="No character found")
+
+    character = (
+        db.query(Character)
+        .filter(Character.id == current_user.character_id)
+        .first()
+    )
+    if not character:
+        raise HTTPException(status_code=404, detail="No character found")
+    return character
+
+
 @router.patch("/me", response_model=CharacterOut)
 def update_my_character(
     body: CharacterUpdate,

@@ -198,9 +198,6 @@ function PartyListPage() {
     }
   };
 
-  // Random loading animation — dots
-  const loadingDots = randomMatching ? '...' : '';
-
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 0 40px' }}>
       {/* Header */}

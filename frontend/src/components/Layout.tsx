@@ -28,7 +28,7 @@ function Layout({ children }: LayoutProps) {
             🔥 Hell Setlog
           </Link>
           <button
-            onClick={() => navigate(isSettingsPage ? -1 : '/settings')}
+            onClick={() => { if (isSettingsPage) { navigate(-1); } else { navigate('/settings'); } }}
             style={{
               background: 'none',
               border: 'none',

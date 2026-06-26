@@ -154,14 +154,9 @@ function WorkoutPage() {
     if (!setlogContent.trim() && !setlogFile) return;
     setSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append('type', setlogType);
-      formData.append('content', setlogContent);
-      if (setlogFile) {
-        formData.append('file', setlogFile);
-      }
-      const { data } = await api.post(`/workouts/${id}/setlogs`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const { data } = await api.post(`/workouts/${id}/setlogs`, {
+        type: setlogType,
+        content: setlogContent,
       });
       setSetlogs((prev) => [...prev, data]);
       setSetlogContent('');

@@ -1,10 +1,8 @@
 """Router: Workout and Setlog management."""
-import os
 import random
-import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -25,10 +23,6 @@ router = APIRouter(prefix="/workouts", tags=["workouts"])
 
 # The 7 BodyStat parts
 BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
-
-# Upload directory
-UPLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
-os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 
 def _check_party_membership(db: Session, user_id: int, party_id: int) -> bool:
@@ -267,40 +261,23 @@ def end_workout(
 @router.post("/{workout_id}/setlogs", response_model=SetlogOut, status_code=status.HTTP_201_CREATED)
 async def add_setlog(
     workout_id: int,
-    type: str = Form(..., pattern="^(start|mid|end)$"),
-    content: str = Form(..., min_length=1),
-    file: UploadFile | None = File(default=None),
+    body: SetlogCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Add a setlog entry to a workout. Accepts an optional image/video upload."""
+    """Add a setlog entry to a workout. Accepts JSON body with type and content."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
     if workout.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your workout")
 
-    # Handle optional file upload
-    file_path = None
-    if file and file.filename:
-        # Generate UUID-based filename, preserving original extension
-        ext = os.path.splitext(file.filename)[1] if file.filename else ""
-        filename = f"{uuid.uuid4()}{ext}"
-        save_path = os.path.join(UPLOADS_DIR, filename)
-
-        # Read and write the file
-        contents = await file.read()
-        with open(save_path, "wb") as f:
-            f.write(contents)
-
-        file_path = f"/uploads/{filename}"
-
     setlog = Setlog(
         workout_id=workout_id,
         user_id=current_user.id,
-        type=type,
-        content=content,
-        file_path=file_path,
+        type=body.type,
+        content=body.content,
+        file_path=body.file_path,
     )
     db.add(setlog)
     db.commit()

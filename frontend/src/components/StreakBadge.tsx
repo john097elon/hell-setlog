@@ -14,7 +14,7 @@ function StreakBadge() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/me/streak')
+    api.get('/streak')
       .then(({ data }) => setStreak(data))
       .catch(() => setStreak(null))
       .finally(() => setLoading(false));
