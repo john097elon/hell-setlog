@@ -56,6 +56,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    allowedHosts: ['hermes-vnic.tail78f49b.ts.net'],
     proxy: {
       '/api': {
         target: 'http://localhost:8001',
