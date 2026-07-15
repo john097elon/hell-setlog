@@ -15,7 +15,6 @@ from schemas import (
     FeedEventData,
     PartyCreate,
     PartyJoin,
-    PartyMemberOut,
     PartyOut,
 )
 
