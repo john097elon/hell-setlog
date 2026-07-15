@@ -21,7 +21,7 @@ def alembic_config(connection=None) -> Config:
 def test_migrations_have_one_head():
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["20260715_0001"]
+    assert script.get_heads() == ["20260715_0002"]
 
 
 def test_baseline_upgrades_and_downgrades_fresh_database():

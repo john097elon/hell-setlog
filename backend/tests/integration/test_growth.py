@@ -180,20 +180,14 @@ def test_part_mention_gives_bonus(client, db):
 def test_daily_cap_limits_total_gain(client, db):
     """After DAILY_CAP_PER_PART potential is granted, further workouts yield delta=0."""
     from growth import DAILY_CAP_PER_PART
-    from models import GrowthEvent, User
+    from models import GrowthEvent
     _, token = make_user(client, "eventer5", suffix="ev")
-    user_id = client.get("/api/auth/me", headers=auth(token)).json()["id"]
 
-    # Exhaust the daily cap by seeding fake GrowthEvents from earlier workouts.
-    # We first do one real workout to get a valid workout_id, then insert seed rows.
+    # Do one real workout to get GrowthEvents, then inflate their deltas to exhaust the cap.
     wid1 = client.post("/api/workouts/", json={}, headers=auth(token)).json()["id"]
     client.post(f"/api/workouts/{wid1}/end", headers=auth(token))
 
-    # Insert fake events that consumed the cap for all parts
-    from growth import BODY_PARTS, today_utc_start
-    from models import Workout
-    seed_workout = db.query(Workout).filter(Workout.id == wid1).one()
-    # Manually set a cap-exhausting delta on each part's existing GrowthEvent
+    # Overwrite deltas so the daily total == DAILY_CAP_PER_PART for every part.
     for ge in db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid1).all():
         ge.delta = DAILY_CAP_PER_PART
         ge.potential_after = ge.potential_before + DAILY_CAP_PER_PART

@@ -14,7 +14,7 @@ from typing import Any, Iterable, Mapping
 from sqlalchemy import MetaData, create_engine, event, func, select, text, update
 from sqlalchemy.engine import Connection, Engine, RowMapping
 
-EXPECTED_REVISION = "20260715_0001"
+EXPECTED_REVISION = "20260715_0002"
 TABLE_ORDER = (
     "users",
     "characters",
