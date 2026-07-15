@@ -12,9 +12,11 @@ from models import BodyStat, Character, GrowthEvent, PartyMember, Setlog, User, 
 from schemas import (
     BodyStatSummary,
     Breakthrough,
+    CharacterOut,
     SetlogCreate,
     SetlogOut,
     WorkoutCreate,
+    WorkoutEndResponse,
     WorkoutOut,
     WorkoutUpdate,
 )
@@ -153,6 +155,7 @@ def cancel_workout(
 
 def _growth_response(workout, growth_events: list, db: Session) -> dict:
     """Build end-workout response from persisted GrowthEvents."""
+    db.refresh(workout)
     setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout.id).count()
     duration_seconds = (
         int((workout.ended_at - workout.started_at).total_seconds())
@@ -181,18 +184,25 @@ def _growth_response(workout, growth_events: list, db: Session) -> dict:
         )
         for ge in growth_events
     ]
+    character = None
+    if workout.user and workout.user.character_id:
+        character_obj = db.query(Character).filter(Character.id == workout.user.character_id).first()
+        if character_obj:
+            character = CharacterOut.model_validate(character_obj)
+
     return {
-        **workout_out.model_dump(),
+        "workout": workout_out.model_dump(),
+        "breakthroughs": [b.model_dump() for b in breakthroughs],
+        "all_stats": [s.model_dump() for s in all_stats],
+        "body_stats": [s.model_dump() for s in all_stats],
         "duration_seconds": duration_seconds,
         "setlog_count": setlog_count,
-        "breakthroughs": [b.model_dump() for b in breakthroughs],
-        "body_stats": [s.model_dump() for s in all_stats],
-        "workout": workout_out.model_dump(),
-        "all_stats": [s.model_dump() for s in all_stats],
+        "character": character.model_dump() if character else None,
+        **workout_out.model_dump(),
     }
 
 
-@router.post("/{workout_id}/end")
+@router.post("/{workout_id}/end", response_model=WorkoutEndResponse)
 def end_workout(
     workout_id: int,
     current_user: User = Depends(get_current_user),

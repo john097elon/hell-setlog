@@ -1,6 +1,7 @@
 """Router: Party management (create, join, list, details, feed)."""
 
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -14,7 +15,6 @@ from schemas import (
     FeedEventData,
     PartyCreate,
     PartyJoin,
-    PartyMemberOut,
     PartyOut,
 )
 
@@ -208,22 +208,45 @@ def random_match_party(
         PartyMember.user_id == current_user.id,
         PartyMember.status == "kicked",
     )
-    party = (
-        db.query(Party)
-        .outerjoin(counts, counts.c.party_id == Party.id)
-        .filter(
-            Party.match_type == "random",
-            Party.is_open == True,  # noqa: E712
-            func.coalesce(counts.c.active_count, 0) < Party.max_members,
-            Party.id.not_in(blocked_party_ids),
+
+    excluded_party_ids = set()
+    party = None
+
+    while True:
+        q = (
+            db.query(Party)
+            .outerjoin(counts, counts.c.party_id == Party.id)
+            .filter(
+                Party.match_type == "random",
+                Party.is_open == True,  # noqa: E712
+                func.coalesce(counts.c.active_count, 0) < Party.max_members,
+                Party.id.not_in(blocked_party_ids),
+            )
         )
-        .order_by(
-            Party.last_matched_at.is_(None).desc(),
-            Party.last_matched_at.asc(),
-            Party.created_at.asc(),
+        if excluded_party_ids:
+            q = q.filter(Party.id.not_in(excluded_party_ids))
+
+        candidate = (
+            q.order_by(
+                Party.last_matched_at.is_(None).desc(),
+                Party.last_matched_at.asc(),
+                Party.created_at.asc(),
+            )
+            .first()
         )
-        .first()
-    )
+
+        if not candidate:
+            break
+
+        # Lock the candidate party row
+        locked_party = db.query(Party).filter(Party.id == candidate.id).with_for_update().first()
+        if locked_party:
+            # Recheck capacity under lock
+            if _active_member_count(db, locked_party.id) < locked_party.max_members:
+                party = locked_party
+                break
+            else:
+                excluded_party_ids.add(locked_party.id)
 
     now = _now()
     if party is None:
@@ -274,14 +297,14 @@ def random_match_party(
     return party
 
 
-@router.post("/join", response_model=PartyMemberOut)
+@router.post("/join", response_model=PartyOut)
 def join_party(
     body: PartyJoin,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Join a party by invite code. Soft-left manual members can rejoin."""
-    party = db.query(Party).filter(Party.invite_code == body.invite_code).first()
+    party = db.query(Party).filter(Party.invite_code == body.invite_code).with_for_update().first()
     if not party:
         raise HTTPException(status_code=404, detail="Party not found")
 
@@ -301,9 +324,16 @@ def join_party(
             raise HTTPException(
                 status_code=403, detail="You were kicked from this party"
             )
+        # Check capacity before allowing rejoin
+        active_count = _active_member_count(db, party.id)
+        if active_count >= party.max_members:
+            raise HTTPException(status_code=400, detail="Party is full")
         _activate_membership(existing, role="member")
-        member = existing
     else:
+        # Check capacity before allowing join
+        active_count = _active_member_count(db, party.id)
+        if active_count >= party.max_members:
+            raise HTTPException(status_code=400, detail="Party is full")
         member = PartyMember(
             party_id=party.id, user_id=current_user.id, role="member", status="active"
         )
@@ -312,8 +342,8 @@ def join_party(
     db.flush()
     _sync_party_open_state(db, party)
     db.commit()
-    db.refresh(member)
-    return member
+    db.refresh(party)
+    return party
 
 
 @router.get("/", response_model=list[PartyOut])
@@ -417,6 +447,7 @@ def get_party_feed(
     party_id: int,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    since: Optional[datetime] = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -427,13 +458,24 @@ def get_party_feed(
     _require_active_member(db, party_id, current_user.id)
 
     events: list[dict] = []
+    max_candidates = offset + limit
 
-    members = (
+    # 1. Members
+    members_q = (
         db.query(PartyMember)
         .options(joinedload(PartyMember.user))
         .filter(PartyMember.party_id == party_id)
+    )
+    if since:
+        members_q = members_q.filter(
+            func.coalesce(PartyMember.left_at, PartyMember.joined_at) > since
+        )
+    members = (
+        members_q.order_by(func.coalesce(PartyMember.left_at, PartyMember.joined_at).desc())
+        .limit(max_candidates)
         .all()
     )
+
     for pm in members:
         event_type = "member_joined" if pm.status == "active" else f"member_{pm.status}"
         events.append(
@@ -451,13 +493,21 @@ def get_party_feed(
             }
         )
 
-    workouts = (
+    # 2. Workout start
+    workouts_start_q = (
         db.query(Workout)
         .options(joinedload(Workout.user))
         .filter(Workout.party_id == party_id)
+    )
+    if since:
+        workouts_start_q = workouts_start_q.filter(Workout.started_at > since)
+    workouts_start = (
+        workouts_start_q.order_by(Workout.started_at.desc())
+        .limit(max_candidates)
         .all()
     )
-    for w in workouts:
+
+    for w in workouts_start:
         events.append(
             {
                 "id": f"workout_start:{w.id}",
@@ -471,69 +521,107 @@ def get_party_feed(
             }
         )
 
-    for w in workouts:
-        if w.ended_at is not None:
-            setlog_count = db.query(Setlog).filter(Setlog.workout_id == w.id).count()
-            duration = (
-                int((w.ended_at - w.started_at).total_seconds())
-                if w.started_at
-                else None
-            )
-            growth_events = (
-                db.query(GrowthEvent)
-                .filter(GrowthEvent.workout_id == w.id)
-                .order_by(GrowthEvent.id)
-                .all()
-            )
-            breakthroughs = [
-                {
-                    "part": ge.body_part,
-                    "old_level": ge.level_before,
-                    "new_level": ge.level_after,
-                }
-                for ge in growth_events
-                if ge.level_after > ge.level_before
-            ]
-            body_stats = [
-                {
-                    "part": ge.body_part,
-                    "level": ge.level_after,
-                    "potential": ge.potential_after,
-                }
-                for ge in growth_events
-            ]
-            events.append(
-                {
-                    "id": f"workout_end:{w.id}",
-                    "event_type": "workout_end",
-                    "created_at": w.ended_at,
-                    "user": w.user,
-                    "username": w.user.username if w.user else "Unknown",
-                    "workout_id": w.id,
-                    "target_type": "workout",
-                    "target_id": w.id,
-                    "workout_stats": {
-                        "duration_seconds": duration,
-                        "setlog_count": setlog_count,
-                    },
-                    "breakthroughs": breakthroughs,
-                    "body_stats": body_stats,
-                    "data": FeedEventData(
-                        workout_id=w.id,
-                        notes=w.notes,
-                        duration_seconds=duration,
-                        setlog_count=setlog_count,
-                    ),
-                }
-            )
+    # 3. Workout end
+    workouts_end_q = (
+        db.query(Workout)
+        .options(joinedload(Workout.user))
+        .filter(Workout.party_id == party_id, Workout.ended_at.isnot(None))
+    )
+    if since:
+        workouts_end_q = workouts_end_q.filter(Workout.ended_at > since)
+    workouts_end = (
+        workouts_end_q.order_by(Workout.ended_at.desc())
+        .limit(max_candidates)
+        .all()
+    )
 
-    setlogs = (
+    # Pre-fetch growth events and setlog counts for ended workouts to avoid N+1 queries
+    workout_ids = [w.id for w in workouts_end]
+    growth_events_by_workout = {}
+    setlog_counts_by_workout = {}
+    if workout_ids:
+        ge_list = (
+            db.query(GrowthEvent)
+            .filter(GrowthEvent.workout_id.in_(workout_ids))
+            .order_by(GrowthEvent.id)
+            .all()
+        )
+        for ge in ge_list:
+            growth_events_by_workout.setdefault(ge.workout_id, []).append(ge)
+
+        counts_q = (
+            db.query(Setlog.workout_id, func.count(Setlog.id))
+            .filter(Setlog.workout_id.in_(workout_ids))
+            .group_by(Setlog.workout_id)
+            .all()
+        )
+        setlog_counts_by_workout = dict(counts_q)
+
+    for w in workouts_end:
+        setlog_count = setlog_counts_by_workout.get(w.id, 0)
+        duration = (
+            int((w.ended_at - w.started_at).total_seconds())
+            if w.started_at
+            else None
+        )
+        growth_events = growth_events_by_workout.get(w.id, [])
+        breakthroughs = [
+            {
+                "part": ge.body_part,
+                "old_level": ge.level_before,
+                "new_level": ge.level_after,
+            }
+            for ge in growth_events
+            if ge.level_after > ge.level_before
+        ]
+        body_stats = [
+            {
+                "part": ge.body_part,
+                "level": ge.level_after,
+                "potential": ge.potential_after,
+            }
+            for ge in growth_events
+        ]
+        events.append(
+            {
+                "id": f"workout_end:{w.id}",
+                "event_type": "workout_end",
+                "created_at": w.ended_at,
+                "user": w.user,
+                "username": w.user.username if w.user else "Unknown",
+                "workout_id": w.id,
+                "target_type": "workout",
+                "target_id": w.id,
+                "workout_stats": {
+                    "duration_seconds": duration,
+                    "setlog_count": setlog_count,
+                },
+                "breakthroughs": breakthroughs,
+                "body_stats": body_stats,
+                "data": FeedEventData(
+                    workout_id=w.id,
+                    notes=w.notes,
+                    duration_seconds=duration,
+                    setlog_count=setlog_count,
+                ),
+            }
+        )
+
+    # 4. Setlogs
+    setlogs_q = (
         db.query(Setlog)
         .options(joinedload(Setlog.user))
         .join(Workout, Setlog.workout_id == Workout.id)
         .filter(Workout.party_id == party_id)
+    )
+    if since:
+        setlogs_q = setlogs_q.filter(Setlog.created_at > since)
+    setlogs = (
+        setlogs_q.order_by(Setlog.created_at.desc())
+        .limit(max_candidates)
         .all()
     )
+
     for s in setlogs:
         events.append(
             {
@@ -559,21 +647,37 @@ def get_party_feed(
             }
         )
 
-    setlog_reactions = (
+    # 5. Setlog reactions
+    setlog_reactions_q = (
         db.query(Reaction)
         .options(joinedload(Reaction.user))
         .join(Setlog, Reaction.target_id == Setlog.id)
         .join(Workout, Setlog.workout_id == Workout.id)
         .filter(Reaction.target_type == "setlog", Workout.party_id == party_id)
+    )
+    if since:
+        setlog_reactions_q = setlog_reactions_q.filter(Reaction.created_at > since)
+    setlog_reactions = (
+        setlog_reactions_q.order_by(Reaction.created_at.desc())
+        .limit(max_candidates)
         .all()
     )
-    workout_reactions = (
+
+    # 6. Workout reactions
+    workout_reactions_q = (
         db.query(Reaction)
         .options(joinedload(Reaction.user))
         .join(Workout, Reaction.target_id == Workout.id)
         .filter(Reaction.target_type == "workout", Workout.party_id == party_id)
+    )
+    if since:
+        workout_reactions_q = workout_reactions_q.filter(Reaction.created_at > since)
+    workout_reactions = (
+        workout_reactions_q.order_by(Reaction.created_at.desc())
+        .limit(max_candidates)
         .all()
     )
+
     for r in [*setlog_reactions, *workout_reactions]:
         events.append(
             {
