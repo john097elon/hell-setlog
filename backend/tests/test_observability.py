@@ -102,7 +102,7 @@ def test_metrics_include_request_counter():
 
 def test_main_application_wires_operational_endpoints():
     main = importlib.import_module("main")
-    paths = {route.path for route in main.app.routes}
+    paths = {route.path for route in main.app.routes if hasattr(route, "path")}
 
     assert {"/healthz", "/readyz", "/metrics"} <= paths
 
