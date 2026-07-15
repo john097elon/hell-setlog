@@ -8,9 +8,10 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -81,6 +82,11 @@ def build_pg_restore_command(input_path: Path) -> list[str]:
         "--exit-on-error",
         str(input_path),
     ]
+
+
+def build_restore_smoke_command() -> list[str]:
+    script = Path(__file__).resolve().parents[1] / "backend" / "scripts" / "smoke_restored_database.py"
+    return [sys.executable, str(script)]
 
 
 def restore_database_name(environment: str, timestamp: str) -> str:
@@ -160,6 +166,16 @@ def _verify_database(database_url: str) -> dict[str, int]:
         engine.dispose()
 
 
+def _run_application_smoke(database_url: str) -> None:
+    subprocess.run(
+        build_restore_smoke_command(),
+        env={**os.environ, "DATABASE_URL": database_url},
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
 def run_restore_rehearsal(
     config: RestoreConfig,
     backup_key: str,
@@ -194,12 +210,14 @@ def run_restore_rehearsal(
                 capture_output=True,
             )
         counts = _verify_database(database_url)
+        _run_application_smoke(database_url)
         return {
             "status": "ok",
             "backup_key": backup_key,
             "database_name": database_name,
             "revision": EXPECTED_REVISION,
             "counts": counts,
+            "application_smoke": "ok",
             "duration_seconds": round(time.monotonic() - started, 3),
             "kept_for_inspection": config.keep_database,
         }

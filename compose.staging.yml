@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
 
   edge:
-    image: caddy:2.8.4-alpine
+    image: ${CADDY_IMAGE:?CADDY_IMAGE must be an immutable image digest}
     environment:
       APP_HOST: ${APP_HOST:?APP_HOST is required}
     depends_on:

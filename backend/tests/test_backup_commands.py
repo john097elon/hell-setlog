@@ -1,6 +1,7 @@
 import importlib
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 
@@ -104,3 +105,36 @@ def test_local_stack_contains_hourly_automated_backup_job():
     assert "python -m ops.backup" in loop_source
     assert "BACKUP_INTERVAL_SECONDS" in loop_source
     assert "sleep" in loop_source
+
+def test_restore_rehearsal_defines_application_readiness_smoke():
+    restore = operations_module("restore_rehearsal")
+    command = restore.build_restore_smoke_command()
+    script = Path("backend/scripts/smoke_restored_database.py")
+
+    assert command == [sys.executable, str(script.resolve())]
+    assert script.exists()
+    source = script.read_text(encoding="utf-8")
+    assert '"/healthz"' in source
+    assert '"/readyz"' in source
+    assert '"/api/auth/register"' in source
+    assert '"/api/parties/"' in source
+
+def test_restore_smoke_uses_only_the_isolated_database_url(monkeypatch):
+    restore = operations_module("restore_rehearsal")
+    invocation = {}
+
+    def fake_run(command, **kwargs):
+        invocation["command"] = command
+        invocation.update(kwargs)
+
+    monkeypatch.setattr(restore.subprocess, "run", fake_run)
+    restored_url = "postgresql+psycopg://app:secret@db/restored"
+
+    restore._run_application_smoke(restored_url)
+
+    assert invocation["command"] == restore.build_restore_smoke_command()
+    assert invocation["env"]["DATABASE_URL"] == restored_url
+    assert invocation["check"] is True
+    assert invocation["capture_output"] is True
+    assert invocation["text"] is True
+    assert "shell" not in invocation
