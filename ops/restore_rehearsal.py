@@ -306,8 +306,8 @@ def run_restore_rehearsal(
 
 def restore_failure_result(error: Exception) -> dict[str, str]:
     result = failure_result(error)
-    if isinstance(error, DatabaseRestoreFailed):
-        result["diagnostic"] = str(error) or "pg_restore failed"
+    if isinstance(error, (DatabaseRestoreFailed, RestoredApplicationSmokeFailed)):
+        result["diagnostic"] = str(error) or "restore verification failed"
     return result
 
 
