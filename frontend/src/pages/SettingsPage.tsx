@@ -11,6 +11,7 @@ interface Character {
 const WORKOUT_TAG_OPTIONS = ['근력', '유산소', '홈트', '크로스핏', '요가', '러닝', '수영', '기타'];
 
 function SettingsPage() {
+  const [character, setCharacter] = useState<any>(null);
   const [name, setName] = useState('');
   const [avatarSeed, setAvatarSeed] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('/assets/avatars/default.svg');
@@ -25,17 +26,36 @@ function SettingsPage() {
     if (!seedStr) return '/assets/avatars/default.svg';
     let stageNum = 1;
     const parts = seedStr.split(',').map(p => p.trim());
+    let hasOverride = false;
     for (const part of parts) {
       if (part.startsWith('stage_')) {
         const parsed = parseInt(part.split('_')[1], 10);
         if (!isNaN(parsed)) {
           stageNum = parsed;
+          hasOverride = true;
         }
+      }
+    }
+    if (!hasOverride && character && character.body_stats) {
+      const totalLevel = character.body_stats.reduce((sum: number, s: any) => sum + s.level, 0);
+      if (totalLevel < 15) {
+        stageNum = 1;
+      } else if (totalLevel < 30) {
+        stageNum = 2;
+      } else {
+        stageNum = 3;
       }
     }
     if (stageNum < 1) stageNum = 1;
     if (stageNum > 3) stageNum = 3;
-    return `/assets/avatars/stage_${stageNum}.svg`;
+
+    const version = character?.asset_version || 'v2';
+    const cdnUrl = character?.avatar_url && character.avatar_url.includes('://')
+      ? character.avatar_url.split('/assets/avatars/')[0]
+      : '';
+
+    const path = `/assets/avatars/stage_${stageNum}.svg?v=${version}`;
+    return cdnUrl ? `${cdnUrl}${path}` : path;
   };
 
   useEffect(() => {
@@ -44,6 +64,7 @@ function SettingsPage() {
       .then(({ data }) => {
         const character: Character | undefined = data.character;
         if (character) {
+          setCharacter(character);
           setName(character.name);
           setAvatarSeed(character.avatar_seed);
           const url = character.avatar_url || data.avatar_url || '/assets/avatars/default.svg';
@@ -84,9 +105,12 @@ function SettingsPage() {
     setSaving(true);
     try {
       const res = await api.patch('/characters/me', { name, avatar_seed: avatarSeed });
-      if (res.data && res.data.avatar_url) {
-        setAvatarUrl(res.data.avatar_url);
-        setInitialAvatarUrl(res.data.avatar_url);
+      if (res.data) {
+        setCharacter(res.data);
+        if (res.data.avatar_url) {
+          setAvatarUrl(res.data.avatar_url);
+          setInitialAvatarUrl(res.data.avatar_url);
+        }
       }
       // Save workout tags
       await api.patch('/users/me/tags', { workout_tags: JSON.stringify(workoutTags) });

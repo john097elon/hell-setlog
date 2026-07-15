@@ -79,4 +79,38 @@ describe('CharacterPreview', () => {
     // Now it should show initial "G"
     expect(screen.getByText('G')).toBeTruthy();
   });
+
+  it('renders characterName when characterName is provided', () => {
+    render(<CharacterPreview username="alice" characterName="SuperAlice" />);
+    expect(screen.getByText('SuperAlice')).toBeTruthy();
+    expect(screen.queryByText('alice')).toBeNull();
+  });
+
+  it('displays stage and next goal when expanded', async () => {
+    const user = userEvent.setup();
+    render(<CharacterPreview username="bob" body_stats={STATS} />);
+    const card = screen.getByText('bob').closest('div')!;
+    await user.click(card);
+
+    expect(screen.getByText('Stage 1')).toBeTruthy();
+    expect(screen.getByText(/Lv\.15/)).toBeTruthy();
+  });
+
+  it('has correct accessibility attributes', async () => {
+    const user = userEvent.setup();
+    render(<CharacterPreview username="carol" body_stats={STATS} />);
+    const card = screen.getByText('carol').closest('div')!;
+    
+    expect(card.getAttribute('role')).toBe('button');
+    expect(card.getAttribute('tabIndex')).toBe('0');
+    expect(card.getAttribute('aria-expanded')).toBe('false');
+
+    await user.click(card);
+    expect(card.getAttribute('aria-expanded')).toBe('true');
+
+    // Potential progress bar should have role progressbar and ARIA attributes
+    const progressbar = screen.getAllByRole('progressbar')[0];
+    expect(progressbar).toBeTruthy();
+    expect(progressbar.getAttribute('aria-valuenow')).toBe('50');
+  });
 });
