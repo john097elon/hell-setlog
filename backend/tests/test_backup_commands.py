@@ -194,3 +194,29 @@ def test_restore_subprocess_failures_have_safe_stage_specific_types():
         "status": "failed",
         "error_type": "RestoredApplicationSmokeFailed",
     }
+
+def test_pg_restore_diagnostics_are_classified_without_raw_output():
+    restore = operations_module("restore_rehearsal")
+
+    assert type(
+        restore.classify_pg_restore_failure(
+            b'pg_restore: error: relation "public.users" does not exist'
+        )
+    ).__name__ == "DatabaseRestoreCleanTargetMissing"
+    assert type(
+        restore.classify_pg_restore_failure(
+            b'pg_restore: error: relation "users" already exists'
+        )
+    ).__name__ == "DatabaseRestoreTargetNotEmpty"
+    assert type(
+        restore.classify_pg_restore_failure(b"pg_restore: error: permission denied")
+    ).__name__ == "DatabaseRestorePermissionDenied"
+    assert type(
+        restore.classify_pg_restore_failure(b"pg_restore: error: connection to server failed")
+    ).__name__ == "DatabaseRestoreConnectionFailed"
+    assert type(
+        restore.classify_pg_restore_failure(b"pg_restore: unsupported version in file header")
+    ).__name__ == "DatabaseRestoreArchiveIncompatible"
+    assert type(restore.classify_pg_restore_failure(b"unclassified")).__name__ == (
+        "DatabaseRestoreFailed"
+    )

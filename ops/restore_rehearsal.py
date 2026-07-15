@@ -40,6 +40,44 @@ class DatabaseRestoreFailed(RuntimeError):
     """The provider-neutral pg_restore stage failed."""
 
 
+class DatabaseRestoreCleanTargetMissing(DatabaseRestoreFailed):
+    """Cleanup referenced an object absent from the isolated target."""
+
+
+class DatabaseRestoreTargetNotEmpty(DatabaseRestoreFailed):
+    """The isolated target contained an object from the archive."""
+
+
+class DatabaseRestorePermissionDenied(DatabaseRestoreFailed):
+    """The restore role could not recreate an archive object."""
+
+
+class DatabaseRestoreConnectionFailed(DatabaseRestoreFailed):
+    """pg_restore could not connect to the isolated target."""
+
+
+class DatabaseRestoreArchiveIncompatible(DatabaseRestoreFailed):
+    """The installed client cannot read the archive format."""
+
+
+def classify_pg_restore_failure(stderr: bytes | str | None) -> DatabaseRestoreFailed:
+    if isinstance(stderr, bytes):
+        diagnostic = stderr.decode("utf-8", errors="replace").lower()
+    else:
+        diagnostic = (stderr or "").lower()
+    if "does not exist" in diagnostic:
+        return DatabaseRestoreCleanTargetMissing()
+    if "already exists" in diagnostic:
+        return DatabaseRestoreTargetNotEmpty()
+    if "permission denied" in diagnostic:
+        return DatabaseRestorePermissionDenied()
+    if "connection to server" in diagnostic or "could not connect" in diagnostic:
+        return DatabaseRestoreConnectionFailed()
+    if "unsupported version" in diagnostic:
+        return DatabaseRestoreArchiveIncompatible()
+    return DatabaseRestoreFailed()
+
+
 class RestoredApplicationSmokeFailed(RuntimeError):
     """The restored database could not serve the core application smoke."""
 
@@ -223,7 +261,7 @@ def run_restore_rehearsal(
                     capture_output=True,
                 )
             except subprocess.CalledProcessError as error:
-                raise DatabaseRestoreFailed from error
+                raise classify_pg_restore_failure(error.stderr) from error
         counts = _verify_database(database_url)
         _run_application_smoke(database_url)
         return {
