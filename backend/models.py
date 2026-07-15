@@ -306,7 +306,9 @@ class BodyStat(Base):
 class GrowthEvent(Base):
     __tablename__ = "growth_events"
     __table_args__ = (
-        UniqueConstraint("workout_id", "body_part", name="uq_growth_event_workout_part"),
+        UniqueConstraint(
+            "workout_id", "body_part", name="uq_growth_event_workout_part"
+        ),
         CheckConstraint(
             "body_part IN ('chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'stamina')",
             name="ck_growth_event_body_part",

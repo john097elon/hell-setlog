@@ -34,7 +34,9 @@ def upgrade() -> None:
         sa.Column("level_after", sa.Integer(), nullable=False),
         sa.Column("potential_after", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_growth_events_user"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_growth_events_user"
+        ),
         sa.ForeignKeyConstraint(
             ["workout_id"], ["workouts.id"], name="fk_growth_events_workout"
         ),

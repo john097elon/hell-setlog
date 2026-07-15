@@ -1,14 +1,23 @@
 """Server-authoritative GrowthEvent engine (formula_version=1)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 
 BODY_PARTS: tuple[str, ...] = (
-    "chest", "back", "legs", "shoulders", "arms", "core", "stamina"
+    "chest",
+    "back",
+    "legs",
+    "shoulders",
+    "arms",
+    "core",
+    "stamina",
 )
 FORMULA_VERSION = 1
-DAILY_CAP_PER_PART = 30  # ponytail: daily anti-farm ceiling; raise if gameplay demands it
+DAILY_CAP_PER_PART = (
+    30  # ponytail: daily anti-farm ceiling; raise if gameplay demands it
+)
 
 _PART_KW_KR: dict[str, str] = {
     "chest": "가슴",
@@ -36,7 +45,7 @@ def compute_growth(
     duration_seconds: int,
     setlog_contents: list[str],
     current_stats: dict[str, tuple[int, int]],  # part -> (level, potential)
-    daily_used: dict[str, int],                  # part -> potential already granted today
+    daily_used: dict[str, int],  # part -> potential already granted today
 ) -> list[PartGrowth]:
     """Pure, deterministic growth for all 7 parts. No randomness.
 
@@ -71,15 +80,17 @@ def compute_growth(
             new_level += 1
             new_potential -= 100
 
-        results.append(PartGrowth(
-            body_part=part,
-            delta=delta,
-            reason=reason,
-            level_before=level,
-            potential_before=potential,
-            level_after=new_level,
-            potential_after=new_potential,
-        ))
+        results.append(
+            PartGrowth(
+                body_part=part,
+                delta=delta,
+                reason=reason,
+                level_before=level,
+                potential_before=potential,
+                level_after=new_level,
+                potential_after=new_potential,
+            )
+        )
 
     return results
 

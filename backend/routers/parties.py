@@ -486,11 +486,20 @@ def get_party_feed(
                 .all()
             )
             breakthroughs = [
-                {"part": ge.body_part, "old_level": ge.level_before, "new_level": ge.level_after}
-                for ge in growth_events if ge.level_after > ge.level_before
+                {
+                    "part": ge.body_part,
+                    "old_level": ge.level_before,
+                    "new_level": ge.level_after,
+                }
+                for ge in growth_events
+                if ge.level_after > ge.level_before
             ]
             body_stats = [
-                {"part": ge.body_part, "level": ge.level_after, "potential": ge.potential_after}
+                {
+                    "part": ge.body_part,
+                    "level": ge.level_after,
+                    "potential": ge.potential_after,
+                }
                 for ge in growth_events
             ]
             events.append(

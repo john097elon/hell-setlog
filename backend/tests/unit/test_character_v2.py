@@ -45,7 +45,10 @@ def test_manifest_schema_and_provenance():
 
         hasher = hashlib.sha256()
         with open(file_path, "rb") as af:
-            hasher.update(af.read())
+            content = af.read()
+            if file_path.suffix in (".svg", ".json", ".xml", ".html", ".css", ".js"):
+                content = content.replace(b"\r\n", b"\n")
+            hasher.update(content)
         computed_hash = hasher.hexdigest()
 
         expected_hash = asset["hash"].replace("sha256-", "")

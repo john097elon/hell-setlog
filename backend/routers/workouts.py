@@ -114,6 +114,7 @@ def update_workout(
 
 # ── Workout End + GrowthEvent Engine ───────────────────────────────────────
 
+
 def _growth_response(workout, growth_events: list, db: Session) -> dict:
     """Build end-workout response from persisted GrowthEvents."""
     setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout.id).count()
@@ -132,11 +133,16 @@ def _growth_response(workout, growth_events: list, db: Session) -> dict:
         notes=workout.notes,
     )
     breakthroughs = [
-        Breakthrough(part=ge.body_part, old_level=ge.level_before, new_level=ge.level_after)
-        for ge in growth_events if ge.level_after > ge.level_before
+        Breakthrough(
+            part=ge.body_part, old_level=ge.level_before, new_level=ge.level_after
+        )
+        for ge in growth_events
+        if ge.level_after > ge.level_before
     ]
     all_stats = [
-        BodyStatSummary(part=ge.body_part, level=ge.level_after, potential=ge.potential_after)
+        BodyStatSummary(
+            part=ge.body_part, level=ge.level_after, potential=ge.potential_after
+        )
         for ge in growth_events
     ]
     return {
@@ -193,7 +199,9 @@ def end_workout(
     }
     for part in BODY_PARTS:
         if part not in body_stats_map:
-            new_stat = BodyStat(character_id=character.id, part=part, level=1, potential=0)
+            new_stat = BodyStat(
+                character_id=character.id, part=part, level=1, potential=0
+            )
             db.add(new_stat)
             db.flush()
             body_stats_map[part] = new_stat
@@ -210,10 +218,14 @@ def end_workout(
 
     # Daily cap: sum deltas already granted today per part
     daily_used: dict[str, int] = {}
-    for ge in db.query(GrowthEvent).filter(
-        GrowthEvent.user_id == current_user.id,
-        GrowthEvent.created_at >= today_utc_start(),
-    ).all():
+    for ge in (
+        db.query(GrowthEvent)
+        .filter(
+            GrowthEvent.user_id == current_user.id,
+            GrowthEvent.created_at >= today_utc_start(),
+        )
+        .all()
+    ):
         daily_used[ge.body_part] = daily_used.get(ge.body_part, 0) + ge.delta
 
     current_stats = {p: (bs.level, bs.potential) for p, bs in body_stats_map.items()}
@@ -247,16 +259,22 @@ def end_workout(
             cl = s.content.lower()
             for ge in growth_events:
                 from growth import _PART_KW_KR
+
                 kw = _PART_KW_KR.get(ge.body_part, ge.body_part)
                 if kw in cl:
                     part_counts[ge.body_part] = part_counts.get(ge.body_part, 0) + 1
     from growth import _PART_KW_KR as _KW
+
     if part_counts:
         summary = ", ".join(f"{_KW.get(p, p)} {c}세트" for p, c in part_counts.items())
         summary += f" 완료 - 총 {len(setlogs)}개 세트로그"
     else:
         summary = f"운동 완료 - 총 {len(setlogs)}개 세트로그"
-    db.add(Setlog(workout_id=workout_id, user_id=current_user.id, type="end", content=summary))
+    db.add(
+        Setlog(
+            workout_id=workout_id, user_id=current_user.id, type="end", content=summary
+        )
+    )
 
     db.commit()
     db.refresh(workout)
