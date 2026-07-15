@@ -7,13 +7,14 @@ import type { BodyPart } from '../components/CharacterPreview';
 interface Workout {
   id: string;
   party_id: string;
-  status: 'active' | 'ended' | 'done';
+  status: 'active' | 'ended' | 'done' | 'cancelled';
   started_at: string;
   ended_at?: string;
   duration_seconds?: number;
   setlog_count?: number;
   notes?: string;
   body_stats?: BodyPart[];
+  setlogs?: Setlog[];
   breakthroughs?: Array<{
     part: string;
     old_level: number;
@@ -67,6 +68,19 @@ function WorkoutPage() {
   const [ending, setEnding] = useState(false);
   const [resultWorkout, setResultWorkout] = useState<Workout | null>(null);
 
+  // ---- Recover an in-progress workout when landing on the idle screen ----
+  useEffect(() => {
+    if (id) return;
+    api.get('/workouts/')
+      .then(({ data }) => {
+        const active = Array.isArray(data)
+          ? data.find((w: Workout) => w.status === 'active')
+          : null;
+        if (active) navigate(`/workout/${active.id}`, { replace: true });
+      })
+      .catch(() => {});
+  }, [id]);
+
   // ---- Fetch existing workout ----
   useEffect(() => {
     if (!id) return;
@@ -75,9 +89,25 @@ function WorkoutPage() {
       .then(({ data }) => {
         const w: Workout = data;
         setWorkout(w);
+        if (w.status === 'cancelled') {
+          // A cancelled workout has no result screen — go start a fresh one.
+          navigate('/workout', { replace: true });
+          return;
+        }
         if (w.status === 'ended' || w.status === 'done') {
           setPhase('ended');
-          setResultWorkout(w);
+          // GET returns the persisted workout without the transient end payload;
+          // recover the summary from timestamps and the setlog list.
+          const durationSeconds = w.duration_seconds ?? (
+            w.ended_at
+              ? Math.floor((new Date(w.ended_at).getTime() - new Date(w.started_at).getTime()) / 1000)
+              : undefined
+          );
+          setResultWorkout({
+            ...w,
+            duration_seconds: durationSeconds,
+            setlog_count: w.setlog_count ?? (Array.isArray(w.setlogs) ? w.setlogs.length : undefined),
+          });
         } else {
           setPhase('active');
           // Calculate elapsed from started_at
@@ -143,7 +173,16 @@ function WorkoutPage() {
       const { data } = await api.post('/workouts/', payload);
       navigate(`/workout/${data.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.response?.data?.message || err.message || '운동 시작에 실패했습니다');
+      const detail = err.response?.data?.detail;
+      // 409: an active workout already exists — resume it instead of erroring.
+      if (err.response?.status === 409 && detail?.active_workout_id) {
+        navigate(`/workout/${detail.active_workout_id}`);
+        return;
+      }
+      setError(
+        (typeof detail === 'string' ? detail : detail?.message)
+        || err.response?.data?.message || err.message || '운동 시작에 실패했습니다',
+      );
     } finally {
       setCreating(false);
     }
@@ -154,18 +193,42 @@ function WorkoutPage() {
     if (!setlogContent.trim() && !setlogFile) return;
     setSubmitting(true);
     try {
+      // Upload the selected image first, then reference the returned key.
+      let filePath: string | undefined;
+      if (setlogFile) {
+        const form = new FormData();
+        form.append('file', setlogFile);
+        const uploaded = await api.post('/media', form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        filePath = uploaded.data.key;
+      }
       const { data } = await api.post(`/workouts/${id}/setlogs`, {
         type: setlogType,
         content: setlogContent,
+        file_path: filePath,
       });
       setSetlogs((prev) => [...prev, data]);
       setSetlogContent('');
       setSetlogFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      alert(err.response?.data?.message || '세트로그 등록에 실패했습니다');
+      const detail = err.response?.data?.detail;
+      alert((typeof detail === 'string' ? detail : detail?.message) || '세트로그 등록에 실패했습니다');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCancelWorkout = async () => {
+    if (!id) return;
+    if (!window.confirm('운동을 취소하시겠습니까? 성장 보상은 지급되지 않습니다.')) return;
+    try {
+      await api.post(`/workouts/${id}/cancel`);
+      if (timerRef.current) clearInterval(timerRef.current);
+      navigate('/workout', { replace: true });
+    } catch (err: any) {
+      alert(err.response?.data?.detail || '운동 취소에 실패했습니다');
     }
   };
 
@@ -411,20 +474,7 @@ function WorkoutPage() {
                     {sl.content}
                   </div>
                 )}
-                {sl.file_path && (
-                  <div style={{
-                    marginTop: '6px',
-                    padding: '16px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '6px',
-                    border: '1px dashed var(--border)',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.8rem',
-                  }}>
-                    📎 첨부파일
-                  </div>
-                )}
+                {sl.file_path && <SetlogMedia path={sl.file_path} />}
               </div>
             </div>
           ))}
@@ -551,6 +601,23 @@ function WorkoutPage() {
             }}
           >
             {ending ? '종료 중...' : '🔥 운동 종료'}
+          </button>
+          <button
+            onClick={handleCancelWorkout}
+            disabled={ending}
+            style={{
+              width: '100%',
+              marginTop: '8px',
+              padding: '10px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: '0.85rem',
+              cursor: ending ? 'not-allowed' : 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            운동 취소
           </button>
         </div>
       </div>
@@ -789,6 +856,63 @@ function WorkoutPage() {
   }
 
   return null;
+}
+
+// ---- Private media ----
+// Media is owner-only and behind bearer auth, so a plain <img src> can't load
+// it; fetch the bytes through the API client and render an object URL.
+function SetlogMedia({ path }: { path: string }) {
+  const [url, setUrl] = useState('');
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let objectUrl = '';
+    let cancelled = false;
+    api.get(`/media/${path}`, { responseType: 'blob' })
+      .then((res) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(res.data);
+        setUrl(objectUrl);
+      })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [path]);
+
+  if (failed) {
+    return (
+      <div style={{
+        marginTop: '6px', padding: '12px', background: 'var(--bg-secondary)',
+        borderRadius: '6px', border: '1px dashed var(--border)',
+        textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem',
+      }}>
+        📎 사진을 불러올 수 없습니다
+      </div>
+    );
+  }
+  if (!url) {
+    return (
+      <div style={{
+        marginTop: '6px', padding: '16px', background: 'var(--bg-secondary)',
+        borderRadius: '6px', textAlign: 'center', color: 'var(--text-secondary)',
+        fontSize: '0.8rem',
+      }}>
+        📎 사진 불러오는 중...
+      </div>
+    );
+  }
+  return (
+    <img
+      src={url}
+      alt="세트로그 첨부 사진"
+      style={{
+        marginTop: '6px', maxWidth: '100%', borderRadius: '6px',
+        border: '1px solid var(--border)', display: 'block',
+      }}
+    />
+  );
 }
 
 // ---- Styles ----

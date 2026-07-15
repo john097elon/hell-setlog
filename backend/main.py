@@ -45,6 +45,7 @@ configure_observability(app, settings, engine)
 
 import auth  # noqa: E402
 from routers.characters import router as characters_router  # noqa: E402
+from routers.media import router as media_router  # noqa: E402
 from routers.parties import router as parties_router  # noqa: E402
 from routers.reactions import router as reactions_router  # noqa: E402
 from routers.stats import router as stats_router  # noqa: E402
@@ -60,6 +61,7 @@ app.include_router(reactions_router, prefix="/api")
 app.include_router(streak_router, prefix="/api")
 app.include_router(characters_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
+app.include_router(media_router, prefix="/api")
 
 
 @app.get("/api/health")
