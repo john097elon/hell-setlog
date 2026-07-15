@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      registerType: 'prompt',
+      includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'Hell Setlog',
         short_name: 'Hell Setlog',
@@ -17,6 +17,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        id: '/',
+        scope: '/',
         icons: [
           {
             src: 'icon-192x192.png',
@@ -29,15 +31,25 @@ export default defineConfig({
             type: 'image/png',
           },
           {
-            src: 'icon-512x512.png',
+            src: 'icon-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
+          },
+          {
+            src: 'apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
+            purpose: 'any',
           },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: [
+          '**/api/**',
+          '**/media/**',
+        ],
         runtimeCaching: [
           {
             urlPattern: /^\/assets\/avatars\/.*\.(?:png|svg)/i,

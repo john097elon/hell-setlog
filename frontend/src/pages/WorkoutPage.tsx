@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, type FormEvent } from 'react';
 import api from '../api';
 import StreakBadge from '../components/StreakBadge';
 import type { BodyPart } from '../components/CharacterPreview';
+import { useWorkoutDraft } from '../hooks/useWorkoutDraft';
 
 interface Workout {
   id: string;
@@ -40,6 +41,7 @@ const PART_LABELS: Record<string, string> = {
 function WorkoutPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+const { draft, updateDraft, clearDraft } = useWorkoutDraft();
 
   // ---- State ----
   const [phase, setPhase] = useState<WorkoutState>(id ? 'active' : 'idle');
@@ -49,8 +51,8 @@ function WorkoutPage() {
   const [error, setError] = useState('');
 
   // Idle form state
-  const [partyId, setPartyId] = useState('');
-  const [notes, setNotes] = useState('');
+  const [partyId, setPartyId] = useState(draft.partyId || '');
+  const [notes, setNotes] = useState(draft.notes || '');
   const [creating, setCreating] = useState(false);
 
   // Active form state
@@ -172,6 +174,7 @@ function WorkoutPage() {
       if (notes) payload.notes = notes;
       const { data } = await api.post('/workouts/', payload);
       navigate(`/workout/${data.id}`);
+      clearDraft();
     } catch (err: any) {
       const detail = err.response?.data?.detail;
       // 409: an active workout already exists — resume it instead of erroring.
@@ -338,7 +341,7 @@ function WorkoutPage() {
             <input
               type="text"
               value={partyId}
-              onChange={(e) => setPartyId(e.target.value)}
+              onChange={(e) => { setPartyId(e.target.value); updateDraft({ partyId: e.target.value }); }}
               placeholder="파티가 있다면 ID를 입력하세요"
               style={inputStyle}
             />
@@ -348,7 +351,7 @@ function WorkoutPage() {
             <label style={labelStyle}>운동 메모 (선택)</label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => { setNotes(e.target.value); updateDraft({ notes: e.target.value }); }}
               placeholder="오늘의 운동 목표나 메모..."
               rows={3}
               style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
