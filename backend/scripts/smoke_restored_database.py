@@ -15,7 +15,11 @@ def require_status(response, expected: int, endpoint: str) -> None:
     if response.status_code != expected:
         print(
             json.dumps(
-                {"status": "failed", "endpoint": endpoint, "http_status": response.status_code}
+                {
+                    "status": "failed",
+                    "endpoint": endpoint,
+                    "http_status": response.status_code,
+                }
             )
         )
         raise SystemExit(1)
@@ -44,14 +48,18 @@ def main() -> int:
         checks.append(endpoint)
 
         endpoint = "/api/auth/login"
-        response = client.post(endpoint, json={"username": username, "password": password})
+        response = client.post(
+            endpoint, json={"username": username, "password": password}
+        )
         require_status(response, 200, endpoint)
         token = response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
         checks.append(endpoint)
 
         endpoint = "/api/parties/"
-        response = client.post(endpoint, json={"name": "Restore Smoke Party"}, headers=headers)
+        response = client.post(
+            endpoint, json={"name": "Restore Smoke Party"}, headers=headers
+        )
         require_status(response, 201, endpoint)
         party_id = response.json()["id"]
         checks.append(endpoint)

@@ -207,7 +207,7 @@ function PartyRoomPage() {
       id: String(m.user.id),
       user_id: m.user_id ?? m.user.id,
       username: m.user.username,
-      avatar_url: m.user.avatar_url,
+      avatar_url: m.user.character?.avatar_url,
       body_stats: m.user.character?.body_stats,
       role: m.role,
     } : {

@@ -64,7 +64,9 @@ def _sanitize(value: Any) -> Any:
     return value
 
 
-def redact_sensitive(_logger, _method_name, event_dict: dict[str, Any]) -> dict[str, Any]:
+def redact_sensitive(
+    _logger, _method_name, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Drop known sensitive fields recursively before rendering a log event."""
 
     return _sanitize(event_dict)

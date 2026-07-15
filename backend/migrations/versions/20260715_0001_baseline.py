@@ -71,8 +71,12 @@ def upgrade() -> None:
         sa.Column("role", sa.String(length=20), nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("left_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(["party_id"], ["parties.id"], name="fk_party_members_party"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_party_members_user"),
+        sa.ForeignKeyConstraint(
+            ["party_id"], ["parties.id"], name="fk_party_members_party"
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_party_members_user"
+        ),
         sa.UniqueConstraint("party_id", "user_id", name="uq_party_member"),
         sa.CheckConstraint("role IN ('owner', 'member')", name="ck_party_member_role"),
         sa.CheckConstraint(
@@ -124,7 +128,9 @@ def upgrade() -> None:
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("file_path", sa.String(length=500), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["workout_id"], ["workouts.id"], name="fk_setlogs_workout"),
+        sa.ForeignKeyConstraint(
+            ["workout_id"], ["workouts.id"], name="fk_setlogs_workout"
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_setlogs_user"),
         sa.CheckConstraint("type IN ('start', 'mid', 'end')", name="ck_setlog_type"),
     )

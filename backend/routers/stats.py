@@ -1,4 +1,5 @@
 """Router: BodyStat management."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -24,5 +25,7 @@ def get_my_stats(
         .filter(BodyStat.character_id == current_user.character_id)
         .all()
     )
+
+
 # PATCH /stats/{part} removed — growth is written exclusively by the server's
 # workout-end engine. Client writes to this endpoint were a P0 growth fraud vector.

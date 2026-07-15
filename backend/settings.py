@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     sentry_dsn: str | None = None
     database_ready_timeout_seconds: float = Field(default=2.0, gt=0, le=10)
 
+    asset_cdn_url: str | None = None
+    asset_version: str = "v2"
+
     @model_validator(mode="after")
     def validate_deployed_environment(self) -> "Settings":
         if self.app_env not in {"staging", "production"}:
@@ -50,7 +53,9 @@ class Settings(BaseSettings):
         if not self.allowed_hosts or "*" in self.allowed_hosts:
             raise ValueError("deployed environments require exact allowed hosts")
         if self.release == "development":
-            raise ValueError("deployed environments require an immutable release identifier")
+            raise ValueError(
+                "deployed environments require an immutable release identifier"
+            )
 
         private_storage_values = (
             self.storage_endpoint_url,
@@ -58,7 +63,9 @@ class Settings(BaseSettings):
             self.storage_secret_key,
             self.sentry_dsn,
         )
-        if self.storage_backend != "s3" or any(value is None for value in private_storage_values):
+        if self.storage_backend != "s3" or any(
+            value is None for value in private_storage_values
+        ):
             raise ValueError(
                 "deployed environments require private S3 storage and error tracking"
             )

@@ -20,7 +20,9 @@ DEPLOYED_ENV = {
 
 
 def settings_class():
-    assert importlib.util.find_spec("settings") is not None, "settings module must exist"
+    assert importlib.util.find_spec("settings") is not None, (
+        "settings module must exist"
+    )
     return importlib.import_module("settings").Settings
 
 
@@ -37,7 +39,11 @@ def test_test_environment_accepts_sqlite():
 
 
 def test_production_rejects_sqlite():
-    values = {**DEPLOYED_ENV, "app_env": "production", "database_url": "sqlite:///prod.db"}
+    values = {
+        **DEPLOYED_ENV,
+        "app_env": "production",
+        "database_url": "sqlite:///prod.db",
+    }
 
     with pytest.raises(ValidationError, match="PostgreSQL"):
         settings_class()(_env_file=None, **values)

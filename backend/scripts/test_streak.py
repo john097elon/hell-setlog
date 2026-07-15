@@ -31,27 +31,49 @@ def test_single_day() -> None:
     result = compute_streak([today])
     assert_equal(result["current_streak"], 1, "single day current_streak")
     assert_equal(result["longest_streak"], 1, "single day longest_streak")
-    assert_equal(result["current_streak_start"], today, "single day current_streak_start")
-    assert_equal(result["longest_streak_start"], today, "single day longest_streak_start")
+    assert_equal(
+        result["current_streak_start"], today, "single day current_streak_start"
+    )
+    assert_equal(
+        result["longest_streak_start"], today, "single day longest_streak_start"
+    )
     assert_equal(result["longest_streak_end"], today, "single day longest_streak_end")
 
 
 def test_consecutive_days() -> None:
     start = datetime.date(2024, 1, 10)
-    dates = [start, start + datetime.timedelta(days=1), start + datetime.timedelta(days=2)]
+    dates = [
+        start,
+        start + datetime.timedelta(days=1),
+        start + datetime.timedelta(days=2),
+    ]
     result = compute_streak(dates)
     assert_equal(result["longest_streak"], 3, "consecutive longest_streak")
-    assert_equal(result["longest_streak_start"], start, "consecutive longest_streak_start")
-    assert_equal(result["longest_streak_end"], start + datetime.timedelta(days=2), "consecutive longest_streak_end")
+    assert_equal(
+        result["longest_streak_start"], start, "consecutive longest_streak_start"
+    )
+    assert_equal(
+        result["longest_streak_end"],
+        start + datetime.timedelta(days=2),
+        "consecutive longest_streak_end",
+    )
 
 
 def test_gap_breaks_streak() -> None:
     start = datetime.date(2024, 2, 1)
-    dates = [start, start + datetime.timedelta(days=1), start + datetime.timedelta(days=3)]
+    dates = [
+        start,
+        start + datetime.timedelta(days=1),
+        start + datetime.timedelta(days=3),
+    ]
     result = compute_streak(dates)
     assert_equal(result["longest_streak"], 2, "gap longest_streak")
     assert_equal(result["longest_streak_start"], start, "gap longest_streak_start")
-    assert_equal(result["longest_streak_end"], start + datetime.timedelta(days=1), "gap longest_streak_end")
+    assert_equal(
+        result["longest_streak_end"],
+        start + datetime.timedelta(days=1),
+        "gap longest_streak_end",
+    )
 
 
 def test_today_included_current_is_active() -> None:
@@ -59,7 +81,9 @@ def test_today_included_current_is_active() -> None:
     dates = [today - datetime.timedelta(days=1), today]
     result = compute_streak(dates)
     if result["current_streak"] < 1:
-        raise AssertionError(f"today included current_streak: expected >= 1, got {result['current_streak']!r}")
+        raise AssertionError(
+            f"today included current_streak: expected >= 1, got {result['current_streak']!r}"
+        )
 
 
 def test_yesterday_but_not_today_current_is_active() -> None:
@@ -68,7 +92,9 @@ def test_yesterday_but_not_today_current_is_active() -> None:
     dates = [today - datetime.timedelta(days=2), yesterday]
     result = compute_streak(dates)
     if result["current_streak"] < 1:
-        raise AssertionError(f"yesterday only current_streak: expected >= 1, got {result['current_streak']!r}")
+        raise AssertionError(
+            f"yesterday only current_streak: expected >= 1, got {result['current_streak']!r}"
+        )
 
 
 def main() -> None:

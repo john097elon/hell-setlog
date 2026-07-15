@@ -1,4 +1,5 @@
 """Router: Character customization."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -20,9 +21,7 @@ def get_my_character(
         raise HTTPException(status_code=404, detail="No character found")
 
     character = (
-        db.query(Character)
-        .filter(Character.id == current_user.character_id)
-        .first()
+        db.query(Character).filter(Character.id == current_user.character_id).first()
     )
     if not character:
         raise HTTPException(status_code=404, detail="No character found")
@@ -40,9 +39,7 @@ def update_my_character(
         raise HTTPException(status_code=404, detail="No character found")
 
     character = (
-        db.query(Character)
-        .filter(Character.id == current_user.character_id)
-        .first()
+        db.query(Character).filter(Character.id == current_user.character_id).first()
     )
     if not character:
         raise HTTPException(status_code=404, detail="No character found")

@@ -41,6 +41,10 @@ describe('CharacterPreview', () => {
     render(<CharacterPreview username="" />);
     expect(screen.getByText('?')).toBeTruthy();
   });
+  it('renders question mark initial for empty username', () => {
+    render(<CharacterPreview username="" />);
+    expect(screen.getByText('?')).toBeTruthy();
+  });
 
   it('does not crash with no body_stats', () => {
     render(<CharacterPreview username="dave" />);
@@ -55,5 +59,24 @@ describe('CharacterPreview', () => {
     // Just checking it renders without error
     render(<CharacterPreview username="eve" body_stats={nearBreak} />);
     expect(screen.getByText('eve')).toBeTruthy();
+  });
+
+  it('renders avatar image when avatar_url is provided', () => {
+    render(<CharacterPreview username="frank" avatar_url="/assets/avatars/stage_1.svg" />);
+    const img = screen.getByAltText('frank') as HTMLImageElement;
+    expect(img).toBeTruthy();
+    expect(img.src).toContain('/assets/avatars/stage_1.svg');
+  });
+
+  it('falls back to initial when avatar image error occurs', async () => {
+    render(<CharacterPreview username="grace" avatar_url="/assets/avatars/stage_99.svg" />);
+    const img = screen.getByAltText('grace');
+    
+    // Trigger image error
+    const fireEvent = await import('@testing-library/react').then(m => m.fireEvent);
+    fireEvent.error(img);
+    
+    // Now it should show initial "G"
+    expect(screen.getByText('G')).toBeTruthy();
   });
 });

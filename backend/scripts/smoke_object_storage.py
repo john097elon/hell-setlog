@@ -24,14 +24,19 @@ def require_anonymous_denial(url: str) -> None:
     except urllib.error.HTTPError as error:
         if error.code in {401, 403}:
             return
-        raise RuntimeError("anonymous storage request returned an unexpected status") from error
+        raise RuntimeError(
+            "anonymous storage request returned an unexpected status"
+        ) from error
     raise RuntimeError("private object storage allowed anonymous access")
 
 
 def main() -> int:
     settings = Settings()
     backend = create_object_storage(settings)
-    if not isinstance(backend, S3ObjectStorage) or settings.storage_endpoint_url is None:
+    if (
+        not isinstance(backend, S3ObjectStorage)
+        or settings.storage_endpoint_url is None
+    ):
         raise RuntimeError("object storage smoke requires the S3 adapter")
 
     body = b"private-object-smoke"
@@ -69,7 +74,14 @@ def main() -> int:
         if uploaded:
             backend.delete(key)
 
-    print(json.dumps({"status": "ok", "checks": ["private-read", "private-list", "signed-get", "delete"]}))
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "checks": ["private-read", "private-list", "signed-get", "delete"],
+            }
+        )
+    )
     return 0
 
 

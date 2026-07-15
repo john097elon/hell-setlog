@@ -9,7 +9,9 @@ from fastapi.testclient import TestClient
 
 
 def frontend_module():
-    assert importlib.util.find_spec("static_frontend") is not None, "static frontend module must exist"
+    assert importlib.util.find_spec("static_frontend") is not None, (
+        "static frontend module must exist"
+    )
     return importlib.import_module("static_frontend")
 
 

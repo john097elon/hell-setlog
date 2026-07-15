@@ -1,4 +1,5 @@
 """Router: Workout and Setlog management."""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -39,6 +40,7 @@ def _check_party_membership(db: Session, user_id: int, party_id: int) -> bool:
 
 # ── Workouts ────────────────────────────────────────────────────────────────
 
+
 @router.post("/", response_model=WorkoutOut, status_code=status.HTTP_201_CREATED)
 def create_workout(
     body: WorkoutCreate,
@@ -46,7 +48,9 @@ def create_workout(
     db: Session = Depends(get_db),
 ):
     """Start a new workout."""
-    if body.party_id and not _check_party_membership(db, current_user.id, body.party_id):
+    if body.party_id and not _check_party_membership(
+        db, current_user.id, body.party_id
+    ):
         raise HTTPException(status_code=403, detail="Not a member of this party")
 
     workout = Workout(
@@ -112,25 +116,34 @@ def update_workout(
 
 # ── Workout End + Character Growth ─────────────────────────────────────────
 
+
 def _build_end_response(workout, db: Session) -> dict:
     """Build the end-workout response dict from an already-ended workout."""
     from models import User as _User
+
     user = db.query(_User).filter(_User.id == workout.user_id).first()
     body_stats = []
     if user and user.character_id:
         body_stats = [
             BodyStatSummary(part=bs.part, level=bs.level, potential=bs.potential)
-            for bs in db.query(BodyStat).filter(BodyStat.character_id == user.character_id).all()
+            for bs in db.query(BodyStat)
+            .filter(BodyStat.character_id == user.character_id)
+            .all()
         ]
     setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout.id).count()
     duration_seconds = (
         int((workout.ended_at - workout.started_at).total_seconds())
-        if workout.ended_at and workout.started_at else None
+        if workout.ended_at and workout.started_at
+        else None
     )
     workout_out = WorkoutOut(
-        id=workout.id, user_id=workout.user_id, party_id=workout.party_id,
-        started_at=workout.started_at, ended_at=workout.ended_at,
-        status=workout.status, notes=workout.notes,
+        id=workout.id,
+        user_id=workout.user_id,
+        party_id=workout.party_id,
+        started_at=workout.started_at,
+        ended_at=workout.ended_at,
+        status=workout.status,
+        notes=workout.notes,
     )
     return {
         **workout_out.model_dump(),
@@ -171,16 +184,14 @@ def end_workout(
     if not current_user.character_id:
         raise HTTPException(status_code=404, detail="No character found")
 
-    character = db.query(Character).filter(Character.id == current_user.character_id).first()
+    character = (
+        db.query(Character).filter(Character.id == current_user.character_id).first()
+    )
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
 
     # 4. Get all 7 BodyStats for this character
-    body_stats = (
-        db.query(BodyStat)
-        .filter(BodyStat.character_id == character.id)
-        .all()
-    )
+    body_stats = db.query(BodyStat).filter(BodyStat.character_id == character.id).all()
     # Ensure we have all 7 — create any missing ones
     existing_parts = {bs.part for bs in body_stats}
     for part in BODY_PARTS:
@@ -199,11 +210,10 @@ def end_workout(
     started_at = workout.started_at
     if started_at and started_at.tzinfo is None:
         started_at = started_at.replace(tzinfo=timezone.utc)
-    duration_min = (
-        int((now - started_at).total_seconds() / 60)
-        if started_at else 0
-    )
-    base_gain = min(10, max(5, duration_min // 6))  # 5–10 per part, scales with duration
+    duration_min = int((now - started_at).total_seconds() / 60) if started_at else 0
+    base_gain = min(
+        10, max(5, duration_min // 6)
+    )  # 5–10 per part, scales with duration
 
     breakthroughs: list[Breakthrough] = []
     all_stats: list[BodyStatSummary] = []
@@ -216,22 +226,24 @@ def end_workout(
             old_level = bs.level
             bs.level += 1
             bs.potential -= 100
-            breakthroughs.append(Breakthrough(
-                part=bs.part,
-                old_level=old_level,
-                new_level=bs.level,
-            ))
+            breakthroughs.append(
+                Breakthrough(
+                    part=bs.part,
+                    old_level=old_level,
+                    new_level=bs.level,
+                )
+            )
 
-        all_stats.append(BodyStatSummary(
-            part=bs.part,
-            level=bs.level,
-            potential=bs.potential,
-        ))
+        all_stats.append(
+            BodyStatSummary(
+                part=bs.part,
+                level=bs.level,
+                potential=bs.potential,
+            )
+        )
 
     # 6. Auto-generate an "end" setlog summarizing the workout
-    setlog_count = (
-        db.query(Setlog).filter(Setlog.workout_id == workout_id).count()
-    )
+    setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout_id).count()
     # Build a human-readable part summary based on setlog contents
     part_counts: dict[str, int] = {}
     setlogs = db.query(Setlog).filter(Setlog.workout_id == workout_id).all()
@@ -280,7 +292,11 @@ def end_workout(
         notes=workout.notes,
     )
 
-    duration_seconds = int((workout.ended_at - workout.started_at).total_seconds()) if workout.ended_at and workout.started_at else None
+    duration_seconds = (
+        int((workout.ended_at - workout.started_at).total_seconds())
+        if workout.ended_at and workout.started_at
+        else None
+    )
     return {
         **workout_out.model_dump(),
         "duration_seconds": duration_seconds,
@@ -295,7 +311,12 @@ def end_workout(
 
 # ── Setlogs ─────────────────────────────────────────────────────────────────
 
-@router.post("/{workout_id}/setlogs", response_model=SetlogOut, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/{workout_id}/setlogs",
+    response_model=SetlogOut,
+    status_code=status.HTTP_201_CREATED,
+)
 async def add_setlog(
     workout_id: int,
     body: SetlogCreate,

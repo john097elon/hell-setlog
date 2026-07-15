@@ -25,9 +25,7 @@ def utcnow():
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (
-        UniqueConstraint("character_id", name="uq_users_character_id"),
-    )
+    __table_args__ = (UniqueConstraint("character_id", name="uq_users_character_id"),)
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
@@ -58,9 +56,7 @@ class User(Base):
 
 class Character(Base):
     __tablename__ = "characters"
-    __table_args__ = (
-        UniqueConstraint("user_id", name="uq_characters_user_id"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", name="uq_characters_user_id"),)
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
@@ -78,6 +74,75 @@ class Character(Base):
         uselist=False,
     )
     body_stats = relationship("BodyStat", back_populates="character")
+
+    @property
+    def parsed_seed_data(self) -> dict:
+        # Format: "stage_X,cosmetic1,cosmetic2"
+        seed_str = self.avatar_seed or ""
+        parts = [p.strip() for p in seed_str.split(",") if p.strip()]
+        stage_override = None
+        cosmetics = []
+        for part in parts:
+            if part.startswith("stage_"):
+                try:
+                    stage_override = int(part.split("_")[1])
+                except (ValueError, IndexError):
+                    pass
+            elif part not in {"default"}:
+                cosmetics.append(part)
+        return {"stage_override": stage_override, "cosmetics": cosmetics}
+
+    @property
+    def stage(self) -> int:
+        override = self.parsed_seed_data["stage_override"]
+        stage_num = 1
+        if override is not None:
+            stage_num = override
+        elif self.body_stats:
+            total_level = sum(bs.level for bs in self.body_stats)
+            if total_level < 15:
+                stage_num = 1
+            elif total_level < 30:
+                stage_num = 2
+            else:
+                stage_num = 3
+        return max(1, min(3, stage_num))
+
+    @property
+    def cosmetics(self) -> list[str]:
+        return self.parsed_seed_data["cosmetics"]
+
+    @property
+    def fallback_key(self) -> str:
+        return self.name[0].upper() if self.name else "?"
+
+    @property
+    def asset_version(self) -> str:
+        from settings import get_settings
+
+        try:
+            return get_settings().asset_version
+        except Exception:
+            return "v2"
+
+    @property
+    def avatar_url(self) -> str:
+        from settings import get_settings
+
+        try:
+            settings = get_settings()
+            cdn_url = settings.asset_cdn_url
+            version = settings.asset_version
+        except Exception:
+            cdn_url = None
+            version = "v2"
+        stage_num = self.stage
+        path = f"/assets/avatars/stage_{stage_num}.svg"
+        url = f"{path}?v={version}"
+        if cdn_url:
+            base = cdn_url.rstrip("/")
+            url = f"{base}{url}"
+        return url
 
 
 class Party(Base):
@@ -100,7 +165,9 @@ class Party(Base):
     last_matched_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
 
-    owner = relationship("User", back_populates="owned_parties", foreign_keys=[owner_id])
+    owner = relationship(
+        "User", back_populates="owned_parties", foreign_keys=[owner_id]
+    )
     members = relationship(
         "PartyMember",
         primaryjoin="and_(Party.id == PartyMember.party_id, PartyMember.status == 'active')",

@@ -19,7 +19,9 @@ if _allowed_origins_raw:
 elif _ENV == "dev":
     _allowed_origins = ["*"]
 else:
-    raise RuntimeError("ALLOWED_ORIGINS must be set to a comma-separated list of HTTPS origins in non-dev environments")
+    raise RuntimeError(
+        "ALLOWED_ORIGINS must be set to a comma-separated list of HTTPS origins in non-dev environments"
+    )
 
 settings = get_settings()
 app = FastAPI(

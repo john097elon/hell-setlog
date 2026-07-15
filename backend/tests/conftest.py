@@ -1,4 +1,5 @@
 """Shared test fixtures for Hell Setlog backend tests."""
+
 import os
 import sys
 
@@ -64,6 +65,7 @@ def client():
     del _app.state.test_session_factory
     database.Base.metadata.drop_all(bind=test_engine)
 
+
 @pytest.fixture()
 def db(client):
     """A direct database session sharing the API test database."""
@@ -73,14 +75,22 @@ def db(client):
     finally:
         session.close()
 
-def register_and_login(client: TestClient, username: str, password: str = "pass1234") -> str:
+
+def register_and_login(
+    client: TestClient, username: str, password: str = "pass1234"
+) -> str:
     """Register a user and return their access token."""
-    client.post("/api/auth/register", json={
-        "username": username,
-        "email": f"{username}@example.com",
-        "password": password,
-    })
-    resp = client.post("/api/auth/login", json={"username": username, "password": password})
+    client.post(
+        "/api/auth/register",
+        json={
+            "username": username,
+            "email": f"{username}@example.com",
+            "password": password,
+        },
+    )
+    resp = client.post(
+        "/api/auth/login", json={"username": username, "password": password}
+    )
     assert resp.status_code == 200, resp.text
     return resp.json()["access_token"]
 
@@ -88,19 +98,27 @@ def register_and_login(client: TestClient, username: str, password: str = "pass1
 def auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
-def register(client, username: str, password: str = "pass1234", suffix: str = "") -> dict:
+
+def register(
+    client, username: str, password: str = "pass1234", suffix: str = ""
+) -> dict:
     email = f"{username}{suffix}@test.com"
-    r = client.post("/api/auth/register", json={
-        "username": username,
-        "email": email,
-        "password": password,
-    })
+    r = client.post(
+        "/api/auth/register",
+        json={
+            "username": username,
+            "email": email,
+            "password": password,
+        },
+    )
     assert r.status_code == 201, r.json()
     return r.json()
 
 
 def login(client, username: str, password: str = "pass1234") -> str:
-    r = client.post("/api/auth/login", json={"username": username, "password": password})
+    r = client.post(
+        "/api/auth/login", json={"username": username, "password": password}
+    )
     assert r.status_code == 200, r.json()
     return r.json()["access_token"]
 
@@ -109,7 +127,9 @@ def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def make_user(client, name: str, password: str = "pass1234", suffix: str = "") -> tuple[dict, str]:
+def make_user(
+    client, name: str, password: str = "pass1234", suffix: str = ""
+) -> tuple[dict, str]:
     """Register + login; returns (user_json, token)."""
     user = register(client, name, password, suffix)
     token = login(client, name, password)

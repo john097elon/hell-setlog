@@ -60,9 +60,7 @@ def test_model_metadata_matches_operational_baseline():
         if isinstance(constraint, CheckConstraint)
     }
     index_names = {
-        index.name
-        for table in Base.metadata.tables.values()
-        for index in table.indexes
+        index.name for table in Base.metadata.tables.values() for index in table.indexes
     }
 
     assert {

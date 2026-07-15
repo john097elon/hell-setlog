@@ -4,20 +4,27 @@ Tests marked with BOLA: document the CORRECT expected behavior (403/404 for
 non-owners). These tests WILL FAIL until the security fix (Stage 2 authz PR)
 is merged. They are intentionally written to drive TDD for the fix.
 """
+
 import pytest
 
 from tests.conftest import auth, make_user
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _start_workout(client, token, party_id=None):
-    body = {"notes": "test"} if party_id is None else {"party_id": party_id, "notes": "test"}
+    body = (
+        {"notes": "test"}
+        if party_id is None
+        else {"party_id": party_id, "notes": "test"}
+    )
     r = client.post("/api/workouts/", json=body, headers=auth(token))
     assert r.status_code == 201
     return r.json()["id"]
 
 
 # ── Ownership ────────────────────────────────────────────────────────────────
+
 
 def test_list_workouts_only_own(client):
     _, t1 = make_user(client, "u1", suffix="wk")
@@ -72,13 +79,16 @@ def test_add_setlog_forbidden_for_non_owner(client):
     _, t1 = make_user(client, "owner5", suffix="wk")
     _, t2 = make_user(client, "other5", suffix="wk")
     wid = _start_workout(client, t1)
-    r = client.post(f"/api/workouts/{wid}/setlogs",
-                    json={"type": "mid", "content": "steal"},
-                    headers=auth(t2))
+    r = client.post(
+        f"/api/workouts/{wid}/setlogs",
+        json={"type": "mid", "content": "steal"},
+        headers=auth(t2),
+    )
     assert r.status_code == 404
 
 
 # ── Workout end / idempotency ────────────────────────────────────────────────
+
 
 def test_end_workout_returns_body_stats(client):
     _, token = make_user(client, "ender1", suffix="wk")
@@ -120,12 +130,15 @@ def test_end_workout_404_for_unknown(client):
 
 # ── Upload failure: file_path field (upload UI only, no file) ────────────────
 
+
 def test_setlog_without_file_path_accepted(client):
     _, token = make_user(client, "uploader1", suffix="wk")
     wid = _start_workout(client, token)
-    r = client.post(f"/api/workouts/{wid}/setlogs",
-                    json={"type": "mid", "content": "no file"},
-                    headers=auth(token))
+    r = client.post(
+        f"/api/workouts/{wid}/setlogs",
+        json={"type": "mid", "content": "no file"},
+        headers=auth(token),
+    )
     assert r.status_code == 201
     assert r.json()["file_path"] is None
 
@@ -133,7 +146,9 @@ def test_setlog_without_file_path_accepted(client):
 def test_setlog_invalid_type_rejected(client):
     _, token = make_user(client, "uploader2", suffix="wk")
     wid = _start_workout(client, token)
-    r = client.post(f"/api/workouts/{wid}/setlogs",
-                    json={"type": "invalid", "content": "bad"},
-                    headers=auth(token))
+    r = client.post(
+        f"/api/workouts/{wid}/setlogs",
+        json={"type": "invalid", "content": "bad"},
+        headers=auth(token),
+    )
     assert r.status_code == 422

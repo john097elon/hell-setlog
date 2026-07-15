@@ -120,7 +120,9 @@ def _source_fingerprint(summaries: Mapping[str, TableSummary]) -> str:
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
-def _target_values(table_name: str, row: Mapping[str, Any], target_table) -> dict[str, Any]:
+def _target_values(
+    table_name: str, row: Mapping[str, Any], target_table
+) -> dict[str, Any]:
     defaults: dict[str, dict[str, Any]] = {
         "users": {"workout_tags": "[]"},
         "parties": {
@@ -144,12 +146,16 @@ def _target_values(table_name: str, row: Mapping[str, Any], target_table) -> dic
         elif column.nullable:
             values[column.name] = None
         else:
-            raise ValueError(f"legacy table {table_name} lacks required column {column.name}")
+            raise ValueError(
+                f"legacy table {table_name} lacks required column {column.name}"
+            )
     return values
 
 
 def _assert_target_revision(connection: Connection) -> None:
-    revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+    revision = connection.execute(
+        text("SELECT version_num FROM alembic_version")
+    ).scalar_one_or_none()
     if revision != EXPECTED_REVISION:
         raise ValueError(
             f"target Alembic revision must be {EXPECTED_REVISION}; found {revision!r}"
@@ -213,10 +219,7 @@ def _copy_rows(
         if not source_rows:
             continue
         target_table = target_metadata.tables[table_name]
-        values = [
-            _target_values(table_name, row, target_table)
-            for row in source_rows
-        ]
+        values = [_target_values(table_name, row, target_table) for row in source_rows]
         target_connection.execute(target_table.insert(), values)
 
         if table_name == "characters":
@@ -264,7 +267,10 @@ def verify(source_url: str, target_url: str) -> VerificationReport:
     source_engine = _engine(source_url)
     target_engine = _engine(target_url, enforce_foreign_keys=True)
     try:
-        with source_engine.connect() as source_connection, target_engine.connect() as target_connection:
+        with (
+            source_engine.connect() as source_connection,
+            target_engine.connect() as target_connection,
+        ):
             source_metadata = _reflect(source_connection)
             target_metadata = _reflect(target_connection)
             return _report(
@@ -309,7 +315,9 @@ def transfer(
                     target_metadata,
                 )
                 if not report.ok:
-                    raise ValueError(f"transfer verification failed: {report.differences}")
+                    raise ValueError(
+                        f"transfer verification failed: {report.differences}"
+                    )
 
         manifest = TransferManifest(
             revision=EXPECTED_REVISION,

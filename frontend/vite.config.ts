@@ -40,7 +40,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.dicebear\.com\/.*/i,
+            urlPattern: /^\/assets\/avatars\/.*\.(?:png|svg)/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'avatar-cache',

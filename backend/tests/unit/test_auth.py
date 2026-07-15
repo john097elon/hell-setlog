@@ -1,4 +1,5 @@
 """Unit tests for auth helpers — no DB required."""
+
 import os
 import sys
 

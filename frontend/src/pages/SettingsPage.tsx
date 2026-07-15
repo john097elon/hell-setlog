@@ -5,6 +5,7 @@ import { Alert, Button, Card, PageShell, TextField } from '../components/ui';
 interface Character {
   name: string;
   avatar_seed: string;
+  avatar_url?: string;
 }
 
 const WORKOUT_TAG_OPTIONS = ['근력', '유산소', '홈트', '크로스핏', '요가', '러닝', '수영', '기타'];
@@ -12,11 +13,30 @@ const WORKOUT_TAG_OPTIONS = ['근력', '유산소', '홈트', '크로스핏', '�
 function SettingsPage() {
   const [name, setName] = useState('');
   const [avatarSeed, setAvatarSeed] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('/assets/avatars/default.svg');
+  const [initialAvatarUrl, setInitialAvatarUrl] = useState('/assets/avatars/default.svg');
   const [workoutTags, setWorkoutTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const getPreviewUrl = (seedStr: string) => {
+    if (!seedStr) return '/assets/avatars/default.svg';
+    let stageNum = 1;
+    const parts = seedStr.split(',').map(p => p.trim());
+    for (const part of parts) {
+      if (part.startsWith('stage_')) {
+        const parsed = parseInt(part.split('_')[1], 10);
+        if (!isNaN(parsed)) {
+          stageNum = parsed;
+        }
+      }
+    }
+    if (stageNum < 1) stageNum = 1;
+    if (stageNum > 3) stageNum = 3;
+    return `/assets/avatars/stage_${stageNum}.svg`;
+  };
 
   useEffect(() => {
     api
@@ -26,6 +46,9 @@ function SettingsPage() {
         if (character) {
           setName(character.name);
           setAvatarSeed(character.avatar_seed);
+          const url = character.avatar_url || data.avatar_url || '/assets/avatars/default.svg';
+          setAvatarUrl(url);
+          setInitialAvatarUrl(url);
         }
         // Parse workout_tags from string JSON
         if (data.workout_tags) {
@@ -45,13 +68,26 @@ function SettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleAvatarSeedChange = (val: string) => {
+    setAvatarSeed(val);
+    if (!val) {
+      setAvatarUrl(initialAvatarUrl);
+    } else {
+      setAvatarUrl(getPreviewUrl(val));
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setMessage('');
     setError('');
     setSaving(true);
     try {
-      await api.patch('/characters/me', { name, avatar_seed: avatarSeed });
+      const res = await api.patch('/characters/me', { name, avatar_seed: avatarSeed });
+      if (res.data && res.data.avatar_url) {
+        setAvatarUrl(res.data.avatar_url);
+        setInitialAvatarUrl(res.data.avatar_url);
+      }
       // Save workout tags
       await api.patch('/users/me/tags', { workout_tags: JSON.stringify(workoutTags) });
       setMessage('설정이 저장되었습니다');
@@ -68,7 +104,6 @@ function SettingsPage() {
     );
   };
 
-  const seed = avatarSeed || 'default';
 
   return (
     <PageShell centered maxWidth={500}>
@@ -87,7 +122,7 @@ function SettingsPage() {
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
               <img
-                src={`https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`}
+                src={avatarUrl}
                 alt="아바타 미리보기"
                 style={{
                   width: '96px',
@@ -109,7 +144,7 @@ function SettingsPage() {
             <TextField
               label="아바타 시드"
               value={avatarSeed}
-              onChange={(e) => setAvatarSeed(e.target.value)}
+              onChange={(e) => handleAvatarSeedChange(e.target.value)}
               placeholder="고유한 시드 값을 입력하세요"
             />
 
