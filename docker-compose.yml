@@ -94,6 +94,34 @@ services:
       timeout: 3s
       retries: 20
 
+  backup:
+    build:
+      context: .
+    command: ["/app/ops/backup_loop.sh"]
+    environment:
+      <<: *app-environment
+      BACKUP_BUCKET: hellsetlog-development
+      BACKUP_REGION: us-east-1
+      BACKUP_ENDPOINT_URL: http://object-storage:9000
+      BACKUP_ACCESS_KEY: hellsetlog-local
+      BACKUP_SECRET_KEY: local-development-only
+      BACKUP_INTERVAL_SECONDS: 3600
+      BACKUP_METRICS_PATH: /metrics/backup.prom
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      object-storage-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - backup-metrics:/metrics
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   object-data:
+  backup-metrics:

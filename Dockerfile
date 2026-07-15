@@ -8,7 +8,7 @@ RUN npm run build
 FROM python:3.12-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/backend \
+    PYTHONPATH=/app/backend:/app \
     FRONTEND_DIST=/app/frontend/dist
 WORKDIR /app
 
@@ -22,10 +22,10 @@ COPY backend/requirements.txt /app/backend/requirements.txt
 RUN python -m pip install --no-cache-dir --requirement /app/backend/requirements.txt
 
 COPY backend/ /app/backend/
-COPY ops/entrypoint.sh /app/ops/entrypoint.sh
+COPY ops/ /app/ops/
 COPY --from=frontend-build /build/frontend/dist /app/frontend/dist
 
-RUN chmod 0555 /app/ops/entrypoint.sh \
+RUN chmod 0555 /app/ops/*.sh \
     && chown -R 10001:10001 /app
 
 USER 10001:10001
