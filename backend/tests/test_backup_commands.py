@@ -173,3 +173,19 @@ def test_backup_metrics_volume_has_a_bounded_ownership_initializer():
         assert services["backup"]["depends_on"]["backup-metrics-init"] == {
             "condition": "service_completed_successfully"
         }
+
+def test_restore_subprocess_failures_have_safe_stage_specific_types():
+    backup = operations_module("backup")
+    restore = operations_module("restore_rehearsal")
+
+    restore_failure = backup.failure_result(restore.DatabaseRestoreFailed())
+    smoke_failure = backup.failure_result(restore.RestoredApplicationSmokeFailed())
+
+    assert restore_failure == {
+        "status": "failed",
+        "error_type": "DatabaseRestoreFailed",
+    }
+    assert smoke_failure == {
+        "status": "failed",
+        "error_type": "RestoredApplicationSmokeFailed",
+    }

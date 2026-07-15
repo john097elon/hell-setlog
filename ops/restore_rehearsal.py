@@ -36,6 +36,13 @@ APPLICATION_TABLES = (
     "reactions",
 )
 
+class DatabaseRestoreFailed(RuntimeError):
+    """The provider-neutral pg_restore stage failed."""
+
+
+class RestoredApplicationSmokeFailed(RuntimeError):
+    """The restored database could not serve the core application smoke."""
+
 
 @dataclass(frozen=True)
 class RestoreConfig:
@@ -167,13 +174,16 @@ def _verify_database(database_url: str) -> dict[str, int]:
 
 
 def _run_application_smoke(database_url: str) -> None:
-    subprocess.run(
-        build_restore_smoke_command(),
-        env={**os.environ, "DATABASE_URL": database_url},
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        subprocess.run(
+            build_restore_smoke_command(),
+            env={**os.environ, "DATABASE_URL": database_url},
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        raise RestoredApplicationSmokeFailed from error
 
 
 def run_restore_rehearsal(
@@ -203,12 +213,15 @@ def run_restore_rehearsal(
             if backup_path.stat().st_size != int(metadata["ContentLength"]):
                 raise RuntimeError("downloaded backup size verification failed")
 
-            subprocess.run(
-                build_pg_restore_command(backup_path),
-                env={**os.environ, **build_pg_environment(database_url)},
-                check=True,
-                capture_output=True,
-            )
+            try:
+                subprocess.run(
+                    build_pg_restore_command(backup_path),
+                    env={**os.environ, **build_pg_environment(database_url)},
+                    check=True,
+                    capture_output=True,
+                )
+            except subprocess.CalledProcessError as error:
+                raise DatabaseRestoreFailed from error
         counts = _verify_database(database_url)
         _run_application_smoke(database_url)
         return {
