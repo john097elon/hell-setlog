@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -9,10 +10,16 @@ body {
   background-color: var(--color-bg-app);
   color: var(--color-text-primary);
   min-height: 100vh;
+  /* Safe area for notched devices */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Prevent text size adjust on orientation change */
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
 }
 
 a {
@@ -33,4 +40,47 @@ select {
 
 button {
   cursor: pointer;
+}
+
+/* Minimum touch target size for mobile */
+button, a, label, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Slide-up animation for the PWA update prompt */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Offline hint: dim interactive elements when offline */
+body[data-online="false"] button:not([disabled]),
+body[data-online="false"] a {
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+/* Scrollbar styling for desktop */
+@media (hover: hover) {
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-subtle);
+    border-radius: 3px;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile web app */
+body {
+  overscroll-behavior-y: contain;
 }
