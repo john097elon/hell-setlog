@@ -5,6 +5,9 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from database import engine
+from observability import configure_observability
+from settings import get_settings
 
 # ── CORS config — explicit origins required in non-dev environments ──────────
 _ENV = os.getenv("ENV", "dev")
@@ -16,6 +19,7 @@ elif _ENV == "dev":
 else:
     raise RuntimeError("ALLOWED_ORIGINS must be set to a comma-separated list of HTTPS origins in non-dev environments")
 
+settings = get_settings()
 app = FastAPI(
     title="Hell Setlog API",
     description=(
@@ -32,6 +36,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
 )
+configure_observability(app, settings, engine)
 
 
 import auth  # noqa: E402
