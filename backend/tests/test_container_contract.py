@@ -51,6 +51,10 @@ def test_container_and_compose_contracts_are_reproducible():
     assert "USER 10001:10001" in docker_source
     assert "python:3.12-slim" in docker_source
     assert "node:22-alpine" in docker_source
+    assert "POSTGRESQL_CLIENT_MAJOR=16" in docker_source
+    assert "apt.postgresql.org/pub/repos/apt" in docker_source
+    assert "postgresql-client-${POSTGRESQL_CLIENT_MAJOR}" in docker_source
+    assert "pg_restore --version" in docker_source
 
     local_source = local_compose.read_text(encoding="utf-8")
     assert "postgres:16" in local_source
