@@ -248,7 +248,8 @@ def _run_application_smoke(database_url: str) -> None:
         )
     except subprocess.CalledProcessError as error:
         output = error.stdout or error.stderr or "restore verification failed"
-        diagnostic = safe_pg_restore_diagnostic(output.splitlines()[-1])
+        lines = [line for line in output.splitlines() if line.strip()]
+        diagnostic = safe_pg_restore_diagnostic(lines[-1] if lines else output)
         raise RestoredApplicationSmokeFailed(diagnostic) from error
 
 
