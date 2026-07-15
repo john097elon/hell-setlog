@@ -12,7 +12,6 @@ interface PartyMember {
 interface Party {
   id: string | number;
   name: string;
-  description?: string;
   member_count: number;
   invite_code?: string;
   created_at: string;
@@ -28,7 +27,6 @@ interface Party {
 const normalizeParty = (raw: any): Party => ({
   ...raw,
   id: raw.id,
-  description: raw.description ?? '',
   match_type: raw.match_type ?? 'manual',
   max_members: raw.max_members ?? 4,
   is_open: raw.is_open ?? true,
@@ -54,7 +52,6 @@ function PartyListPage() {
   // Create party form
   const [showCreate, setShowCreate] = useState(false);
   const [createName, setCreateName] = useState('');
-  const [createDesc, setCreateDesc] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
@@ -114,11 +111,9 @@ function PartyListPage() {
     try {
       const { data } = await api.post('/parties/', {
         name: createName.trim(),
-        description: createDesc.trim(),
       });
       setShowCreate(false);
       setCreateName('');
-      setCreateDesc('');
       // Navigate to new party
       navigate(`/party/${data.id}`);
     } catch (err: any) {
@@ -314,16 +309,7 @@ function PartyListPage() {
                 autoFocus
               />
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={labelStyle}>파티 설명</label>
-              <input
-                type="text"
-                value={createDesc}
-                onChange={(e) => setCreateDesc(e.target.value)}
-                placeholder="파티의 목표나 규칙을 적어보세요"
-                style={inputStyle}
-              />
-            </div>
+
             <button
               type="submit"
               disabled={creating}
@@ -660,18 +646,7 @@ function PartyListPage() {
                     <span style={manualBadgeStyle}>👥 매뉴얼</span>
                   )}
                 </div>
-                {party.description && (
-                  <div style={{
-                    fontSize: '0.8rem',
-                    color: 'var(--text-secondary)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    marginBottom: '4px',
-                  }}>
-                    {party.description}
-                  </div>
-                )}
+
                 {party.last_activity && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     마지막 활동: {formatTimeAgo(party.last_activity)}

@@ -7,9 +7,11 @@ or redirects to a short-lived signed URL (S3), never a public path.
 """
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
 
 from auth import get_current_user
-from models import User
+from database import get_db
+from models import PartyMember, Setlog, User, Workout
 from settings import get_settings
 from storage import (
     ObjectNotFound,
@@ -27,6 +29,28 @@ router = APIRouter(prefix="/media", tags=["media"])
 def _authorize_owner(key: str, user_id: int) -> None:
     # 404 (not 403) so a foreign key is indistinguishable from a missing one.
     if not key.startswith(f"users/{user_id}/"):
+        raise HTTPException(status_code=404, detail="Media not found")
+
+
+def _authorize_media_access(db: Session, key: str, user_id: int) -> None:
+    # 1. Owner can always access
+    if key.startswith(f"users/{user_id}/"):
+        return
+
+    # 2. Check if the media is associated with any Setlog in a party where user_id is an active member
+    allowed = (
+        db.query(PartyMember)
+        .join(Workout, PartyMember.party_id == Workout.party_id)
+        .join(Setlog, Setlog.workout_id == Workout.id)
+        .filter(
+            Setlog.file_path == key,
+            PartyMember.user_id == user_id,
+            PartyMember.status == "active",
+        )
+        .first()
+        is not None
+    )
+    if not allowed:
         raise HTTPException(status_code=404, detail="Media not found")
 
 
@@ -59,9 +83,10 @@ async def upload_media(
 def get_media(
     key: str,
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
     storage: ObjectStorage = Depends(get_storage),
 ):
-    _authorize_owner(key, current_user.id)
+    _authorize_media_access(db, key, current_user.id)
     if get_settings().storage_backend == "s3":
         try:
             signed = storage.signed_get_url(key)

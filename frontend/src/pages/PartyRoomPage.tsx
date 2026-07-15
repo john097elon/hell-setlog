@@ -20,7 +20,6 @@ interface PartyInfo {
   name: string;
   member_count: number;
   invite_code?: string;
-  description?: string;
   owner_id?: string | number;
   match_type: 'manual' | 'random' | string;
   max_members: number;

@@ -277,6 +277,10 @@ class WorkoutEndResponse(BaseModel):
     workout: WorkoutOut
     breakthroughs: list[Breakthrough] = []
     all_stats: list[BodyStatSummary] = []
+    body_stats: list[BodyStatSummary] = []
+    duration_seconds: Optional[int] = None
+    setlog_count: Optional[int] = None
+    character: Optional[CharacterOut] = None
 
 
 # ── Auth Me (with avatar) ──────────────────────────────────────────────────

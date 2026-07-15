@@ -29,6 +29,36 @@ def _require_active_party_member(
         raise HTTPException(status_code=403, detail="Active party membership required")
 
 
+def _check_reaction_permission(
+    db: Session, user_id: int, target_type: str, target_id: int
+) -> None:
+    if target_type == "workout":
+        workout = db.query(Workout).filter(Workout.id == target_id).first()
+        if not workout:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        if workout.party_id is None:
+            # Personal workout: only owner can react/modify reactions
+            if workout.user_id != user_id:
+                raise HTTPException(status_code=403, detail="Active party membership required")
+        else:
+            # Party workout: only active party members can react/modify reactions
+            _require_active_party_member(db, user_id, workout.party_id)
+    else: # setlog
+        setlog = db.query(Setlog).filter(Setlog.id == target_id).first()
+        if not setlog:
+            raise HTTPException(status_code=404, detail="Setlog not found")
+        workout = db.query(Workout).filter(Workout.id == setlog.workout_id).first()
+        if not workout:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        if workout.party_id is None:
+            # Personal workout: only owner can react/modify reactions
+            if workout.user_id != user_id:
+                raise HTTPException(status_code=403, detail="Active party membership required")
+        else:
+            # Party workout: only active party members can react/modify reactions
+            _require_active_party_member(db, user_id, workout.party_id)
+
+
 @router.post("/", response_model=ReactionOut, status_code=status.HTTP_201_CREATED)
 def add_reaction(
     body: ReactionCreate,
@@ -36,21 +66,7 @@ def add_reaction(
     db: Session = Depends(get_db),
 ):
     """Add a reaction to a setlog or workout."""
-    # Verify target exists and check party visibility where applicable.
-    if body.target_type == "workout":
-        target = db.query(Workout).filter(Workout.id == body.target_id).first()
-        if target:
-            _require_active_party_member(db, current_user.id, target.party_id)
-    else:
-        target = db.query(Setlog).filter(Setlog.id == body.target_id).first()
-        if target:
-            workout = db.query(Workout).filter(Workout.id == target.workout_id).first()
-            _require_active_party_member(
-                db, current_user.id, workout.party_id if workout else None
-            )
-
-    if not target:
-        raise HTTPException(status_code=404, detail=f"{body.target_type} not found")
+    _check_reaction_permission(db, current_user.id, body.target_type, body.target_id)
 
     # Check for duplicate reaction (same user, target, emoji)
     existing = (
@@ -90,6 +106,8 @@ def remove_reaction(
         raise HTTPException(status_code=404, detail="Reaction not found")
     if reaction.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your reaction")
+
+    _check_reaction_permission(db, current_user.id, reaction.target_type, reaction.target_id)
 
     db.delete(reaction)
     db.commit()

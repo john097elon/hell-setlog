@@ -17,7 +17,7 @@ def test_create_party(client):
 
 def test_join_party_by_invite_code(client):
     _, t1 = make_user(client, "phost1", suffix="pt")
-    _, t2 = make_user(client, "pguest1", suffix="pt")
+    u2, t2 = make_user(client, "pguest1", suffix="pt")
 
     create_r = client.post(
         "/api/parties/", json={"name": "공개 파티"}, headers=auth(t1)
@@ -26,7 +26,9 @@ def test_join_party_by_invite_code(client):
 
     r = client.post("/api/parties/join", json={"invite_code": code}, headers=auth(t2))
     assert r.status_code == 200
-    assert r.json()["status"] == "active"
+    members = r.json()["members"]
+    guest_member = next(m for m in members if m["user_id"] == u2["id"])
+    assert guest_member["status"] == "active"
 
 
 def test_join_already_member_returns_409(client):
@@ -94,7 +96,7 @@ def test_leave_and_rejoin(client):
 
 def test_kicked_member_cannot_rejoin(client):
     _, t1 = make_user(client, "phost7", suffix="pt")
-    _, t2 = make_user(client, "pkick1", suffix="pt")
+    u2, t2 = make_user(client, "pkick1", suffix="pt")
 
     create_r = client.post(
         "/api/parties/", json={"name": "kick test"}, headers=auth(t1)
@@ -102,10 +104,10 @@ def test_kicked_member_cannot_rejoin(client):
     pid = create_r.json()["id"]
     code = create_r.json()["invite_code"]
 
-    join_r = client.post(
+    client.post(
         "/api/parties/join", json={"invite_code": code}, headers=auth(t2)
     )
-    uid2 = join_r.json()["user_id"]
+    uid2 = u2["id"]
 
     client.delete(f"/api/parties/{pid}/members/{uid2}", headers=auth(t1))
 
@@ -124,3 +126,65 @@ def test_list_parties_only_own(client):
     r = client.get("/api/parties/", headers=auth(t2))
     assert r.status_code == 200
     assert r.json() == []
+
+
+# ── Capacity & Reactions ─────────────────────────────────────────────────────
+
+
+def test_join_party_full_returns_400(client):
+    _, t1 = make_user(client, "phostfull", suffix="pt")
+    create_r = client.post("/api/parties/", json={"name": "풀파티"}, headers=auth(t1))
+    code = create_r.json()["invite_code"]
+
+    # We need 3 more members to hit max_members = 4
+    for i in range(3):
+        _, t_guest = make_user(client, f"pguestfull{i}", suffix="pt")
+        r = client.post("/api/parties/join", json={"invite_code": code}, headers=auth(t_guest))
+        assert r.status_code == 200
+
+    # The 5th member trying to join should get 400
+    _, t_extra = make_user(client, "pguestextra", suffix="pt")
+    r = client.post("/api/parties/join", json={"invite_code": code}, headers=auth(t_extra))
+    assert r.status_code == 400
+    assert r.json()["detail"] == "Party is full"
+
+
+def test_reaction_permissions_and_duplication(client):
+    # alice starts workout and setlog
+    _, talice = make_user(client, "alice", suffix="re")
+    create_r = client.post("/api/parties/", json={"name": "리액션파티"}, headers=auth(talice))
+    pid = create_r.json()["id"]
+    code = create_r.json()["invite_code"]
+
+    # bob joins the party
+    _, tbob = make_user(client, "bob", suffix="re")
+    client.post("/api/parties/join", json={"invite_code": code}, headers=auth(tbob))
+
+    # alice starts a workout in the party
+    workout_r = client.post("/api/workouts/", json={"party_id": pid, "notes": "하체 조진다"}, headers=auth(talice))
+    wid = workout_r.json()["id"]
+
+    # bob can react to alice's workout in the party
+    react_r = client.post("/api/reactions/", json={"target_type": "workout", "target_id": wid, "emoji": "🔥"}, headers=auth(tbob))
+    assert react_r.status_code == 201
+    rid = react_r.json()["id"]
+
+    # bob cannot react with the same emoji twice (duplicate)
+    react_r2 = client.post("/api/reactions/", json={"target_type": "workout", "target_id": wid, "emoji": "🔥"}, headers=auth(tbob))
+    assert react_r2.status_code == 409
+
+    # charlie (outsider) cannot react to alice's workout
+    _, tcharlie = make_user(client, "charlie", suffix="re")
+    react_r3 = client.post("/api/reactions/", json={"target_type": "workout", "target_id": wid, "emoji": "🔥"}, headers=auth(tcharlie))
+    assert react_r3.status_code == 403
+
+    # bob leaves the party
+    client.delete(f"/api/parties/{pid}/leave", headers=auth(tbob))
+
+    # bob (now outsider) cannot add reactions anymore
+    react_r4 = client.post("/api/reactions/", json={"target_type": "workout", "target_id": wid, "emoji": "💪"}, headers=auth(tbob))
+    assert react_r4.status_code == 403
+
+    # bob cannot delete his own previous reaction anymore
+    del_r = client.delete(f"/api/reactions/{rid}", headers=auth(tbob))
+    assert del_r.status_code == 403
