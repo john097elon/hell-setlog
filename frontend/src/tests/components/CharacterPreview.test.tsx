@@ -30,15 +30,13 @@ describe('CharacterPreview', () => {
     expect(screen.getByText(/Lv\.8/)).toBeTruthy();
   });
 
-  it('expands to show per-part stats on click', async () => {
+  it('expands to show a per-part level on click', async () => {
     const user = userEvent.setup();
     render(<CharacterPreview username="carol" body_stats={STATS} />);
     const card = screen.getByText('carol').closest('div')!.parentElement!;
     await user.click(card);
-    // Part labels should appear after expanding
-    expect(screen.getByText('가슴')).toBeTruthy();
+    expect(screen.getByText('Lv.2')).toBeTruthy();
   });
-
   it('renders question mark initial for empty username', () => {
     render(<CharacterPreview username="" />);
     expect(screen.getByText('?')).toBeTruthy();

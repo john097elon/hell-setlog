@@ -9,7 +9,7 @@ import string
 from datetime import datetime, timedelta, timezone
 
 from auth import hash_password
-from database import SessionLocal, init_db
+from database import SessionLocal
 from models import (
     BodyStat,
     Character,
@@ -27,8 +27,6 @@ BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
 
 def seed():
     """Create all seed data."""
-    # Ensure tables exist
-    init_db()
 
     db = SessionLocal()
 

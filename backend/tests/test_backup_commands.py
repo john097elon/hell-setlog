@@ -2,9 +2,9 @@ import importlib
 import importlib.util
 import json
 import sys
+from pathlib import Path
 
 import yaml
-from pathlib import Path
 
 
 def operations_module(name: str):

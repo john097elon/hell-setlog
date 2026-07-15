@@ -17,7 +17,6 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from settings import Settings
 
-
 ALLOWED_IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
 EXTENSIONS = {
     "image/jpeg": ".jpg",

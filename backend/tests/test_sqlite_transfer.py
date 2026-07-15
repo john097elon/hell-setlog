@@ -10,8 +10,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 
 from database import Base
-from test_migrations import alembic_config
-
+from tests.test_migrations import alembic_config
 
 NOW = datetime(2026, 7, 15, tzinfo=timezone.utc)
 TABLE_ORDER = (

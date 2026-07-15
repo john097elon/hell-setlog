@@ -5,8 +5,8 @@ from alembic.config import Config
 from alembic.script import ScriptDirectory
 from sqlalchemy import CheckConstraint, DateTime, create_engine, inspect
 
-from database import Base
 import models  # noqa: F401
+from database import Base
 
 
 def alembic_config(connection=None) -> Config:
