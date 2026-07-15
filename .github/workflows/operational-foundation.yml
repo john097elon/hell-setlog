@@ -60,7 +60,15 @@ jobs:
       - name: Rehearse private backup and isolated restore
         shell: bash
         run: |
+          set +e
           backup_json="$(docker compose run --rm --no-deps backup python -m ops.backup)"
+          backup_status=$?
+          set -e
+          printf '%s\n' "$backup_json"
+          if [ "$backup_status" -ne 0 ]; then
+            docker compose logs --no-color backup
+            exit "$backup_status"
+          fi
           backup_key="$(BACKUP_JSON="$backup_json" python -c 'import json, os; print(json.loads(os.environ["BACKUP_JSON"])["key"])')"
           docker compose run --rm --no-deps \
             -e RESTORE_ADMIN_DATABASE_URL=postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog?sslmode=disable \
