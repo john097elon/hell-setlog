@@ -220,3 +220,35 @@ def test_pg_restore_diagnostics_are_classified_without_raw_output():
     assert type(restore.classify_pg_restore_failure(b"unclassified")).__name__ == (
         "DatabaseRestoreFailed"
     )
+
+def test_pg_restore_diagnostic_keeps_only_a_redacted_first_line():
+    restore = operations_module("restore_rehearsal")
+    raw = (
+        b'pg_restore: error: relation "private_table" failed for '
+        b'postgresql://user:secret@db/private\n'
+        b'DETAIL: user@example.com and row data'
+    )
+
+    diagnostic = restore.safe_pg_restore_diagnostic(raw)
+
+    assert restore.safe_pg_restore_diagnostic(b"") == "pg_restore failed"
+
+    assert diagnostic == (
+        'pg_restore: error: relation "<redacted>" failed for '
+        'postgresql://<redacted>'
+    )
+    assert "private_table" not in diagnostic
+    assert "secret" not in diagnostic
+    assert "example.com" not in diagnostic
+    assert "row data" not in diagnostic
+
+
+def test_restore_failure_result_includes_only_safe_diagnostic():
+    restore = operations_module("restore_rehearsal")
+    error = restore.DatabaseRestoreFailed("safe reason")
+
+    assert restore.restore_failure_result(error) == {
+        "status": "failed",
+        "error_type": "DatabaseRestoreFailed",
+        "diagnostic": "safe reason",
+    }

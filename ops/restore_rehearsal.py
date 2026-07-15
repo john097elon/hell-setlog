@@ -60,22 +60,46 @@ class DatabaseRestoreArchiveIncompatible(DatabaseRestoreFailed):
     """The installed client cannot read the archive format."""
 
 
+def safe_pg_restore_diagnostic(stderr: bytes | str | None) -> str:
+    if isinstance(stderr, bytes):
+        decoded = stderr.decode("utf-8", errors="replace")
+    else:
+        decoded = stderr or ""
+    lines = decoded.splitlines()
+    first_line = lines[0] if lines else "pg_restore failed"
+    redacted = re.sub(r'"[^"]*"', '"<redacted>"', first_line)
+    redacted = re.sub(r"'[^']*'", "'<redacted>'", redacted)
+    redacted = re.sub(
+        r"\b([a-z][a-z0-9+.-]*://)\S+",
+        r"\1<redacted>",
+        redacted,
+        flags=re.IGNORECASE,
+    )
+    redacted = re.sub(
+        r"\b[^\s@]+@[^\s@]+\b",
+        "<redacted-email>",
+        redacted,
+    )
+    return redacted[:240]
+
+
 def classify_pg_restore_failure(stderr: bytes | str | None) -> DatabaseRestoreFailed:
     if isinstance(stderr, bytes):
         diagnostic = stderr.decode("utf-8", errors="replace").lower()
     else:
         diagnostic = (stderr or "").lower()
+    safe_diagnostic = safe_pg_restore_diagnostic(stderr)
     if "does not exist" in diagnostic:
-        return DatabaseRestoreCleanTargetMissing()
+        return DatabaseRestoreCleanTargetMissing(safe_diagnostic)
     if "already exists" in diagnostic:
-        return DatabaseRestoreTargetNotEmpty()
+        return DatabaseRestoreTargetNotEmpty(safe_diagnostic)
     if "permission denied" in diagnostic:
-        return DatabaseRestorePermissionDenied()
+        return DatabaseRestorePermissionDenied(safe_diagnostic)
     if "connection to server" in diagnostic or "could not connect" in diagnostic:
-        return DatabaseRestoreConnectionFailed()
+        return DatabaseRestoreConnectionFailed(safe_diagnostic)
     if "unsupported version" in diagnostic:
-        return DatabaseRestoreArchiveIncompatible()
-    return DatabaseRestoreFailed()
+        return DatabaseRestoreArchiveIncompatible(safe_diagnostic)
+    return DatabaseRestoreFailed(safe_diagnostic)
 
 
 class RestoredApplicationSmokeFailed(RuntimeError):
@@ -279,6 +303,13 @@ def run_restore_rehearsal(
             _drop_database(config.admin_database_url, database_name)
 
 
+def restore_failure_result(error: Exception) -> dict[str, str]:
+    result = failure_result(error)
+    if isinstance(error, DatabaseRestoreFailed):
+        result["diagnostic"] = str(error) or "pg_restore failed"
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Rehearse an isolated PostgreSQL restore")
     parser.add_argument("--backup-key", required=True)
@@ -289,7 +320,7 @@ def main() -> int:
             args.backup_key,
         )
     except Exception as error:
-        print(json.dumps(failure_result(error), sort_keys=True))
+        print(json.dumps(restore_failure_result(error), sort_keys=True))
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0
