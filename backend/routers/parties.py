@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from auth import get_current_user
 from database import get_db
-from models import Party, PartyMember, Reaction, Setlog, User, Workout
+from models import GrowthEvent, Party, PartyMember, Reaction, Setlog, User, Workout
 from schemas import (
     FeedEvent,
     FeedEventData,
@@ -479,6 +479,29 @@ def get_party_feed(
                 if w.started_at
                 else None
             )
+            growth_events = (
+                db.query(GrowthEvent)
+                .filter(GrowthEvent.workout_id == w.id)
+                .order_by(GrowthEvent.id)
+                .all()
+            )
+            breakthroughs = [
+                {
+                    "part": ge.body_part,
+                    "old_level": ge.level_before,
+                    "new_level": ge.level_after,
+                }
+                for ge in growth_events
+                if ge.level_after > ge.level_before
+            ]
+            body_stats = [
+                {
+                    "part": ge.body_part,
+                    "level": ge.level_after,
+                    "potential": ge.potential_after,
+                }
+                for ge in growth_events
+            ]
             events.append(
                 {
                     "id": f"workout_end:{w.id}",
@@ -493,6 +516,8 @@ def get_party_feed(
                         "duration_seconds": duration,
                         "setlog_count": setlog_count,
                     },
+                    "breakthroughs": breakthroughs,
+                    "body_stats": body_stats,
                     "data": FeedEventData(
                         workout_id=w.id,
                         notes=w.notes,
