@@ -8,7 +8,7 @@ import random
 import string
 from datetime import datetime, timezone, timedelta
 
-from database import SessionLocal, init_db
+from database import SessionLocal
 from models import User, Character, BodyStat, Party, PartyMember, Workout, Setlog, Reaction
 from auth import hash_password
 
@@ -19,8 +19,6 @@ BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
 
 def seed():
     """Create all seed data."""
-    # Ensure tables exist
-    init_db()
 
     db = SessionLocal()
 

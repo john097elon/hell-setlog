@@ -10,7 +10,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from database import init_db
 
 # ── CORS config — explicit origins required in non-dev environments ──────────
 _ENV = os.getenv("ENV", "dev")
@@ -70,9 +69,6 @@ def health():
 
 
 # ── Startup: create database tables ─────────────────────────────────────────
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 
 # ── Main guard for `python main.py` ─────────────────────────────────────────
