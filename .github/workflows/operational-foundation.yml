@@ -63,7 +63,7 @@ jobs:
           backup_json="$(docker compose run --rm --no-deps backup python -m ops.backup)"
           backup_key="$(BACKUP_JSON="$backup_json" python -c 'import json, os; print(json.loads(os.environ["BACKUP_JSON"])["key"])')"
           docker compose run --rm --no-deps \
-            -e RESTORE_ADMIN_DATABASE_URL=postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog \
+            -e RESTORE_ADMIN_DATABASE_URL=postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog?sslmode=disable \
             backup python -m ops.restore_rehearsal --backup-key "$backup_key"
       - name: Stop production-like stack
         if: always()

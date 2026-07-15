@@ -2,7 +2,7 @@ name: hell-setlog-development
 
 x-app-environment: &app-environment
   APP_ENV: development
-  DATABASE_URL: postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog
+  DATABASE_URL: postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog?sslmode=disable
   CANONICAL_ORIGIN: http://localhost:8000
   ALLOWED_HOSTS: '["localhost","127.0.0.1"]'
   RELEASE: local-compose
@@ -59,7 +59,7 @@ services:
     command: ["migrate"]
     environment:
       <<: *app-environment
-      MIGRATION_DATABASE_URL: postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog
+      MIGRATION_DATABASE_URL: postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog?sslmode=disable
     depends_on:
       db:
         condition: service_healthy

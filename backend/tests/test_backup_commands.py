@@ -138,3 +138,17 @@ def test_restore_smoke_uses_only_the_isolated_database_url(monkeypatch):
     assert invocation["capture_output"] is True
     assert invocation["text"] is True
     assert "shell" not in invocation
+
+def test_local_recovery_explicitly_disables_tls_only_for_compose_postgres():
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+    workflow = Path(".github/workflows/operational-foundation.yml").read_text(
+        encoding="utf-8"
+    )
+    local_url = (
+        "postgresql+psycopg://hellsetlog:hellsetlog@db:5432/"
+        "hellsetlog?sslmode=disable"
+    )
+
+    assert f"DATABASE_URL: {local_url}" in compose
+    assert f"MIGRATION_DATABASE_URL: {local_url}" in compose
+    assert f"RESTORE_ADMIN_DATABASE_URL={local_url}" in workflow
