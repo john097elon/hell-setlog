@@ -94,6 +94,16 @@ services:
       timeout: 3s
       retries: 20
 
+  backup-metrics-init:
+    build:
+      context: .
+    user: "0:0"
+    command: ["sh", "-c", "chown -R 10001:10001 /metrics"]
+    read_only: true
+    volumes:
+      - backup-metrics:/metrics
+    restart: "no"
+
   backup:
     build:
       context: .
@@ -113,6 +123,8 @@ services:
       migrate:
         condition: service_completed_successfully
       object-storage-init:
+        condition: service_completed_successfully
+      backup-metrics-init:
         condition: service_completed_successfully
     read_only: true
     tmpfs:

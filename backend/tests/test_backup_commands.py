@@ -2,6 +2,8 @@ import importlib
 import importlib.util
 import json
 import sys
+
+import yaml
 from pathlib import Path
 
 
@@ -152,3 +154,22 @@ def test_local_recovery_explicitly_disables_tls_only_for_compose_postgres():
     assert f"DATABASE_URL: {local_url}" in compose
     assert f"MIGRATION_DATABASE_URL: {local_url}" in compose
     assert f"RESTORE_ADMIN_DATABASE_URL={local_url}" in workflow
+
+def test_backup_metrics_volume_has_a_bounded_ownership_initializer():
+    for path in (Path("docker-compose.yml"), Path("compose.staging.yml")):
+        compose = yaml.safe_load(path.read_text(encoding="utf-8"))
+        services = compose["services"]
+        initializer = services["backup-metrics-init"]
+
+        assert initializer["user"] == "0:0"
+        assert initializer["read_only"] is True
+        assert initializer["restart"] == "no"
+        assert initializer["command"] == [
+            "sh",
+            "-c",
+            "chown -R 10001:10001 /metrics",
+        ]
+        assert initializer["volumes"] == ["backup-metrics:/metrics"]
+        assert services["backup"]["depends_on"]["backup-metrics-init"] == {
+            "condition": "service_completed_successfully"
+        }
