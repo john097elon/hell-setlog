@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 .venv*/
 .uv-cache/
+.docker-config/
 .pytest_cache/
 .test-tmp/
 pytest-cache-files-*/

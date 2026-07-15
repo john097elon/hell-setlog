@@ -88,5 +88,5 @@ def test_s3_presign_is_single_object_and_exactly_five_minutes():
 def test_application_does_not_mount_public_upload_directory():
     source = Path("backend/main.py").read_text(encoding="utf-8")
 
-    assert "StaticFiles" not in source
     assert 'app.mount("/uploads"' not in source
+    assert "UPLOADS_DIR" not in source

@@ -1,6 +1,7 @@
 """Hell Setlog FastAPI application entry point."""
 
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import engine
 from observability import configure_observability
 from settings import get_settings
+from static_frontend import mount_frontend_if_present
 
 # ── CORS config — explicit origins required in non-dev environments ──────────
 _ENV = os.getenv("ENV", "dev")
@@ -61,6 +63,11 @@ app.include_router(users_router, prefix="/api")
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "hell-setlog"}
+
+
+default_frontend = Path(__file__).resolve().parents[1] / "frontend" / "dist"
+frontend_directory = Path(os.getenv("FRONTEND_DIST", str(default_frontend)))
+mount_frontend_if_present(app, frontend_directory)
 
 
 if __name__ == "__main__":
