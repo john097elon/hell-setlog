@@ -18,6 +18,7 @@ from schemas import (
     WorkoutOut,
     WorkoutUpdate,
 )
+from storage import ObjectNotFound, ObjectStorage, get_storage
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])
 
@@ -45,11 +46,25 @@ def create_workout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Start a new workout."""
+    """Start a new workout. A user may have at most one active workout."""
     if body.party_id and not _check_party_membership(
         db, current_user.id, body.party_id
     ):
         raise HTTPException(status_code=403, detail="Not a member of this party")
+
+    active = (
+        db.query(Workout)
+        .filter(Workout.user_id == current_user.id, Workout.status == "active")
+        .first()
+    )
+    if active:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "이미 진행 중인 운동이 있습니다",
+                "active_workout_id": active.id,
+            },
+        )
 
     workout = Workout(
         user_id=current_user.id,
@@ -112,8 +127,29 @@ def update_workout(
     return workout
 
 
-# ── Workout End + GrowthEvent Engine ───────────────────────────────────────
+@router.post("/{workout_id}/cancel", response_model=WorkoutOut)
+def cancel_workout(
+    workout_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Cancel an active workout without awarding character growth."""
+    workout = db.query(Workout).filter(Workout.id == workout_id).first()
+    if not workout or workout.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    if workout.status == "cancelled":
+        return workout
+    if workout.status != "active":
+        raise HTTPException(status_code=409, detail="Only an active workout can be cancelled")
 
+    workout.status = "cancelled"
+    workout.ended_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(workout)
+    return workout
+
+
+# Workout End + GrowthEvent Engine
 
 def _growth_response(workout, growth_events: list, db: Session) -> dict:
     """Build end-workout response from persisted GrowthEvents."""
@@ -170,19 +206,28 @@ def end_workout(
     if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
 
-    # Idempotent: replay from stored GrowthEvents
-    if workout.status != "active":
+    # Claim the active-to-ended transition in this transaction. The conditional
+    # update prevents concurrent requests from awarding growth twice.
+    now = datetime.now(timezone.utc)
+    won = (
+        db.query(Workout)
+        .filter(Workout.id == workout_id, Workout.status == "active")
+        .update(
+            {Workout.status: "ended", Workout.ended_at: now},
+            synchronize_session=False,
+        )
+    )
+    if not won:
+        db.rollback()
+        fresh = db.query(Workout).filter(Workout.id == workout_id).first()
         events = (
             db.query(GrowthEvent)
             .filter(GrowthEvent.workout_id == workout_id)
             .order_by(GrowthEvent.id)
             .all()
         )
-        return _growth_response(workout, events, db)
-
-    now = datetime.now(timezone.utc)
-    workout.status = "ended"
-    workout.ended_at = now
+        return _growth_response(fresh, events, db)
+    db.refresh(workout)
 
     if not current_user.character_id:
         raise HTTPException(status_code=404, detail="No character found")
@@ -295,11 +340,27 @@ async def add_setlog(
     body: SetlogCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    storage: ObjectStorage = Depends(get_storage),
 ):
-    """Add a setlog entry to a workout. Accepts JSON body with type and content."""
+    """Add a setlog entry. Requires text content or an owned media reference."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
     if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
+
+    if workout.status != "active":
+        raise HTTPException(status_code=409, detail="진행 중인 운동에만 기록할 수 있습니다")
+
+    if not body.content.strip() and not body.file_path:
+        raise HTTPException(status_code=422, detail="내용 또는 사진 중 하나는 필요합니다")
+
+    if body.file_path:
+        # The uploaded object key must belong to this user and actually exist.
+        if not body.file_path.startswith(f"users/{current_user.id}/"):
+            raise HTTPException(status_code=403, detail="본인이 업로드한 미디어만 첨부할 수 있습니다")
+        try:
+            storage.head(body.file_path)
+        except ObjectNotFound:
+            raise HTTPException(status_code=422, detail="첨부하려는 미디어를 찾을 수 없습니다")
 
     setlog = Setlog(
         workout_id=workout_id,

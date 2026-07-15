@@ -25,6 +25,23 @@ EXTENSIONS = {
 }
 SIGNED_URL_SECONDS = 300
 
+# Magic-byte signatures — the stored content type is derived from the bytes,
+# not the client-declared type, so a mislabelled or non-image payload is rejected.
+_IMAGE_SIGNATURES = (
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+)
+
+
+def sniff_image_content_type(body: bytes) -> str | None:
+    """Return the allowed image content type for the bytes, or None if unknown."""
+    for signature, content_type in _IMAGE_SIGNATURES:
+        if body.startswith(signature):
+            return content_type
+    if body[:4] == b"RIFF" and body[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
 
 class StorageError(RuntimeError):
     """Base class for provider-independent storage failures."""
@@ -90,6 +107,8 @@ class ObjectStorage(Protocol):
 
     def head(self, key: str) -> ObjectMetadata: ...
 
+    def get_object(self, key: str) -> tuple[bytes, ObjectMetadata]: ...
+
     def signed_get_url(
         self, key: str, expires_seconds: int = SIGNED_URL_SECONDS
     ) -> SignedObjectUrl: ...
@@ -151,6 +170,14 @@ class MemoryObjectStorage:
         except KeyError as error:
             raise ObjectNotFound("private object not found") from error
 
+    def get_object(self, key: str) -> tuple[bytes, ObjectMetadata]:
+        self.policy.validate_key(key)
+        try:
+            body, metadata = self._objects[key]
+        except KeyError as error:
+            raise ObjectNotFound("private object not found") from error
+        return bytes(body), metadata
+
     def signed_get_url(
         self, key: str, expires_seconds: int = SIGNED_URL_SECONDS
     ) -> SignedObjectUrl:
@@ -185,12 +212,15 @@ class LocalObjectStorage:
         return _metadata(key, body, content_type)
 
     def head(self, key: str) -> ObjectMetadata:
+        return self.get_object(key)[1]
+
+    def get_object(self, key: str) -> tuple[bytes, ObjectMetadata]:
         path = self._path(key)
         if not path.is_file():
             raise ObjectNotFound("private object not found")
         body = path.read_bytes()
         content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-        return _metadata(key, body, content_type)
+        return body, _metadata(key, body, content_type)
 
     def signed_get_url(
         self, key: str, expires_seconds: int = SIGNED_URL_SECONDS
@@ -256,6 +286,21 @@ class S3ObjectStorage:
             etag=response.get("ETag", "").strip('"') or None,
         )
 
+    def get_object(self, key: str) -> tuple[bytes, ObjectMetadata]:
+        self.policy.validate_key(key)
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=key)
+            body = response["Body"].read()
+        except (BotoCoreError, ClientError) as error:
+            raise self._translate(error) from error
+        return body, ObjectMetadata(
+            key=key,
+            content_type=response.get("ContentType", "application/octet-stream"),
+            size_bytes=len(body),
+            checksum_sha256=response.get("Metadata", {}).get("sha256", ""),
+            etag=response.get("ETag", "").strip('"') or None,
+        )
+
     def signed_get_url(
         self, key: str, expires_seconds: int = SIGNED_URL_SECONDS
     ) -> SignedObjectUrl:
@@ -305,3 +350,16 @@ def create_object_storage(settings: Settings) -> ObjectStorage:
         config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
     )
     return S3ObjectStorage(client, settings.storage_bucket, policy)
+
+
+_storage: ObjectStorage | None = None
+
+
+def get_storage() -> ObjectStorage:
+    """FastAPI dependency — process-wide storage adapter (overridable in tests)."""
+    global _storage
+    if _storage is None:
+        from settings import get_settings
+
+        _storage = create_object_storage(get_settings())
+    return _storage

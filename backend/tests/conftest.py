@@ -20,6 +20,7 @@ from database import get_db
 
 # Import app once at module level to avoid re-import issues
 from main import app as _app
+from storage import MemoryObjectStorage, StoragePolicy, get_storage
 
 
 @pytest.fixture(autouse=True)
@@ -57,6 +58,10 @@ def client():
 
     _app.dependency_overrides[get_db] = override_get_db
 
+    # In-memory storage per test — no disk writes, isolated between tests.
+    test_storage = MemoryObjectStorage(StoragePolicy(max_bytes=10 * 1024 * 1024))
+    _app.dependency_overrides[get_storage] = lambda: test_storage
+
     # Use TestClient without triggering startup lifespan events
     c = TestClient(_app, raise_server_exceptions=True)
     yield c
@@ -74,7 +79,6 @@ def db(client):
         yield session
     finally:
         session.close()
-
 
 def register_and_login(
     client: TestClient, username: str, password: str = "pass1234"

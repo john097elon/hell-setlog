@@ -138,13 +138,13 @@ class PartyOut(BaseModel):
 
 class WorkoutCreate(BaseModel):
     party_id: Optional[int] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
 
 
 class WorkoutUpdate(BaseModel):
     status: Optional[str] = None  # 'active' or 'done'
     ended_at: Optional[datetime] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
 
 
 class WorkoutOut(BaseModel):
@@ -166,8 +166,10 @@ class WorkoutOut(BaseModel):
 
 class SetlogCreate(BaseModel):
     type: str = Field(..., pattern="^(start|mid|end)$")
-    content: str = Field(..., min_length=1)
-    file_path: Optional[str] = None
+    # Empty content is allowed for photo-only entries; the router requires
+    # content OR file_path to be present.
+    content: str = Field("", max_length=2000)
+    file_path: Optional[str] = Field(None, max_length=500)
 
 
 class SetlogOut(BaseModel):

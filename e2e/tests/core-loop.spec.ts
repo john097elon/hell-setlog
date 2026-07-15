@@ -120,11 +120,11 @@ test('start workout, add setlogs, end workout, see growth response', async ({ pa
   expect(getRes.status()).toBe(200);
   expect((await getRes.json()).status).toBe('ended');
 
-  // Calling end twice must return 400
+  // Ending twice is idempotent — the second call returns 200 with the same state.
   const end2 = await request.post(`${base}/api/workouts/${workoutId}/end`, {
     headers: { Authorization: `Bearer ${access_token}` },
   });
-  expect(end2.status()).toBe(400);
+  expect(end2.status()).toBe(200);
 });
 
 test('non-owner cannot access another users workout (BOLA regression)', async ({ request }) => {
