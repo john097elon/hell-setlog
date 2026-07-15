@@ -1,10 +1,13 @@
 """Shared test fixtures for Hell Setlog backend tests."""
 import os
 import sys
+from pathlib import Path
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
 
 os.environ.setdefault("ENV", "dev")
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 from fastapi.testclient import TestClient
@@ -74,3 +77,4 @@ def register_and_login(client: TestClient, username: str, password: str = "pass1
 
 def auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+

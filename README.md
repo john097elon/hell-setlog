@@ -1,42 +1,40 @@
-# Hell Setlog MVP dev notes
+# Hell Setlog
 
-## Backend
+Hell Setlog is a FastAPI and React PWA. The operational foundation uses PostgreSQL, Alembic, private S3-compatible objects, an immutable application image, and a same-origin frontend/API deployment.
 
-1. Create and activate a virtual environment.
-2. Install backend dependencies.
-3. Start FastAPI on port 8000.
+## Local application process
 
-Commands:
+Create a Python 3.12 environment, install `backend/requirements.txt`, install the frontend with `npm ci`, and run the database migration before starting the API.
 
-    cd backend
-    python3 -m venv .venv
-    source .venv/bin/activate
-    python -m pip install -r requirements.txt
-    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+npm --prefix frontend ci
+$env:PYTHONPATH = "backend"
+.\.venv\Scripts\alembic.exe -c backend\alembic.ini upgrade head
+.\.venv\Scripts\uvicorn.exe main:app --app-dir backend --reload
+```
 
-The backend stores SQLite data under backend/data/hellsetlog.db and serves uploaded files from backend/uploads/.
+Run backend tests with:
 
-Health check:
+```powershell
+.\.venv\Scripts\python.exe -m pytest -p no:cacheprovider backend\tests -q
+```
 
-    curl http://127.0.0.1:8000/api/health
+## Production-like local stack
 
-### Backend smoke test
+Docker Compose builds the locked frontend and backend into one non-root image, starts PostgreSQL 16 and private MinIO storage, runs Alembic as a one-shot migration job, and starts the app only after migration succeeds.
 
-With the backend running, exercise registration, login, auth me, party creation, and workout creation:
+```powershell
+docker compose up --build --wait
+python backend\scripts\smoke_api.py http://127.0.0.1:8000
+docker compose down
+```
 
-    source backend/.venv/bin/activate
-    python backend/scripts/smoke_api.py
+- App and PWA: http://127.0.0.1:8000
+- Liveness: http://127.0.0.1:8000/healthz
+- Readiness: http://127.0.0.1:8000/readyz
+- MinIO console: http://127.0.0.1:9001
 
-Pass a custom base URL if needed:
+The local credentials in `docker-compose.yml` are development-only. Staging and production fail closed unless their managed PostgreSQL, private storage, HTTPS origin/hosts, release, and error-tracking settings are supplied through the secret store.
 
-    python backend/scripts/smoke_api.py http://127.0.0.1:8000
-
-Note: Debian/Ubuntu WSL images may need python3-venv installed before python3 -m venv works. If pip/venv are unavailable, uv also works:
-
-    export PATH="$HOME/.local/bin:$PATH"
-    cd backend
-    uv venv .venv
-    source .venv/bin/activate
-    uv pip install -r requirements.txt
-
-✅ Tested by JARVIS pipeline — 2026-06-20.
+See `docs/operations/sqlite-cutover.md`, `docs/operations/object-storage.md`, and the staging/backup/rollback runbooks for operator procedures.

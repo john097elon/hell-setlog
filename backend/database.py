@@ -1,66 +1,48 @@
-"""SQLAlchemy database setup for Hell Setlog — SQLite at ./data/hellsetlog.db."""
-import os
+"""SQLAlchemy engine and request-scoped session management."""
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, declarative_base
+from pathlib import Path
+from typing import Any
 
-# Ensure the data directory exists
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-os.makedirs(DATA_DIR, exist_ok=True)
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'hellsetlog.db')}"
+from settings import Settings, get_settings
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Required for SQLite + FastAPI
-    echo=False,
-)
 
+def _ensure_sqlite_directory(database_url: str) -> None:
+    url = make_url(database_url)
+    if not url.database or url.database == ":memory:":
+        return
+    database_path = Path(url.database)
+    if not database_path.is_absolute():
+        database_path = Path.cwd() / database_path
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def create_database_engine(settings: Settings) -> Engine:
+    """Create an engine without connecting or mutating schema state."""
+
+    engine_options: dict[str, Any] = {"pool_pre_ping": True}
+    if settings.database_url.startswith("sqlite"):
+        _ensure_sqlite_directory(settings.database_url)
+        engine_options["connect_args"] = {"check_same_thread": False}
+    else:
+        engine_options.update(pool_size=5, max_overflow=10, pool_recycle=1800)
+    return create_engine(settings.database_url, **engine_options)
+
+
+settings = get_settings()
+engine = create_database_engine(settings)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 
 def get_db():
-    """FastAPI dependency that provides a database session."""
+    """Provide one SQLAlchemy session per request."""
+
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-def _sqlite_columns(conn, table_name: str) -> set[str]:
-    rows = conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
-    return {row[1] for row in rows}
-
-
-def _add_column_if_missing(conn, table_name: str, column_name: str, ddl: str) -> None:
-    if column_name not in _sqlite_columns(conn, table_name):
-        conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {ddl}"))
-
-
-def migrate_sqlite() -> None:
-    """Idempotent SQLite migration for columns added after create_all-only DBs."""
-    with engine.begin() as conn:
-        existing_tables = {row[0] for row in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
-        if "users" in existing_tables:
-            _add_column_if_missing(conn, "users", "workout_tags", "workout_tags VARCHAR(500) DEFAULT '[]'")
-        if "parties" in existing_tables:
-            _add_column_if_missing(conn, "parties", "match_type", "match_type VARCHAR(20) NOT NULL DEFAULT 'manual'")
-            _add_column_if_missing(conn, "parties", "max_members", "max_members INTEGER NOT NULL DEFAULT 4")
-            _add_column_if_missing(conn, "parties", "is_open", "is_open BOOLEAN NOT NULL DEFAULT 1")
-            _add_column_if_missing(conn, "parties", "last_matched_at", "last_matched_at DATETIME")
-        if "party_members" in existing_tables:
-            _add_column_if_missing(conn, "party_members", "role", "role VARCHAR(20) NOT NULL DEFAULT 'member'")
-            _add_column_if_missing(conn, "party_members", "status", "status VARCHAR(20) NOT NULL DEFAULT 'active'")
-            _add_column_if_missing(conn, "party_members", "left_at", "left_at DATETIME")
-            conn.execute(text("UPDATE party_members SET role = 'owner' WHERE id IN (SELECT pm.id FROM party_members pm JOIN parties p ON p.id = pm.party_id WHERE p.owner_id = pm.user_id)"))
-
-
-def init_db():
-    """Create all tables and run lightweight SQLite migrations. Call on startup."""
-    # Import models so they register with Base.metadata
-    import models  # noqa: F401
-    Base.metadata.create_all(bind=engine)
-    migrate_sqlite()

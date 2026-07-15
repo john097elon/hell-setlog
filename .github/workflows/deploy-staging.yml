@@ -1,0 +1,71 @@
+name: Deploy staging
+
+on:
+  workflow_call:
+    inputs:
+      image_digest:
+        description: Full GHCR image reference pinned to sha256
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: Full GHCR image reference pinned to sha256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    environment: staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out deployment contract
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate protected inputs
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_APP_HOST: ${{ secrets.STAGING_APP_HOST }}
+        run: |
+          [[ "$IMAGE_DIGEST" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[0-9a-f]{64}$ ]]
+          [[ "$STAGING_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$STAGING_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$STAGING_APP_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+      - name: Configure pinned SSH trust
+        shell: bash
+        env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          STAGING_KNOWN_HOSTS: ${{ secrets.STAGING_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$STAGING_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+      - name: Upload deployment contract
+        shell: bash
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+        run: |
+          target="${STAGING_USER}@${STAGING_HOST}"
+          ssh "$target" 'install -d -m 700 "$HOME/hell-setlog-staging/ops"'
+          scp compose.staging.yml "$target:hell-setlog-staging/compose.staging.yml"
+          scp ops/Caddyfile ops/deploy_staging.sh "$target:hell-setlog-staging/ops/"
+      - name: Deploy digest and roll back on failed smoke
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_APP_HOST: ${{ secrets.STAGING_APP_HOST }}
+        run: |
+          target="${STAGING_USER}@${STAGING_HOST}"
+          printf -v image_q '%q' "$IMAGE_DIGEST"
+          printf -v host_q '%q' "$STAGING_APP_HOST"
+          ssh "$target" "cd \"\$HOME/hell-setlog-staging\" && chmod 700 ops/deploy_staging.sh && ./ops/deploy_staging.sh $image_q $host_q"

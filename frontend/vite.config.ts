@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Hell Setlog',
         short_name: 'Hell Setlog',
-        description: 'Social fitness app — join parties, share workout setlogs, grow your character.',
+        description: 'Social fitness app - join parties, share workout setlogs, grow your character.',
         theme_color: '#0d0d0d',
         background_color: '#0d0d0d',
         display: 'standalone',
@@ -59,10 +59,6 @@ export default defineConfig({
     allowedHosts: ['hermes-vnic.tail78f49b.ts.net'],
     proxy: {
       '/api': {
-        target: 'http://localhost:8001',
-        changeOrigin: true,
-      },
-      '/uploads': {
         target: 'http://localhost:8001',
         changeOrigin: true,
       },
