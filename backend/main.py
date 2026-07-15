@@ -12,6 +12,16 @@ from fastapi.staticfiles import StaticFiles
 
 from database import init_db
 
+# ── CORS config — explicit origins required in non-dev environments ──────────
+_ENV = os.getenv("ENV", "dev")
+_allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
+if _allowed_origins_raw:
+    _allowed_origins = [o.strip() for o in _allowed_origins_raw.split(",") if o.strip()]
+elif _ENV == "dev":
+    _allowed_origins = ["*"]
+else:
+    raise RuntimeError("ALLOWED_ORIGINS must be set to a comma-separated list of HTTPS origins in non-dev environments")
+
 # ── Create the FastAPI app ──────────────────────────────────────────────────
 app = FastAPI(
     title="Hell Setlog API",
@@ -19,13 +29,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# ── CORS — allow frontend dev server ────────────────────────────────────────
+# ── CORS ─────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
 )
 
 # ── Static file serving for uploaded files ──────────────────────────────────

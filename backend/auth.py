@@ -1,9 +1,11 @@
 """Authentication: JWT creation/verification, password hashing, get_current_user dependency."""
 import os
+import time
+from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -13,11 +15,29 @@ from database import get_db
 from models import User, Character, BodyStat
 
 # ── Config ──────────────────────────────────────────────────────────────────
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-hellsetlog-change-in-production")
+_DEV_SECRET = "dev-secret-hellsetlog-change-in-production"
+_ENV = os.getenv("ENV", "dev")
+SECRET_KEY = os.getenv("SECRET_KEY", _DEV_SECRET)
+if _ENV != "dev" and SECRET_KEY == _DEV_SECRET:
+    raise RuntimeError("SECRET_KEY must be set to a strong random value in non-dev environments")
+
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 security = HTTPBearer(auto_error=False)
+
+# ── Simple in-memory rate limiter ────────────────────────────────────────────
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+_RATE_WINDOW = 60  # seconds
+
+
+def _check_rate_limit(key: str, max_attempts: int) -> None:
+    now = time.monotonic()
+    bucket = _rate_buckets[key]
+    bucket[:] = [t for t in bucket if now - t < _RATE_WINDOW]
+    if len(bucket) >= max_attempts:
+        raise HTTPException(status_code=429, detail="Too many requests, try again later")
+    bucket.append(now)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -88,12 +108,14 @@ def _build_avatar_url(avatar_seed: str | None) -> str | None:
 # ── Endpoints ───────────────────────────────────────────────────────────────
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
+def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new user, creating character + 7 BodyStats."""
-    if db.query(User).filter(User.username == body.username).first():
-        raise HTTPException(status_code=409, detail="Username already taken")
-    if db.query(User).filter(User.email == body.email).first():
-        raise HTTPException(status_code=409, detail="Email already registered")
+    _check_rate_limit(f"register:{request.client.host}", max_attempts=10)
+    # Generic conflict response prevents username/email enumeration
+    username_taken = db.query(User).filter(User.username == body.username).first()
+    email_taken = db.query(User).filter(User.email == body.email).first()
+    if username_taken or email_taken:
+        raise HTTPException(status_code=409, detail="Unable to create account with provided credentials")
 
     # 1. Create user with character_id=NULL (will backfill after character creation)
     user = User(
@@ -135,16 +157,18 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
+def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     """Authenticate and return a JWT access token."""
+    _check_rate_limit(f"login:{request.client.host}", max_attempts=20)
     if body.username:
         user = db.query(User).filter(User.username == body.username).first()
     elif body.email:
         user = db.query(User).filter(User.email == body.email).first()
     else:
         raise HTTPException(status_code=422, detail="Username or email is required")
+    # Generic error prevents username/email enumeration
     if not user or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token(user.id)
     return TokenResponse(

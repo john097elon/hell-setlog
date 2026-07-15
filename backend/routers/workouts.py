@@ -1,5 +1,4 @@
 """Router: Workout and Setlog management."""
-import random
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -83,9 +82,10 @@ def get_workout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get a single workout with its setlogs."""
+    """Get a single workout. Only the owner may read full workout details."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
-    if not workout:
+    # Return 404 whether not found or unauthorized (prevents ID enumeration)
+    if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
     return workout
 
@@ -97,17 +97,12 @@ def update_workout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Update workout status, ended_at, or notes."""
+    """Update workout notes. Status transitions are managed by the server via /end."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
-    if not workout:
+    if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
-    if workout.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not your workout")
 
-    if body.status is not None:
-        workout.status = body.status
-    if body.ended_at is not None:
-        workout.ended_at = body.ended_at
+    # Only notes may be updated via PATCH; status/ended_at are server-managed
     if body.notes is not None:
         workout.notes = body.notes
 
@@ -118,21 +113,55 @@ def update_workout(
 
 # ── Workout End + Character Growth ─────────────────────────────────────────
 
+def _build_end_response(workout, db: Session) -> dict:
+    """Build the end-workout response dict from an already-ended workout."""
+    from models import User as _User
+    user = db.query(_User).filter(_User.id == workout.user_id).first()
+    body_stats = []
+    if user and user.character_id:
+        body_stats = [
+            BodyStatSummary(part=bs.part, level=bs.level, potential=bs.potential)
+            for bs in db.query(BodyStat).filter(BodyStat.character_id == user.character_id).all()
+        ]
+    setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout.id).count()
+    duration_seconds = (
+        int((workout.ended_at - workout.started_at).total_seconds())
+        if workout.ended_at and workout.started_at else None
+    )
+    workout_out = WorkoutOut(
+        id=workout.id, user_id=workout.user_id, party_id=workout.party_id,
+        started_at=workout.started_at, ended_at=workout.ended_at,
+        status=workout.status, notes=workout.notes,
+    )
+    return {
+        **workout_out.model_dump(),
+        "duration_seconds": duration_seconds,
+        "setlog_count": setlog_count,
+        "breakthroughs": [],
+        "body_stats": [s.model_dump() for s in body_stats],
+        "workout": workout_out.model_dump(),
+        "all_stats": [s.model_dump() for s in body_stats],
+    }
+
+
 @router.post("/{workout_id}/end")
 def end_workout(
     workout_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """End a workout and calculate character growth across all 7 body parts."""
-    # 1. Validate workout belongs to user and is active
+    """End a workout and calculate character growth across all 7 body parts.
+
+    Idempotent: if the workout is already ended, returns the current state.
+    """
+    # 1. Validate workout belongs to user
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
-    if not workout:
+    if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
-    if workout.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not your workout")
+
+    # Idempotent: already ended — return current state without re-triggering growth
     if workout.status != "active":
-        raise HTTPException(status_code=400, detail="Workout is not active")
+        return _build_end_response(workout, db)
 
     # 2. Set workout as ended (frontend contract)
     now = datetime.now(timezone.utc)
@@ -166,13 +195,22 @@ def end_workout(
             db.add(new_stat)
             body_stats.append(new_stat)
 
-    # 5. Calculate growth for each body part
+    # 5. Calculate growth — deterministic base gain, workout duration bonus
+    # ponytail: simple formula placeholder until GrowthEvent engine (ELO-14) lands
+    started_at = workout.started_at
+    if started_at and started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    duration_min = (
+        int((now - started_at).total_seconds() / 60)
+        if started_at else 0
+    )
+    base_gain = min(10, max(5, duration_min // 6))  # 5–10 per part, scales with duration
+
     breakthroughs: list[Breakthrough] = []
     all_stats: list[BodyStatSummary] = []
 
     for bs in body_stats:
-        gain = random.randint(5, 15)
-        bs.potential += gain
+        bs.potential += base_gain
 
         # Level up if potential >= 100
         if bs.potential >= 100:
@@ -267,10 +305,8 @@ async def add_setlog(
 ):
     """Add a setlog entry to a workout. Accepts JSON body with type and content."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
-    if not workout:
+    if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
-    if workout.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not your workout")
 
     setlog = Setlog(
         workout_id=workout_id,
@@ -291,9 +327,10 @@ def list_setlogs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get all setlogs for a workout."""
+    """Get all setlogs for a workout. Only the owner may read setlogs."""
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
-    if not workout:
+    # 404 for both not-found and unauthorized to prevent ID enumeration
+    if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
     return (
         db.query(Setlog)
