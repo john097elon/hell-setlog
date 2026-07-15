@@ -84,3 +84,16 @@ body[data-online="false"] a {
 body {
   overscroll-behavior-y: contain;
 }
+
+/* Respect reduced motion preference (ELO-10) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: scroll !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}

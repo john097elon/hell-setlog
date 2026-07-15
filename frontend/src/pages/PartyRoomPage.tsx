@@ -10,6 +10,7 @@ interface Member {
   id: string;
   user_id?: string | number;
   username: string;
+  characterName?: string;
   avatar_url?: string;
   body_stats?: BodyPart[];
   role?: string;
@@ -69,6 +70,51 @@ interface FeedEvent {
   setlog_id?: string;
   target_type?: 'setlog' | 'workout';
   target_id?: string;
+  user?: {
+    id: number;
+    username: string;
+    character?: {
+      id: number;
+      name: string;
+      avatar_seed: string;
+      avatar_url?: string;
+      body_stats?: BodyPart[];
+    };
+  };
+}
+
+function FeedAvatar({ avatarUrl, fallback }: { avatarUrl?: string; fallback: string }) {
+  const [imgError, setImgError] = useState(false);
+  const initial = fallback?.charAt(0)?.toUpperCase() || '?';
+
+  return (
+    <div style={{
+      width: '24px',
+      height: '24px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, var(--accent), #cc0000)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '0.65rem',
+      fontWeight: 700,
+      color: '#fff',
+      flexShrink: 0,
+      overflow: 'hidden',
+      border: '1px solid var(--border)',
+    }}>
+      {avatarUrl && !imgError ? (
+        <img
+          src={avatarUrl}
+          alt={fallback}
+          onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        initial
+      )}
+    </div>
+  );
 }
 
 function PartyRoomPage() {
@@ -207,6 +253,7 @@ function PartyRoomPage() {
       id: String(m.user.id),
       user_id: m.user_id ?? m.user.id,
       username: m.user.username,
+      characterName: m.user.character?.name,
       avatar_url: m.user.character?.avatar_url,
       body_stats: m.user.character?.body_stats,
       role: m.role,
@@ -250,12 +297,14 @@ function PartyRoomPage() {
   // ---- Render helpers for each event type ----
 
   const renderEvent = (evt: FeedEvent, idx: number) => {
+    const displayEventName = evt.user?.character?.name || evt.username;
     switch (evt.event_type) {
       case 'member_joined':
         return (
           <div key={evt.id || idx} style={systemMsgStyle}>
             <span>👋</span>
-            <span style={{ fontWeight: 600 }}>{evt.username}</span>
+            <FeedAvatar avatarUrl={evt.user?.character?.avatar_url} fallback={displayEventName} />
+            <span style={{ fontWeight: 600 }}>{displayEventName}</span>
             <span>님이 파티에 참가했습니다</span>
             <span style={timeStyle}>{formatTime(evt.created_at)}</span>
           </div>
@@ -265,10 +314,10 @@ function PartyRoomPage() {
         return (
           <div key={evt.id || idx} style={eventCardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem' }}>🔥</span>
+              <FeedAvatar avatarUrl={evt.user?.character?.avatar_url} fallback={displayEventName} />
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
-                  {evt.username}님 운동 시작
+                  {displayEventName}님 운동 시작
                 </div>
                 <div style={timeStyle}>{formatTime(evt.created_at)}</div>
                 {renderReactionButtons('setlog', evt.setlog_id || evt.target_id)}
@@ -283,10 +332,10 @@ function PartyRoomPage() {
         return (
           <div key={evt.id || idx} style={eventCardStyle}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-              <span style={{ fontSize: '1.3rem', marginTop: '2px' }}>{typeIcon}</span>
+              <FeedAvatar avatarUrl={evt.user?.character?.avatar_url} fallback={displayEventName} />
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{evt.username}</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{displayEventName}</span>
                   <span style={{
                     fontSize: '0.7rem',
                     padding: '1px 6px',
@@ -294,7 +343,7 @@ function PartyRoomPage() {
                     background: 'var(--bg-secondary)',
                     color: 'var(--text-secondary)',
                   }}>
-                    {typeLabel}
+                    {typeIcon} {typeLabel}
                   </span>
                 </div>
                 {evt.content && (
@@ -337,10 +386,10 @@ function PartyRoomPage() {
             borderColor: 'var(--accent)',
             boxShadow: '0 0 20px rgba(255,61,61,0.12)',
           }}>
-            <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>💪</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '14px', gap: '8px' }}>
+              <FeedAvatar avatarUrl={evt.user?.character?.avatar_url} fallback={displayEventName} />
               <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--accent-glow)' }}>
-                {evt.username}님 운동 완료!
+                {displayEventName}님 운동 완료!
               </div>
             </div>
 
@@ -578,6 +627,7 @@ function PartyRoomPage() {
                 <div key={m.id} style={memberChipStyle}>
                   <CharacterPreview
                     username={m.username}
+                    characterName={m.characterName}
                     avatar_url={m.avatar_url}
                     body_stats={m.body_stats}
                     compact
