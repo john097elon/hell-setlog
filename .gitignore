@@ -2,6 +2,17 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv*/
+.uv-cache/
+.pytest_cache/
+.test-tmp/
+pytest-cache-files-*/
+
+# Environment and operator artifacts
+.env
+!.env.example
+*.dump
+*.manifest.json
 
 # Backend runtime data
 backend/data/
@@ -10,3 +21,4 @@ backend/uploads/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.npm-cache/
