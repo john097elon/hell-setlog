@@ -5,16 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
-from database import get_db
 from auth import get_current_user
-from models import User, Party, PartyMember, Workout, Setlog, Reaction
+from database import get_db
+from models import Party, PartyMember, Reaction, Setlog, User, Workout
 from schemas import (
-    PartyCreate,
-    PartyJoin,
-    PartyOut,
-    PartyMemberOut,
     FeedEvent,
     FeedEventData,
+    PartyCreate,
+    PartyJoin,
+    PartyMemberOut,
+    PartyOut,
 )
 
 router = APIRouter(prefix="/parties", tags=["parties"])

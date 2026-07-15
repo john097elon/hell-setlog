@@ -9,7 +9,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from backend.streak import compute_streak
+from backend.streak import compute_streak  # noqa: E402
 
 
 def assert_equal(actual, expected, label: str) -> None:

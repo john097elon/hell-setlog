@@ -9,7 +9,12 @@ import urllib.request
 from urllib.parse import quote
 
 from settings import Settings
-from storage import ObjectNotFound, S3ObjectStorage, create_object_storage, generate_object_key
+from storage import (
+    ObjectNotFound,
+    S3ObjectStorage,
+    create_object_storage,
+    generate_object_key,
+)
 
 
 def require_anonymous_denial(url: str) -> None:

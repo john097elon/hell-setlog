@@ -6,8 +6,7 @@ enumeration defense, duplicate end idempotency.
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import register_and_login, auth_headers
-
+from tests.conftest import auth_headers, register_and_login
 
 # ── BOLA: workout ownership ─────────────────────────────────────────────────
 

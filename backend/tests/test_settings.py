@@ -4,7 +4,6 @@ import importlib.util
 import pytest
 from pydantic import ValidationError
 
-
 DEPLOYED_ENV = {
     "app_env": "staging",
     "database_url": "postgresql+psycopg://app:secret@db/hellsetlog",

@@ -1,21 +1,20 @@
 """Router: Workout and Setlog management."""
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from database import get_db
 from auth import get_current_user
-from models import User, Workout, Setlog, PartyMember, BodyStat, Character
+from database import get_db
+from models import BodyStat, Character, PartyMember, Setlog, User, Workout
 from schemas import (
-    WorkoutCreate,
-    WorkoutUpdate,
-    WorkoutOut,
+    BodyStatSummary,
+    Breakthrough,
     SetlogCreate,
     SetlogOut,
-    Breakthrough,
-    BodyStatSummary,
-    WorkoutEndResponse,
+    WorkoutCreate,
+    WorkoutOut,
+    WorkoutUpdate,
 )
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])

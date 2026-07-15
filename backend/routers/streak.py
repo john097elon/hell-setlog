@@ -1,11 +1,10 @@
 """Router: Workout streak (current streak, longest streak)."""
-import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
 from auth import get_current_user
+from database import get_db
 from models import User, Workout
 from streak import compute_streak
 

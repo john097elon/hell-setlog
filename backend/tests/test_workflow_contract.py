@@ -3,7 +3,6 @@ from pathlib import Path
 
 import yaml
 
-
 WORKFLOWS = (
     Path(".github/workflows/operational-foundation.yml"),
     Path(".github/workflows/deploy-staging.yml"),

@@ -7,7 +7,6 @@ from typing import Literal
 from pydantic import AnyHttpUrl, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 DEFAULT_SQLITE_URL = f"sqlite:///{(Path(__file__).resolve().parent / 'data' / 'hellsetlog.db').as_posix()}"
 
 

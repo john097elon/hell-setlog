@@ -2,9 +2,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
 from auth import get_current_user
-from models import User, Character
+from database import get_db
+from models import Character, User
 from schemas import CharacterOut, CharacterUpdate
 
 router = APIRouter(prefix="/characters", tags=["characters"])

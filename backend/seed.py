@@ -6,12 +6,20 @@ Run:  python seed.py
 
 import random
 import string
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from database import SessionLocal
-from models import User, Character, BodyStat, Party, PartyMember, Workout, Setlog, Reaction
 from auth import hash_password
-
+from database import SessionLocal
+from models import (
+    BodyStat,
+    Character,
+    Party,
+    PartyMember,
+    Reaction,
+    Setlog,
+    User,
+    Workout,
+)
 
 # The 7 required BodyStat parts
 BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
@@ -188,7 +196,7 @@ def seed():
         print(f"\n{'='*50}")
         print("✅ Seed complete!")
         print(f"   Users:     {db.query(User).count()} (alpha, beta, gamma)")
-        print(f"   Password:  test1234 (all users)")
+        print("   Password:  test1234 (all users)")
         print(f"   Characters:{db.query(Character).count()}")
         print(f"   BodyStats: {db.query(BodyStat).count()} (7 per character)")
         print(f"   Parties:   {db.query(Party).count()} (invite={party.invite_code})")

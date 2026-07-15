@@ -19,7 +19,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from settings import Settings
 
-
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{8,128}$")
 SENSITIVE_KEYS = frozenset(
     {

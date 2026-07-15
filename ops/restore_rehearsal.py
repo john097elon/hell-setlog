@@ -247,7 +247,10 @@ def _run_application_smoke(database_url: str) -> None:
             text=True,
         )
     except subprocess.CalledProcessError as error:
-        raise RestoredApplicationSmokeFailed from error
+        output = error.stdout or error.stderr or "restore verification failed"
+        lines = [line for line in output.splitlines() if line.strip()]
+        diagnostic = safe_pg_restore_diagnostic(lines[-1] if lines else output)
+        raise RestoredApplicationSmokeFailed(diagnostic) from error
 
 
 def run_restore_rehearsal(
@@ -305,8 +308,8 @@ def run_restore_rehearsal(
 
 def restore_failure_result(error: Exception) -> dict[str, str]:
     result = failure_result(error)
-    if isinstance(error, DatabaseRestoreFailed):
-        result["diagnostic"] = str(error) or "pg_restore failed"
+    if isinstance(error, (DatabaseRestoreFailed, RestoredApplicationSmokeFailed)):
+        result["diagnostic"] = str(error) or "restore verification failed"
     return result
 
 

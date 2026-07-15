@@ -2,17 +2,25 @@
 import os
 import time
 from collections import defaultdict
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from schemas import RegisterRequest, LoginRequest, TokenResponse, BodyStatOut, CharacterOut, UserOut, UserMeOut
 
 from database import get_db
-from models import User, Character, BodyStat
+from models import BodyStat, Character, User
+from schemas import (
+    BodyStatOut,
+    CharacterOut,
+    LoginRequest,
+    RegisterRequest,
+    TokenResponse,
+    UserMeOut,
+    UserOut,
+)
 
 # ── Config ──────────────────────────────────────────────────────────────────
 _DEV_SECRET = "dev-secret-hellsetlog-change-in-production"

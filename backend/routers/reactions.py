@@ -2,9 +2,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from database import get_db
 from auth import get_current_user
-from models import User, Reaction, Workout, Setlog, PartyMember
+from database import get_db
+from models import PartyMember, Reaction, Setlog, User, Workout
 from schemas import ReactionCreate, ReactionOut
 
 router = APIRouter(prefix="/reactions", tags=["reactions"])
