@@ -33,7 +33,7 @@ describe('CharacterPreview', () => {
   it('expands to show a per-part level on click', async () => {
     const user = userEvent.setup();
     render(<CharacterPreview username="carol" body_stats={STATS} />);
-    const card = screen.getByText('carol').closest('div')!.parentElement!;
+    const card = screen.getByText('carol').closest('div')!;
     await user.click(card);
     expect(screen.getByText('Lv.2')).toBeTruthy();
   });
