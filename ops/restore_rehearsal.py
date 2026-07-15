@@ -24,7 +24,7 @@ from sqlalchemy.engine import URL, make_url
 from ops.backup import build_pg_environment, failure_result
 
 
-EXPECTED_REVISION = "20260715_0001"
+EXPECTED_REVISION = "20260715_0002"
 APPLICATION_TABLES = (
     "users",
     "characters",
@@ -33,8 +33,10 @@ APPLICATION_TABLES = (
     "workouts",
     "setlogs",
     "body_stats",
+    "growth_events",
     "reactions",
 )
+
 
 class DatabaseRestoreFailed(RuntimeError):
     """The provider-neutral pg_restore stage failed."""
@@ -156,7 +158,12 @@ def build_pg_restore_command(input_path: Path, database_name: str) -> list[str]:
 
 
 def build_restore_smoke_command() -> list[str]:
-    script = Path(__file__).resolve().parents[1] / "backend" / "scripts" / "smoke_restored_database.py"
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "backend"
+        / "scripts"
+        / "smoke_restored_database.py"
+    )
     return [sys.executable, str(script)]
 
 
@@ -314,7 +321,9 @@ def restore_failure_result(error: Exception) -> dict[str, str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Rehearse an isolated PostgreSQL restore")
+    parser = argparse.ArgumentParser(
+        description="Rehearse an isolated PostgreSQL restore"
+    )
     parser.add_argument("--backup-key", required=True)
     args = parser.parse_args()
     try:
