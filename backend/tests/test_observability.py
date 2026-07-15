@@ -10,7 +10,9 @@ from settings import Settings
 
 
 def observability_module():
-    assert importlib.util.find_spec("observability") is not None, "observability module must exist"
+    assert importlib.util.find_spec("observability") is not None, (
+        "observability module must exist"
+    )
     return importlib.import_module("observability")
 
 
@@ -61,7 +63,9 @@ def test_request_id_accepts_safe_value_and_replaces_invalid_value():
     client = configured_client()
 
     accepted = client.get("/healthz", headers={"X-Request-ID": "request-abc-123"})
-    generated = client.get("/healthz", headers={"X-Request-ID": "bad value with spaces"})
+    generated = client.get(
+        "/healthz", headers={"X-Request-ID": "bad value with spaces"}
+    )
 
     assert accepted.headers["X-Request-ID"] == "request-abc-123"
     UUID(generated.headers["X-Request-ID"])

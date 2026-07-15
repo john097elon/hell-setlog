@@ -27,7 +27,9 @@ TABLE_ORDER = (
 
 def migration_module():
     module_name = "scripts.migrate_sqlite_to_postgres"
-    assert importlib.util.find_spec(module_name) is not None, "migration module must exist"
+    assert importlib.util.find_spec(module_name) is not None, (
+        "migration module must exist"
+    )
     return importlib.import_module(module_name)
 
 
@@ -136,10 +138,15 @@ def test_transfer_preserves_ids_and_verifies_digests():
         assert report.ok is True
         assert all(report.counts[table] == 1 for table in TABLE_ORDER)
         with target.connect() as connection:
-            assert connection.execute(
-                text("SELECT character_id FROM users WHERE id = 7")
-            ).scalar_one() == 9
-            assert connection.execute(text("SELECT id FROM reactions")).scalar_one() == 21
+            assert (
+                connection.execute(
+                    text("SELECT character_id FROM users WHERE id = 7")
+                ).scalar_one()
+                == 9
+            )
+            assert (
+                connection.execute(text("SELECT id FROM reactions")).scalar_one() == 21
+            )
         assert output.exists()
         assert "alpha@example.test" not in output.read_text(encoding="utf-8")
     finally:

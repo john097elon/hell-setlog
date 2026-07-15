@@ -36,6 +36,7 @@ const PART_EMOJI: Record<string, string> = {
 
 function CharacterPreview({ username, avatar_url: _avatarUrl, body_stats, compact = false, onClick }: CharacterPreviewProps) {
   const [expanded, setExpanded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const initial = username?.charAt(0)?.toUpperCase() || '?';
 
   const maxLevel = 10;
@@ -85,8 +86,22 @@ function CharacterPreview({ username, avatar_url: _avatarUrl, body_stats, compac
         fontWeight: 700,
         color: '#fff',
         flexShrink: 0,
+        overflow: 'hidden',
       }}>
-        {initial}
+        {_avatarUrl && !imgError ? (
+          <img
+            src={_avatarUrl}
+            alt={username}
+            onError={() => setImgError(true)}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        ) : (
+          initial
+        )}
       </div>
 
       {/* Username */}

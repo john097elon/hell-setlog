@@ -9,7 +9,9 @@ import yaml
 
 def operations_module(name: str):
     module_name = f"ops.{name}"
-    assert importlib.util.find_spec(module_name) is not None, f"{module_name} must exist"
+    assert importlib.util.find_spec(module_name) is not None, (
+        f"{module_name} must exist"
+    )
     return importlib.import_module(module_name)
 
 
@@ -70,9 +72,7 @@ def test_restore_database_name_is_generated_and_safe():
 
 def test_failure_result_never_serializes_secret_or_url():
     backup = operations_module("backup")
-    error = RuntimeError(
-        "failed postgresql://app:super-secret@db.example/hellsetlog"
-    )
+    error = RuntimeError("failed postgresql://app:super-secret@db.example/hellsetlog")
 
     payload = json.dumps(backup.failure_result(error), sort_keys=True)
 
@@ -113,6 +113,7 @@ def test_local_stack_contains_hourly_automated_backup_job():
     assert "BACKUP_INTERVAL_SECONDS" in loop_source
     assert "sleep" in loop_source
 
+
 def test_restore_rehearsal_defines_application_readiness_smoke():
     restore = operations_module("restore_rehearsal")
     command = restore.build_restore_smoke_command()
@@ -125,6 +126,7 @@ def test_restore_rehearsal_defines_application_readiness_smoke():
     assert '"/readyz"' in source
     assert '"/api/auth/register"' in source
     assert '"/api/parties/"' in source
+
 
 def test_restore_smoke_uses_only_the_isolated_database_url(monkeypatch):
     restore = operations_module("restore_rehearsal")
@@ -146,19 +148,20 @@ def test_restore_smoke_uses_only_the_isolated_database_url(monkeypatch):
     assert invocation["text"] is True
     assert "shell" not in invocation
 
+
 def test_local_recovery_explicitly_disables_tls_only_for_compose_postgres():
     compose = Path("docker-compose.yml").read_text(encoding="utf-8")
     workflow = Path(".github/workflows/operational-foundation.yml").read_text(
         encoding="utf-8"
     )
     local_url = (
-        "postgresql+psycopg://hellsetlog:hellsetlog@db:5432/"
-        "hellsetlog?sslmode=disable"
+        "postgresql+psycopg://hellsetlog:hellsetlog@db:5432/hellsetlog?sslmode=disable"
     )
 
     assert f"DATABASE_URL: {local_url}" in compose
     assert f"MIGRATION_DATABASE_URL: {local_url}" in compose
     assert f"RESTORE_ADMIN_DATABASE_URL={local_url}" in workflow
+
 
 def test_backup_metrics_volume_has_a_bounded_ownership_initializer():
     for path in (Path("docker-compose.yml"), Path("compose.staging.yml")):
@@ -179,6 +182,7 @@ def test_backup_metrics_volume_has_a_bounded_ownership_initializer():
             "condition": "service_completed_successfully"
         }
 
+
 def test_restore_subprocess_failures_have_safe_stage_specific_types():
     backup = operations_module("backup")
     restore = operations_module("restore_rehearsal")
@@ -195,38 +199,59 @@ def test_restore_subprocess_failures_have_safe_stage_specific_types():
         "error_type": "RestoredApplicationSmokeFailed",
     }
 
+
 def test_pg_restore_diagnostics_are_classified_without_raw_output():
     restore = operations_module("restore_rehearsal")
 
-    assert type(
-        restore.classify_pg_restore_failure(
-            b'pg_restore: error: relation "public.users" does not exist'
-        )
-    ).__name__ == "DatabaseRestoreCleanTargetMissing"
-    assert type(
-        restore.classify_pg_restore_failure(
-            b'pg_restore: error: relation "users" already exists'
-        )
-    ).__name__ == "DatabaseRestoreTargetNotEmpty"
-    assert type(
-        restore.classify_pg_restore_failure(b"pg_restore: error: permission denied")
-    ).__name__ == "DatabaseRestorePermissionDenied"
-    assert type(
-        restore.classify_pg_restore_failure(b"pg_restore: error: connection to server failed")
-    ).__name__ == "DatabaseRestoreConnectionFailed"
-    assert type(
-        restore.classify_pg_restore_failure(b"pg_restore: unsupported version in file header")
-    ).__name__ == "DatabaseRestoreArchiveIncompatible"
+    assert (
+        type(
+            restore.classify_pg_restore_failure(
+                b'pg_restore: error: relation "public.users" does not exist'
+            )
+        ).__name__
+        == "DatabaseRestoreCleanTargetMissing"
+    )
+    assert (
+        type(
+            restore.classify_pg_restore_failure(
+                b'pg_restore: error: relation "users" already exists'
+            )
+        ).__name__
+        == "DatabaseRestoreTargetNotEmpty"
+    )
+    assert (
+        type(
+            restore.classify_pg_restore_failure(b"pg_restore: error: permission denied")
+        ).__name__
+        == "DatabaseRestorePermissionDenied"
+    )
+    assert (
+        type(
+            restore.classify_pg_restore_failure(
+                b"pg_restore: error: connection to server failed"
+            )
+        ).__name__
+        == "DatabaseRestoreConnectionFailed"
+    )
+    assert (
+        type(
+            restore.classify_pg_restore_failure(
+                b"pg_restore: unsupported version in file header"
+            )
+        ).__name__
+        == "DatabaseRestoreArchiveIncompatible"
+    )
     assert type(restore.classify_pg_restore_failure(b"unclassified")).__name__ == (
         "DatabaseRestoreFailed"
     )
+
 
 def test_pg_restore_diagnostic_keeps_only_a_redacted_first_line():
     restore = operations_module("restore_rehearsal")
     raw = (
         b'pg_restore: error: relation "private_table" failed for '
-        b'postgresql://user:secret@db/private\n'
-        b'DETAIL: user@example.com and row data'
+        b"postgresql://user:secret@db/private\n"
+        b"DETAIL: user@example.com and row data"
     )
 
     diagnostic = restore.safe_pg_restore_diagnostic(raw)
@@ -234,8 +259,7 @@ def test_pg_restore_diagnostic_keeps_only_a_redacted_first_line():
     assert restore.safe_pg_restore_diagnostic(b"") == "pg_restore failed"
 
     assert diagnostic == (
-        'pg_restore: error: relation "<redacted>" failed for '
-        'postgresql://<redacted>'
+        'pg_restore: error: relation "<redacted>" failed for postgresql://<redacted>'
     )
     assert "private_table" not in diagnostic
     assert "secret" not in diagnostic

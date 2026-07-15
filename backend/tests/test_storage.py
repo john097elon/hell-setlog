@@ -33,7 +33,14 @@ def test_policy_rejects_objects_over_limit():
 
 @pytest.mark.parametrize(
     "key",
-    ["", "/users/1/a.jpg", "../a.jpg", "users/../a.jpg", "users//a.jpg", r"users\a.jpg"],
+    [
+        "",
+        "/users/1/a.jpg",
+        "../a.jpg",
+        "users/../a.jpg",
+        "users//a.jpg",
+        r"users\a.jpg",
+    ],
 )
 def test_policy_rejects_nonopaque_or_traversal_key(key):
     storage = storage_module()

@@ -1,4 +1,5 @@
 """Router: Party management (create, join, list, details, feed)."""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -57,6 +58,7 @@ RANDOM_PARTY_NAMES = [
 
 def _random_party_name() -> str:
     import random
+
     return random.choice(RANDOM_PARTY_NAMES)
 
 
@@ -68,6 +70,7 @@ def _generate_invite_code(db: Session) -> str:
     """Generate a random 6-character uppercase alphanumeric invite code."""
     import random
     import string
+
     while True:
         code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
         if not db.query(Party).filter(Party.invite_code == code).first():
@@ -164,13 +167,19 @@ def create_party(
     db.add(party)
     db.flush()
 
-    db.add(PartyMember(party_id=party.id, user_id=current_user.id, role="owner", status="active"))
+    db.add(
+        PartyMember(
+            party_id=party.id, user_id=current_user.id, role="owner", status="active"
+        )
+    )
     db.commit()
     db.refresh(party)
     return party
 
 
-@router.post("/random-match", response_model=PartyOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/random-match", response_model=PartyOut, status_code=status.HTTP_201_CREATED
+)
 def random_match_party(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -208,7 +217,11 @@ def random_match_party(
             func.coalesce(counts.c.active_count, 0) < Party.max_members,
             Party.id.not_in(blocked_party_ids),
         )
-        .order_by(Party.last_matched_at.is_(None).desc(), Party.last_matched_at.asc(), Party.created_at.asc())
+        .order_by(
+            Party.last_matched_at.is_(None).desc(),
+            Party.last_matched_at.asc(),
+            Party.created_at.asc(),
+        )
         .first()
     )
 
@@ -225,17 +238,33 @@ def random_match_party(
         )
         db.add(party)
         db.flush()
-        db.add(PartyMember(party_id=party.id, user_id=current_user.id, role="owner", status="active"))
+        db.add(
+            PartyMember(
+                party_id=party.id,
+                user_id=current_user.id,
+                role="owner",
+                status="active",
+            )
+        )
     else:
         membership = (
             db.query(PartyMember)
-            .filter(PartyMember.party_id == party.id, PartyMember.user_id == current_user.id)
+            .filter(
+                PartyMember.party_id == party.id, PartyMember.user_id == current_user.id
+            )
             .first()
         )
         if membership:
             _activate_membership(membership)
         else:
-            db.add(PartyMember(party_id=party.id, user_id=current_user.id, role="member", status="active"))
+            db.add(
+                PartyMember(
+                    party_id=party.id,
+                    user_id=current_user.id,
+                    role="member",
+                    status="active",
+                )
+            )
         party.last_matched_at = now
 
     db.flush()
@@ -258,18 +287,26 @@ def join_party(
 
     existing = (
         db.query(PartyMember)
-        .filter(PartyMember.party_id == party.id, PartyMember.user_id == current_user.id)
+        .filter(
+            PartyMember.party_id == party.id, PartyMember.user_id == current_user.id
+        )
         .first()
     )
     if existing:
         if existing.status == "active":
-            raise HTTPException(status_code=409, detail="Already a member of this party")
+            raise HTTPException(
+                status_code=409, detail="Already a member of this party"
+            )
         if existing.status == "kicked":
-            raise HTTPException(status_code=403, detail="You were kicked from this party")
+            raise HTTPException(
+                status_code=403, detail="You were kicked from this party"
+            )
         _activate_membership(existing, role="member")
         member = existing
     else:
-        member = PartyMember(party_id=party.id, user_id=current_user.id, role="member", status="active")
+        member = PartyMember(
+            party_id=party.id, user_id=current_user.id, role="member", status="active"
+        )
         db.add(member)
 
     db.flush()
@@ -356,7 +393,9 @@ def kick_party_member(
         raise HTTPException(status_code=404, detail="Party not found")
     owner_membership = _require_active_member(db, party_id, current_user.id)
     if party.owner_id != current_user.id or owner_membership.role != "owner":
-        raise HTTPException(status_code=403, detail="Only the party owner can kick members")
+        raise HTTPException(
+            status_code=403, detail="Only the party owner can kick members"
+        )
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="Owner cannot kick themselves")
 
@@ -371,6 +410,7 @@ def kick_party_member(
 
 
 # ── Party Feed ──────────────────────────────────────────────────────────────
+
 
 @router.get("/{party_id}/feed", response_model=list[FeedEvent])
 def get_party_feed(
@@ -396,14 +436,20 @@ def get_party_feed(
     )
     for pm in members:
         event_type = "member_joined" if pm.status == "active" else f"member_{pm.status}"
-        events.append({
-            "id": f"{event_type}:{pm.id}",
-            "event_type": event_type,
-            "created_at": pm.joined_at if pm.status == "active" else (pm.left_at or pm.joined_at),
-            "user": pm.user,
-            "username": pm.user.username if pm.user else "Unknown",
-            "data": FeedEventData(user_id=pm.user_id, username=pm.user.username if pm.user else None),
-        })
+        events.append(
+            {
+                "id": f"{event_type}:{pm.id}",
+                "event_type": event_type,
+                "created_at": pm.joined_at
+                if pm.status == "active"
+                else (pm.left_at or pm.joined_at),
+                "user": pm.user,
+                "username": pm.user.username if pm.user else "Unknown",
+                "data": FeedEventData(
+                    user_id=pm.user_id, username=pm.user.username if pm.user else None
+                ),
+            }
+        )
 
     workouts = (
         db.query(Workout)
@@ -412,33 +458,49 @@ def get_party_feed(
         .all()
     )
     for w in workouts:
-        events.append({
-            "id": f"workout_start:{w.id}",
-            "event_type": "workout_start",
-            "created_at": w.started_at,
-            "user": w.user,
-            "username": w.user.username if w.user else "Unknown",
-            "workout_id": w.id,
-            "content": w.notes,
-            "data": FeedEventData(workout_id=w.id, notes=w.notes),
-        })
+        events.append(
+            {
+                "id": f"workout_start:{w.id}",
+                "event_type": "workout_start",
+                "created_at": w.started_at,
+                "user": w.user,
+                "username": w.user.username if w.user else "Unknown",
+                "workout_id": w.id,
+                "content": w.notes,
+                "data": FeedEventData(workout_id=w.id, notes=w.notes),
+            }
+        )
 
     for w in workouts:
         if w.ended_at is not None:
             setlog_count = db.query(Setlog).filter(Setlog.workout_id == w.id).count()
-            duration = int((w.ended_at - w.started_at).total_seconds()) if w.started_at else None
-            events.append({
-                "id": f"workout_end:{w.id}",
-                "event_type": "workout_end",
-                "created_at": w.ended_at,
-                "user": w.user,
-                "username": w.user.username if w.user else "Unknown",
-                "workout_id": w.id,
-                "target_type": "workout",
-                "target_id": w.id,
-                "workout_stats": {"duration_seconds": duration, "setlog_count": setlog_count},
-                "data": FeedEventData(workout_id=w.id, notes=w.notes, duration_seconds=duration, setlog_count=setlog_count),
-            })
+            duration = (
+                int((w.ended_at - w.started_at).total_seconds())
+                if w.started_at
+                else None
+            )
+            events.append(
+                {
+                    "id": f"workout_end:{w.id}",
+                    "event_type": "workout_end",
+                    "created_at": w.ended_at,
+                    "user": w.user,
+                    "username": w.user.username if w.user else "Unknown",
+                    "workout_id": w.id,
+                    "target_type": "workout",
+                    "target_id": w.id,
+                    "workout_stats": {
+                        "duration_seconds": duration,
+                        "setlog_count": setlog_count,
+                    },
+                    "data": FeedEventData(
+                        workout_id=w.id,
+                        notes=w.notes,
+                        duration_seconds=duration,
+                        setlog_count=setlog_count,
+                    ),
+                }
+            )
 
     setlogs = (
         db.query(Setlog)
@@ -448,21 +510,29 @@ def get_party_feed(
         .all()
     )
     for s in setlogs:
-        events.append({
-            "id": f"setlog:{s.id}",
-            "event_type": "setlog",
-            "created_at": s.created_at,
-            "user": s.user,
-            "username": s.user.username if s.user else "Unknown",
-            "setlog_id": s.id,
-            "setlog_type": s.type,
-            "content": s.content,
-            "file_path": s.file_path,
-            "workout_id": s.workout_id,
-            "target_type": "setlog",
-            "target_id": s.id,
-            "data": FeedEventData(setlog_id=s.id, type=s.type, content=s.content, file_path=s.file_path, workout_id=s.workout_id),
-        })
+        events.append(
+            {
+                "id": f"setlog:{s.id}",
+                "event_type": "setlog",
+                "created_at": s.created_at,
+                "user": s.user,
+                "username": s.user.username if s.user else "Unknown",
+                "setlog_id": s.id,
+                "setlog_type": s.type,
+                "content": s.content,
+                "file_path": s.file_path,
+                "workout_id": s.workout_id,
+                "target_type": "setlog",
+                "target_id": s.id,
+                "data": FeedEventData(
+                    setlog_id=s.id,
+                    type=s.type,
+                    content=s.content,
+                    file_path=s.file_path,
+                    workout_id=s.workout_id,
+                ),
+            }
+        )
 
     setlog_reactions = (
         db.query(Reaction)
@@ -480,17 +550,24 @@ def get_party_feed(
         .all()
     )
     for r in [*setlog_reactions, *workout_reactions]:
-        events.append({
-            "id": f"reaction:{r.id}",
-            "event_type": "reaction",
-            "created_at": r.created_at,
-            "user": r.user,
-            "username": r.user.username if r.user else "Unknown",
-            "target_type": r.target_type,
-            "target_id": r.target_id,
-            "reaction_type": r.emoji,
-            "data": FeedEventData(reaction_id=r.id, target_type=r.target_type, target_id=r.target_id, emoji=r.emoji),
-        })
+        events.append(
+            {
+                "id": f"reaction:{r.id}",
+                "event_type": "reaction",
+                "created_at": r.created_at,
+                "user": r.user,
+                "username": r.user.username if r.user else "Unknown",
+                "target_type": r.target_type,
+                "target_id": r.target_id,
+                "reaction_type": r.emoji,
+                "data": FeedEventData(
+                    reaction_id=r.id,
+                    target_type=r.target_type,
+                    target_id=r.target_id,
+                    emoji=r.emoji,
+                ),
+            }
+        )
 
     events.sort(key=lambda e: e["created_at"], reverse=True)
     return events[offset : offset + limit]

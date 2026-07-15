@@ -1,4 +1,5 @@
 """Authentication: JWT creation/verification, password hashing, get_current_user dependency."""
+
 import os
 import time
 from collections import defaultdict
@@ -13,7 +14,6 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import BodyStat, Character, User
 from schemas import (
-    BodyStatOut,
     CharacterOut,
     LoginRequest,
     RegisterRequest,
@@ -27,7 +27,9 @@ _DEV_SECRET = "dev-secret-hellsetlog-change-in-production"
 _ENV = os.getenv("ENV", "dev")
 SECRET_KEY = os.getenv("SECRET_KEY", _DEV_SECRET)
 if _ENV != "dev" and SECRET_KEY == _DEV_SECRET:
-    raise RuntimeError("SECRET_KEY must be set to a strong random value in non-dev environments")
+    raise RuntimeError(
+        "SECRET_KEY must be set to a strong random value in non-dev environments"
+    )
 
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
@@ -44,8 +46,11 @@ def _check_rate_limit(key: str, max_attempts: int) -> None:
     bucket = _rate_buckets[key]
     bucket[:] = [t for t in bucket if now - t < _RATE_WINDOW]
     if len(bucket) >= max_attempts:
-        raise HTTPException(status_code=429, detail="Too many requests, try again later")
+        raise HTTPException(
+            status_code=429, detail="Too many requests, try again later"
+        )
     bucket.append(now)
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -54,6 +59,7 @@ BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
 
 
 # ── Helper functions ────────────────────────────────────────────────────────
+
 
 def hash_password(password: str) -> str:
     """Hash a plaintext password with bcrypt."""
@@ -107,13 +113,36 @@ def get_current_user(
 
 
 def _build_avatar_url(avatar_seed: str | None) -> str | None:
-    """Build a DiceBear avatar URL from the character's avatar_seed."""
+    """Build a self-hosted avatar URL from the character's avatar_seed."""
     if not avatar_seed:
         return None
-    return f"https://api.dicebear.com/7.x/bottts-neutral/svg?seed={avatar_seed}"
+    stage_num = 1
+    parts = [p.strip() for p in avatar_seed.split(",") if p.strip()]
+    for part in parts:
+        if part.startswith("stage_"):
+            try:
+                stage_num = int(part.split("_")[1])
+            except (ValueError, IndexError):
+                pass
+    from settings import get_settings
+
+    try:
+        settings = get_settings()
+        cdn_url = settings.asset_cdn_url
+        version = settings.asset_version
+    except Exception:
+        cdn_url = None
+        version = "v2"
+    path = f"/assets/avatars/stage_{stage_num}.svg"
+    url = f"{path}?v={version}"
+    if cdn_url:
+        base = cdn_url.rstrip("/")
+        url = f"{base}{url}"
+    return url
 
 
 # ── Endpoints ───────────────────────────────────────────────────────────────
+
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
@@ -123,7 +152,9 @@ def register(request: Request, body: RegisterRequest, db: Session = Depends(get_
     username_taken = db.query(User).filter(User.username == body.username).first()
     email_taken = db.query(User).filter(User.email == body.email).first()
     if username_taken or email_taken:
-        raise HTTPException(status_code=409, detail="Unable to create account with provided credentials")
+        raise HTTPException(
+            status_code=409, detail="Unable to create account with provided credentials"
+        )
 
     # 1. Create user with character_id=NULL (will backfill after character creation)
     user = User(
@@ -151,13 +182,15 @@ def register(request: Request, body: RegisterRequest, db: Session = Depends(get_
     # 4. Create all 7 BodyStat entries
     now = datetime.now(timezone.utc)
     for part in BODY_PARTS:
-        db.add(BodyStat(
-            character_id=character.id,
-            part=part,
-            level=1,
-            potential=0,
-            updated_at=now,
-        ))
+        db.add(
+            BodyStat(
+                character_id=character.id,
+                part=part,
+                level=1,
+                potential=0,
+                updated_at=now,
+            )
+        )
 
     db.commit()
     db.refresh(user)
@@ -200,18 +233,8 @@ def me(
     char_out = None
     avatar_url = None
     if current_user.character:
-        char_out = CharacterOut(
-            id=current_user.character.id,
-            user_id=current_user.character.user_id,
-            name=current_user.character.name,
-            avatar_seed=current_user.character.avatar_seed,
-            created_at=current_user.character.created_at,
-            body_stats=[
-                BodyStatOut(id=bs.id, part=bs.part, level=bs.level, potential=bs.potential, updated_at=bs.updated_at)
-                for bs in current_user.character.body_stats
-            ],
-        )
-        avatar_url = _build_avatar_url(current_user.character.avatar_seed)
+        char_out = CharacterOut.model_validate(current_user.character)
+        avatar_url = current_user.character.avatar_url
 
     return UserMeOut(
         id=current_user.id,

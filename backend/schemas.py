@@ -1,10 +1,12 @@
 """Pydantic schemas for Hell Setlog request/response validation."""
+
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
 # ── Auth ────────────────────────────────────────────────────────────────────
+
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=2, max_length=50)
@@ -27,6 +29,7 @@ class TokenResponse(BaseModel):
 
 # ── BodyStat ────────────────────────────────────────────────────────────────
 
+
 class BodyStatOut(BaseModel):
     id: int
     part: str
@@ -44,6 +47,7 @@ class BodyStatUpdate(BaseModel):
 
 # ── Character ───────────────────────────────────────────────────────────────
 
+
 class CharacterOut(BaseModel):
     id: int
     user_id: int
@@ -51,6 +55,12 @@ class CharacterOut(BaseModel):
     avatar_seed: str
     created_at: datetime
     body_stats: list[BodyStatOut] = []
+
+    avatar_url: Optional[str] = None
+    stage: int = 1
+    cosmetics: list[str] = []
+    fallback_key: str = ""
+    asset_version: str = "v2"
 
     model_config = {"from_attributes": True}
 
@@ -61,6 +71,7 @@ class CharacterUpdate(BaseModel):
 
 
 # ── User ────────────────────────────────────────────────────────────────────
+
 
 class UserOut(BaseModel):
     id: int
@@ -82,6 +93,7 @@ class UserPublic(BaseModel):
 
 
 # ── Party / PartyMember ─────────────────────────────────────────────────────
+
 
 class PartyCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -123,6 +135,7 @@ class PartyOut(BaseModel):
 
 # ── Workout ─────────────────────────────────────────────────────────────────
 
+
 class WorkoutCreate(BaseModel):
     party_id: Optional[int] = None
     notes: Optional[str] = None
@@ -150,6 +163,7 @@ class WorkoutOut(BaseModel):
 
 # ── Setlog ──────────────────────────────────────────────────────────────────
 
+
 class SetlogCreate(BaseModel):
     type: str = Field(..., pattern="^(start|mid|end)$")
     content: str = Field(..., min_length=1)
@@ -173,10 +187,12 @@ class SetlogOut(BaseModel):
 # ── Reaction ────────────────────────────────────────────────────────────────
 # ── Reaction ────────────────────────────────────────────────────────────────
 
+
 class ReactionCreate(BaseModel):
     target_type: str = Field(..., pattern="^(setlog|workout)$")
     target_id: int
     emoji: str = Field(..., min_length=1, max_length=20)
+
 
 class ReactionOut(BaseModel):
     id: int
@@ -192,8 +208,10 @@ class ReactionOut(BaseModel):
 
 # ── Party Feed ──────────────────────────────────────────────────────────────
 
+
 class FeedEventData(BaseModel):
     """Union-typed payload — contains only the keys relevant to the event_type."""
+
     # setlog event fields
     setlog_id: Optional[int] = None
     type: Optional[str] = None
@@ -240,6 +258,7 @@ class FeedEvent(BaseModel):
 
 # ── Workout End ─────────────────────────────────────────────────────────────
 
+
 class Breakthrough(BaseModel):
     part: str
     old_level: Optional[int] = None
@@ -259,6 +278,7 @@ class WorkoutEndResponse(BaseModel):
 
 
 # ── Auth Me (with avatar) ──────────────────────────────────────────────────
+
 
 class WorkoutTagsUpdate(BaseModel):
     workout_tags: str

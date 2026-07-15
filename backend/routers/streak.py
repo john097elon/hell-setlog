@@ -31,10 +31,6 @@ def get_streak(
         .all()
     )
 
-    workout_dates = [
-        w.started_at.date()
-        for w in workouts
-        if w.started_at is not None
-    ]
+    workout_dates = [w.started_at.date() for w in workouts if w.started_at is not None]
 
     return compute_streak(workout_dates)

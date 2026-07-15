@@ -3,12 +3,14 @@
 Covers: BOLA on workout/setlog, stats PATCH removal, registration
 enumeration defense, duplicate end idempotency.
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import auth_headers, register_and_login
 
 # ── BOLA: workout ownership ─────────────────────────────────────────────────
+
 
 def test_get_workout_owner_allowed(client):
     token = register_and_login(client, "alice")
@@ -35,6 +37,7 @@ def test_get_workout_outsider_gets_404(client):
 
 # ── BOLA: setlog ownership ──────────────────────────────────────────────────
 
+
 def test_list_setlogs_owner_allowed(client):
     token = register_and_login(client, "alice")
     resp = client.post("/api/workouts/", json={}, headers=auth_headers(token))
@@ -57,9 +60,12 @@ def test_list_setlogs_outsider_gets_404(client):
 
 # ── PATCH /stats/{part} removed ────────────────────────────────────────────
 
+
 def test_stats_patch_removed(client):
     token = register_and_login(client, "alice")
-    resp = client.patch("/api/stats/chest", json={"level": 99}, headers=auth_headers(token))
+    resp = client.patch(
+        "/api/stats/chest", json={"level": 99}, headers=auth_headers(token)
+    )
     # Route no longer registered → 405 or 404
     assert resp.status_code in (404, 405)
 
@@ -72,13 +78,24 @@ def test_stats_get_still_works(client):
 
 # ── Registration enumeration defense ────────────────────────────────────────
 
+
 def test_register_duplicate_username_generic_error(client):
-    client.post("/api/auth/register", json={
-        "username": "alice", "email": "alice@example.com", "password": "pass1234"
-    })
-    resp = client.post("/api/auth/register", json={
-        "username": "alice", "email": "other@example.com", "password": "pass1234"
-    })
+    client.post(
+        "/api/auth/register",
+        json={
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "pass1234",
+        },
+    )
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "username": "alice",
+            "email": "other@example.com",
+            "password": "pass1234",
+        },
+    )
     assert resp.status_code == 409
     # Must not reveal which field caused the conflict
     detail = resp.json()["detail"].lower()
@@ -87,12 +104,22 @@ def test_register_duplicate_username_generic_error(client):
 
 
 def test_register_duplicate_email_generic_error(client):
-    client.post("/api/auth/register", json={
-        "username": "alice", "email": "alice@example.com", "password": "pass1234"
-    })
-    resp = client.post("/api/auth/register", json={
-        "username": "differentuser", "email": "alice@example.com", "password": "pass1234"
-    })
+    client.post(
+        "/api/auth/register",
+        json={
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "pass1234",
+        },
+    )
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "username": "differentuser",
+            "email": "alice@example.com",
+            "password": "pass1234",
+        },
+    )
     assert resp.status_code == 409
     detail = resp.json()["detail"].lower()
     assert "username" not in detail
@@ -101,11 +128,19 @@ def test_register_duplicate_email_generic_error(client):
 
 # ── Login error: generic message ────────────────────────────────────────────
 
+
 def test_login_wrong_password_generic_error(client):
-    client.post("/api/auth/register", json={
-        "username": "alice", "email": "alice@example.com", "password": "pass1234"
-    })
-    resp = client.post("/api/auth/login", json={"username": "alice", "password": "wrong"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "pass1234",
+        },
+    )
+    resp = client.post(
+        "/api/auth/login", json={"username": "alice", "password": "wrong"}
+    )
     assert resp.status_code == 401
     detail = resp.json()["detail"].lower()
     assert "password" not in detail
@@ -113,7 +148,9 @@ def test_login_wrong_password_generic_error(client):
 
 
 def test_login_nonexistent_user_generic_error(client):
-    resp = client.post("/api/auth/login", json={"username": "ghost", "password": "pass"})
+    resp = client.post(
+        "/api/auth/login", json={"username": "ghost", "password": "pass"}
+    )
     assert resp.status_code == 401
     detail = resp.json()["detail"].lower()
     assert "password" not in detail
@@ -121,6 +158,7 @@ def test_login_nonexistent_user_generic_error(client):
 
 
 # ── Workout end: idempotency ────────────────────────────────────────────────
+
 
 def test_end_workout_idempotent(client):
     token = register_and_login(client, "alice")
@@ -148,14 +186,18 @@ def test_end_workout_outsider_gets_404(client):
 
 # ── PATCH workout: status field ignored (server-managed state machine) ──────
 
+
 def test_patch_workout_notes_only(client):
     token = register_and_login(client, "alice")
     resp = client.post("/api/workouts/", json={}, headers=auth_headers(token))
     wid = resp.json()["id"]
 
     # Notes update must work
-    resp = client.patch(f"/api/workouts/{wid}", json={"notes": "good session"},
-                        headers=auth_headers(token))
+    resp = client.patch(
+        f"/api/workouts/{wid}",
+        json={"notes": "good session"},
+        headers=auth_headers(token),
+    )
     assert resp.status_code == 200
     assert resp.json()["notes"] == "good session"
 
@@ -166,13 +208,15 @@ def test_patch_workout_status_ignored(client):
     wid = resp.json()["id"]
 
     # Attempting to set status via PATCH must not change it
-    resp = client.patch(f"/api/workouts/{wid}", json={"status": "ended"},
-                        headers=auth_headers(token))
+    resp = client.patch(
+        f"/api/workouts/{wid}", json={"status": "ended"}, headers=auth_headers(token)
+    )
     assert resp.status_code == 200
     assert resp.json()["status"] == "active"
 
 
 # ── Growth is deterministic (no randomness) ─────────────────────────────────
+
 
 def test_end_workout_growth_deterministic(client):
     token = register_and_login(client, "alice")
@@ -184,4 +228,6 @@ def test_end_workout_growth_deterministic(client):
     stats = resp.json()["body_stats"]
     # All parts must receive the same base gain (deterministic formula)
     potentials = [s["potential"] for s in stats]
-    assert len(set(potentials)) == 1, "Non-deterministic growth: parts received different gains"
+    assert len(set(potentials)) == 1, (
+        "Non-deterministic growth: parts received different gains"
+    )

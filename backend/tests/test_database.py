@@ -5,10 +5,14 @@ from sqlalchemy import text
 
 
 def load_modules():
-    assert importlib.util.find_spec("settings") is not None, "settings module must exist"
+    assert importlib.util.find_spec("settings") is not None, (
+        "settings module must exist"
+    )
     settings_module = importlib.import_module("settings")
     database_module = importlib.import_module("database")
-    assert hasattr(database_module, "create_database_engine"), "database engine factory must exist"
+    assert hasattr(database_module, "create_database_engine"), (
+        "database engine factory must exist"
+    )
     return settings_module, database_module
 
 

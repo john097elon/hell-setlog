@@ -79,7 +79,9 @@ class StoragePolicy:
             or any(segment in {"", ".", ".."} for segment in key.split("/"))
         ):
             raise StoragePolicyError("object key is not opaque and relative")
-        if any(not character.isalnum() and character not in "._-/" for character in key):
+        if any(
+            not character.isalnum() and character not in "._-/" for character in key
+        ):
             raise StoragePolicyError("object key contains unsupported characters")
 
 
@@ -105,7 +107,9 @@ def generate_object_key(owner_id: int, content_type: str) -> str:
     return f"users/{owner_id}/{uuid4().hex}{extension}"
 
 
-def _metadata(key: str, body: bytes, content_type: str, etag: str | None = None) -> ObjectMetadata:
+def _metadata(
+    key: str, body: bytes, content_type: str, etag: str | None = None
+) -> ObjectMetadata:
     return ObjectMetadata(
         key=key,
         content_type=content_type,
@@ -257,7 +261,9 @@ class S3ObjectStorage:
     ) -> SignedObjectUrl:
         self.policy.validate_key(key)
         if expires_seconds != SIGNED_URL_SECONDS:
-            raise StoragePolicyError("signed URLs must expire after exactly 300 seconds")
+            raise StoragePolicyError(
+                "signed URLs must expire after exactly 300 seconds"
+            )
         try:
             url = self.client.generate_presigned_url(
                 "get_object",

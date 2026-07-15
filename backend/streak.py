@@ -3,7 +3,9 @@ from __future__ import annotations
 import datetime
 
 
-def _build_streaks(days: list[datetime.date]) -> list[tuple[datetime.date, datetime.date, int]]:
+def _build_streaks(
+    days: list[datetime.date],
+) -> list[tuple[datetime.date, datetime.date, int]]:
     """Return streaks as (start, end, length) for sorted unique days."""
     streaks: list[tuple[datetime.date, datetime.date, int]] = []
     start = days[0]

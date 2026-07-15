@@ -1,4 +1,5 @@
 """Router: Reactions (emoji reactions on setlogs and workouts)."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,9 @@ from schemas import ReactionCreate, ReactionOut
 router = APIRouter(prefix="/reactions", tags=["reactions"])
 
 
-def _require_active_party_member(db: Session, user_id: int, party_id: int | None) -> None:
+def _require_active_party_member(
+    db: Session, user_id: int, party_id: int | None
+) -> None:
     if party_id is None:
         return
     membership = (
@@ -42,7 +45,9 @@ def add_reaction(
         target = db.query(Setlog).filter(Setlog.id == body.target_id).first()
         if target:
             workout = db.query(Workout).filter(Workout.id == target.workout_id).first()
-            _require_active_party_member(db, current_user.id, workout.party_id if workout else None)
+            _require_active_party_member(
+                db, current_user.id, workout.party_id if workout else None
+            )
 
     if not target:
         raise HTTPException(status_code=404, detail=f"{body.target_type} not found")

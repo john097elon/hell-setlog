@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "assets": {
+    "default": {
+      "path": "/assets/avatars/default.svg",
+      "hash": "sha256-8cc28ed5ef86791d6e221479df3142f51e8983c538839db7ce235eb389acede3",
+      "author": "Hell Setlog Team",
+      "source": "Self-hosted",
+      "license": "CC-BY-4.0",
+      "attribution": "Hell Setlog V2 Default Avatar SVG. Prepared by Hell Setlog project team."
+    },
+    "stage_1": {
+      "path": "/assets/avatars/stage_1.svg",
+      "hash": "sha256-44faaccbdead9e65a657ba5bba2f3f814664fed7c798f1ec18e6e7aee426b711",
+      "author": "Hell Setlog Team",
+      "source": "Self-hosted",
+      "license": "CC-BY-4.0",
+      "attribution": "Hell Setlog V2 Stage 1 Avatar SVG. Prepared by Hell Setlog project team."
+    },
+    "stage_2": {
+      "path": "/assets/avatars/stage_2.svg",
+      "hash": "sha256-669fd432af21f6de0b9225506db720857dde4dc715f9b65095a6b676e22ff449",
+      "author": "Hell Setlog Team",
+      "source": "Self-hosted",
+      "license": "CC-BY-4.0",
+      "attribution": "Hell Setlog V2 Stage 2 Avatar SVG. Prepared by Hell Setlog project team."
+    },
+    "stage_3": {
+      "path": "/assets/avatars/stage_3.svg",
+      "hash": "sha256-84aa1ef6aa98ecf3f41e2be9f82cfc5c3f83b70f0547403bad7e5ed804655af6",
+      "author": "Hell Setlog Team",
+      "source": "Self-hosted",
+      "license": "CC-BY-4.0",
+      "attribution": "Hell Setlog V2 Stage 3 Avatar SVG. Prepared by Hell Setlog project team."
+    }
+  }
+}

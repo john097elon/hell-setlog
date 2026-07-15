@@ -3,6 +3,7 @@
 Covers: growth boundaries, randomness seeding, anti-farm, idempotency,
 and stat persistence across requests.
 """
+
 import pytest
 
 from tests.conftest import auth, make_user
@@ -10,14 +11,20 @@ from tests.conftest import auth, make_user
 
 def _full_cycle(client, token):
     """Create workout, add setlogs, end workout; return end response json."""
-    wid_r = client.post("/api/workouts/", json={"notes": "grow test"}, headers=auth(token))
+    wid_r = client.post(
+        "/api/workouts/", json={"notes": "grow test"}, headers=auth(token)
+    )
     wid = wid_r.json()["id"]
-    client.post(f"/api/workouts/{wid}/setlogs",
-                json={"type": "start", "content": "시작"},
-                headers=auth(token))
-    client.post(f"/api/workouts/{wid}/setlogs",
-                json={"type": "mid", "content": "가슴 운동 세트"},
-                headers=auth(token))
+    client.post(
+        f"/api/workouts/{wid}/setlogs",
+        json={"type": "start", "content": "시작"},
+        headers=auth(token),
+    )
+    client.post(
+        f"/api/workouts/{wid}/setlogs",
+        json={"type": "mid", "content": "가슴 운동 세트"},
+        headers=auth(token),
+    )
     r = client.post(f"/api/workouts/{wid}/end", headers=auth(token))
     assert r.status_code == 200
     return r.json(), wid
@@ -92,10 +99,13 @@ def test_breakthrough_on_level_up(client, db):
     end_data, _ = _full_cycle(client, token)
     assert end_data["breakthroughs"], "Expected a breakthrough with potential=99"
 
+
 def test_end_workout_idempotency_no_double_growth(client):
     """Calling end twice must NOT award growth twice."""
     _, token = make_user(client, "grower7", suffix="gr")
-    wid_r = client.post("/api/workouts/", json={"notes": "idempotent"}, headers=auth(token))
+    wid_r = client.post(
+        "/api/workouts/", json={"notes": "idempotent"}, headers=auth(token)
+    )
     wid = wid_r.json()["id"]
 
     r1 = client.post(f"/api/workouts/{wid}/end", headers=auth(token))
