@@ -303,6 +303,43 @@ class BodyStat(Base):
     character = relationship("Character", back_populates="body_stats")
 
 
+class GrowthEvent(Base):
+    __tablename__ = "growth_events"
+    __table_args__ = (
+        UniqueConstraint("workout_id", "body_part", name="uq_growth_event_workout_part"),
+        CheckConstraint(
+            "body_part IN ('chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'stamina')",
+            name="ck_growth_event_body_part",
+        ),
+        Index("ix_growth_events_user_created_at", "user_id", "created_at"),
+        Index("ix_growth_events_workout", "workout_id"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", name="fk_growth_events_user"),
+        nullable=False,
+    )
+    workout_id = Column(
+        Integer,
+        ForeignKey("workouts.id", name="fk_growth_events_workout"),
+        nullable=False,
+    )
+    body_part = Column(String(20), nullable=False)
+    delta = Column(Integer, nullable=False)
+    reason = Column(String(200), nullable=False)
+    formula_version = Column(Integer, nullable=False, default=1)
+    level_before = Column(Integer, nullable=False)
+    potential_before = Column(Integer, nullable=False)
+    level_after = Column(Integer, nullable=False)
+    potential_after = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    user = relationship("User", foreign_keys=[user_id])
+    workout = relationship("Workout", foreign_keys=[workout_id])
+
+
 class Reaction(Base):
     __tablename__ = "reactions"
     __table_args__ = (

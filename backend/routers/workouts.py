@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from auth import get_current_user
 from database import get_db
-from models import BodyStat, Character, PartyMember, Setlog, User, Workout
+from growth import BODY_PARTS, FORMULA_VERSION, compute_growth, today_utc_start
+from models import BodyStat, Character, GrowthEvent, PartyMember, Setlog, User, Workout
 from schemas import (
     BodyStatSummary,
     Breakthrough,
@@ -19,9 +20,6 @@ from schemas import (
 )
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])
-
-# The 7 BodyStat parts
-BODY_PARTS = ["chest", "back", "legs", "shoulders", "arms", "core", "stamina"]
 
 
 def _check_party_membership(db: Session, user_id: int, party_id: int) -> bool:
@@ -114,22 +112,10 @@ def update_workout(
     return workout
 
 
-# ── Workout End + Character Growth ─────────────────────────────────────────
+# ── Workout End + GrowthEvent Engine ───────────────────────────────────────
 
-
-def _build_end_response(workout, db: Session) -> dict:
-    """Build the end-workout response dict from an already-ended workout."""
-    from models import User as _User
-
-    user = db.query(_User).filter(_User.id == workout.user_id).first()
-    body_stats = []
-    if user and user.character_id:
-        body_stats = [
-            BodyStatSummary(part=bs.part, level=bs.level, potential=bs.potential)
-            for bs in db.query(BodyStat)
-            .filter(BodyStat.character_id == user.character_id)
-            .all()
-        ]
+def _growth_response(workout, growth_events: list, db: Session) -> dict:
+    """Build end-workout response from persisted GrowthEvents."""
     setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout.id).count()
     duration_seconds = (
         int((workout.ended_at - workout.started_at).total_seconds())
@@ -145,14 +131,22 @@ def _build_end_response(workout, db: Session) -> dict:
         status=workout.status,
         notes=workout.notes,
     )
+    breakthroughs = [
+        Breakthrough(part=ge.body_part, old_level=ge.level_before, new_level=ge.level_after)
+        for ge in growth_events if ge.level_after > ge.level_before
+    ]
+    all_stats = [
+        BodyStatSummary(part=ge.body_part, level=ge.level_after, potential=ge.potential_after)
+        for ge in growth_events
+    ]
     return {
         **workout_out.model_dump(),
         "duration_seconds": duration_seconds,
         "setlog_count": setlog_count,
-        "breakthroughs": [],
-        "body_stats": [s.model_dump() for s in body_stats],
+        "breakthroughs": [b.model_dump() for b in breakthroughs],
+        "body_stats": [s.model_dump() for s in all_stats],
         "workout": workout_out.model_dump(),
-        "all_stats": [s.model_dump() for s in body_stats],
+        "all_stats": [s.model_dump() for s in all_stats],
     }
 
 
@@ -162,151 +156,112 @@ def end_workout(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """End a workout and calculate character growth across all 7 body parts.
+    """End a workout; compute and persist GrowthEvents for all 7 body parts.
 
-    Idempotent: if the workout is already ended, returns the current state.
+    Idempotent: already-ended workouts return the original GrowthEvent results.
     """
-    # 1. Validate workout belongs to user
     workout = db.query(Workout).filter(Workout.id == workout_id).first()
     if not workout or workout.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout not found")
 
-    # Idempotent: already ended — return current state without re-triggering growth
+    # Idempotent: replay from stored GrowthEvents
     if workout.status != "active":
-        return _build_end_response(workout, db)
+        events = (
+            db.query(GrowthEvent)
+            .filter(GrowthEvent.workout_id == workout_id)
+            .order_by(GrowthEvent.id)
+            .all()
+        )
+        return _growth_response(workout, events, db)
 
-    # 2. Set workout as ended (frontend contract)
     now = datetime.now(timezone.utc)
     workout.status = "ended"
     workout.ended_at = now
 
-    # 3. Get user's character
     if not current_user.character_id:
         raise HTTPException(status_code=404, detail="No character found")
-
     character = (
         db.query(Character).filter(Character.id == current_user.character_id).first()
     )
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    # 4. Get all 7 BodyStats for this character
-    body_stats = db.query(BodyStat).filter(BodyStat.character_id == character.id).all()
-    # Ensure we have all 7 — create any missing ones
-    existing_parts = {bs.part for bs in body_stats}
+    # Ensure all 7 BodyStats exist
+    body_stats_map: dict[str, BodyStat] = {
+        bs.part: bs
+        for bs in db.query(BodyStat).filter(BodyStat.character_id == character.id).all()
+    }
     for part in BODY_PARTS:
-        if part not in existing_parts:
-            new_stat = BodyStat(
-                character_id=character.id,
-                part=part,
-                level=1,
-                potential=0,
-            )
+        if part not in body_stats_map:
+            new_stat = BodyStat(character_id=character.id, part=part, level=1, potential=0)
             db.add(new_stat)
-            body_stats.append(new_stat)
+            db.flush()
+            body_stats_map[part] = new_stat
 
-    # 5. Calculate growth — deterministic base gain, workout duration bonus
-    # ponytail: simple formula placeholder until GrowthEvent engine (ELO-14) lands
+    # Compute duration
     started_at = workout.started_at
     if started_at and started_at.tzinfo is None:
         started_at = started_at.replace(tzinfo=timezone.utc)
-    duration_min = int((now - started_at).total_seconds() / 60) if started_at else 0
-    base_gain = min(
-        10, max(5, duration_min // 6)
-    )  # 5–10 per part, scales with duration
+    duration_seconds = int((now - started_at).total_seconds()) if started_at else 0
 
-    breakthroughs: list[Breakthrough] = []
-    all_stats: list[BodyStatSummary] = []
-
-    for bs in body_stats:
-        bs.potential += base_gain
-
-        # Level up if potential >= 100
-        if bs.potential >= 100:
-            old_level = bs.level
-            bs.level += 1
-            bs.potential -= 100
-            breakthroughs.append(
-                Breakthrough(
-                    part=bs.part,
-                    old_level=old_level,
-                    new_level=bs.level,
-                )
-            )
-
-        all_stats.append(
-            BodyStatSummary(
-                part=bs.part,
-                level=bs.level,
-                potential=bs.potential,
-            )
-        )
-
-    # 6. Auto-generate an "end" setlog summarizing the workout
-    setlog_count = db.query(Setlog).filter(Setlog.workout_id == workout_id).count()
-    # Build a human-readable part summary based on setlog contents
-    part_counts: dict[str, int] = {}
+    # Collect setlog text for part detection
     setlogs = db.query(Setlog).filter(Setlog.workout_id == workout_id).all()
+    contents = [s.content for s in setlogs]
+
+    # Daily cap: sum deltas already granted today per part
+    daily_used: dict[str, int] = {}
+    for ge in db.query(GrowthEvent).filter(
+        GrowthEvent.user_id == current_user.id,
+        GrowthEvent.created_at >= today_utc_start(),
+    ).all():
+        daily_used[ge.body_part] = daily_used.get(ge.body_part, 0) + ge.delta
+
+    current_stats = {p: (bs.level, bs.potential) for p, bs in body_stats_map.items()}
+    growths = compute_growth(duration_seconds, contents, current_stats, daily_used)
+
+    # Persist GrowthEvents and update BodyStats
+    growth_events: list[GrowthEvent] = []
+    for g in growths:
+        ge = GrowthEvent(
+            user_id=current_user.id,
+            workout_id=workout_id,
+            body_part=g.body_part,
+            delta=g.delta,
+            reason=g.reason,
+            formula_version=FORMULA_VERSION,
+            level_before=g.level_before,
+            potential_before=g.potential_before,
+            level_after=g.level_after,
+            potential_after=g.potential_after,
+        )
+        db.add(ge)
+        bs = body_stats_map[g.body_part]
+        bs.level = g.level_after
+        bs.potential = g.potential_after
+        growth_events.append(ge)
+
+    # Auto-generate end setlog summary
+    part_counts: dict[str, int] = {}
     for s in setlogs:
         if s.type == "mid":
-            content_lower = s.content.lower()
-            for part in BODY_PARTS:
-                # Simple keyword matching
-                part_kr = {
-                    "chest": "가슴",
-                    "back": "등",
-                    "legs": "하체",
-                    "shoulders": "어깨",
-                    "arms": "팔",
-                    "core": "코어",
-                    "stamina": "유산소",
-                }
-                if part_kr.get(part, part) in content_lower:
-                    part_counts[part] = part_counts.get(part, 0) + 1
-
+            cl = s.content.lower()
+            for ge in growth_events:
+                from growth import _PART_KW_KR
+                kw = _PART_KW_KR.get(ge.body_part, ge.body_part)
+                if kw in cl:
+                    part_counts[ge.body_part] = part_counts.get(ge.body_part, 0) + 1
+    from growth import _PART_KW_KR as _KW
     if part_counts:
-        summary_parts = [f"{part_kr.get(p, p)} {c}세트" for p, c in part_counts.items()]
-        summary = f"{', '.join(summary_parts)} 완료 - 총 {setlog_count}개 세트로그"
+        summary = ", ".join(f"{_KW.get(p, p)} {c}세트" for p, c in part_counts.items())
+        summary += f" 완료 - 총 {len(setlogs)}개 세트로그"
     else:
-        summary = f"운동 완료 - 총 {setlog_count}개 세트로그"
-
-    end_setlog = Setlog(
-        workout_id=workout_id,
-        user_id=current_user.id,
-        type="end",
-        content=summary,
-    )
-    db.add(end_setlog)
+        summary = f"운동 완료 - 총 {len(setlogs)}개 세트로그"
+    db.add(Setlog(workout_id=workout_id, user_id=current_user.id, type="end", content=summary))
 
     db.commit()
     db.refresh(workout)
 
-    # Build the simplified workout output
-    workout_out = WorkoutOut(
-        id=workout.id,
-        user_id=workout.user_id,
-        party_id=workout.party_id,
-        started_at=workout.started_at,
-        ended_at=workout.ended_at,
-        status=workout.status,
-        notes=workout.notes,
-    )
-
-    duration_seconds = (
-        int((workout.ended_at - workout.started_at).total_seconds())
-        if workout.ended_at and workout.started_at
-        else None
-    )
-    return {
-        **workout_out.model_dump(),
-        "duration_seconds": duration_seconds,
-        "setlog_count": setlog_count + 1,
-        "breakthroughs": [b.model_dump() for b in breakthroughs],
-        "body_stats": [s.model_dump() for s in all_stats],
-        # Backward-compatible keys for any existing callers.
-        "workout": workout_out.model_dump(),
-        "all_stats": [s.model_dump() for s in all_stats],
-    }
+    return _growth_response(workout, growth_events, db)
 
 
 # ── Setlogs ─────────────────────────────────────────────────────────────────
