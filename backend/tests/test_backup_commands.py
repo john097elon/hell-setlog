@@ -40,10 +40,15 @@ def test_pg_dump_uses_environment_not_database_url():
 def test_pg_restore_is_clean_ownerless_and_stops_on_error():
     restore = operations_module("restore_rehearsal")
 
-    command = restore.build_pg_restore_command(Path("/tmp/backup.dump"))
+    command = restore.build_pg_restore_command(
+        Path("/tmp/backup.dump"),
+        "hellsetlog_restore_test_20260715t120000z",
+    )
 
     assert command == [
         "pg_restore",
+        "--dbname",
+        "hellsetlog_restore_test_20260715t120000z",
         "--clean",
         "--if-exists",
         "--no-owner",

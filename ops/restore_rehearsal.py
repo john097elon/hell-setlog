@@ -79,9 +79,11 @@ class RestoreConfig:
         )
 
 
-def build_pg_restore_command(input_path: Path) -> list[str]:
+def build_pg_restore_command(input_path: Path, database_name: str) -> list[str]:
     return [
         "pg_restore",
+        "--dbname",
+        database_name,
         "--clean",
         "--if-exists",
         "--no-owner",
@@ -215,7 +217,7 @@ def run_restore_rehearsal(
 
             try:
                 subprocess.run(
-                    build_pg_restore_command(backup_path),
+                    build_pg_restore_command(backup_path, database_name),
                     env={**os.environ, **build_pg_environment(database_url)},
                     check=True,
                     capture_output=True,
