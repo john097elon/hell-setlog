@@ -247,7 +247,8 @@ def _run_application_smoke(database_url: str) -> None:
             text=True,
         )
     except subprocess.CalledProcessError as error:
-        raise RestoredApplicationSmokeFailed from error
+        diagnostic = safe_pg_restore_diagnostic(error.stdout or error.stderr)
+        raise RestoredApplicationSmokeFailed(diagnostic) from error
 
 
 def run_restore_rehearsal(

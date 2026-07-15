@@ -5,9 +5,9 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from static_frontend import mount_frontend_if_present
 
 from database import engine
+from static_frontend import mount_frontend_if_present
 from observability import configure_observability
 from settings import get_settings
 
