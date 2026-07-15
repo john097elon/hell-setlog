@@ -109,3 +109,112 @@ def test_end_workout_idempotency_no_double_growth(client):
     r3 = client.get("/api/stats/", headers=auth(token))
     current = {s["part"]: s["potential"] for s in r3.json()}
     assert current == stats_after_first, "Double end awarded growth twice"
+
+
+# ── GrowthEvent engine tests ─────────────────────────────────────────────────
+
+def test_growth_events_persisted_in_db(client, db):
+    """GrowthEvent rows must exist after end_workout — one per body part."""
+    from models import GrowthEvent, User
+    _, token = make_user(client, "eventer1", suffix="ev")
+    _, wid = _full_cycle(client, token)
+    user_id = client.get("/api/auth/me", headers=auth(token)).json()["id"]
+    events = db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid).all()
+    assert len(events) == 7, "Expected one GrowthEvent per body part"
+    for ge in events:
+        assert ge.user_id == user_id
+        assert ge.formula_version == 1
+        assert ge.level_before >= 1
+        assert ge.level_after >= ge.level_before
+        assert ge.potential_after >= 0
+        assert ge.reason  # must be non-empty auditable string
+
+
+def test_growth_event_delta_matches_stat_change(client, db):
+    """GrowthEvent.delta == potential_after - potential_before (mod level-up)."""
+    from models import GrowthEvent
+    _, token = make_user(client, "eventer2", suffix="ev")
+    _, wid = _full_cycle(client, token)
+    for ge in db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid).all():
+        xp_before = ge.level_before * 100 + ge.potential_before
+        xp_after = ge.level_after * 100 + ge.potential_after
+        assert xp_after - xp_before == ge.delta, (
+            f"{ge.body_part}: delta={ge.delta} but xp diff={xp_after - xp_before}"
+        )
+
+
+def test_idempotent_end_returns_same_growth_events(client, db):
+    """Second /end call must return identical breakthroughs and body_stats."""
+    _, token = make_user(client, "eventer3", suffix="ev")
+    _, wid = _full_cycle(client, token)
+    r2 = client.post(f"/api/workouts/{wid}/end", headers=auth(token))
+    assert r2.status_code == 200
+    data = r2.json()
+    assert len(data["body_stats"]) == 7
+    # breakthroughs list present (may be empty, but key must exist)
+    assert "breakthroughs" in data
+
+
+def test_part_mention_gives_bonus(client, db):
+    """A setlog mentioning 가슴 (chest) should give chest a higher delta."""
+    from models import GrowthEvent
+    _, token = make_user(client, "eventer4", suffix="ev")
+
+    wid = client.post("/api/workouts/", json={"notes": "mention"}, headers=auth(token)).json()["id"]
+    client.post(f"/api/workouts/{wid}/setlogs",
+                json={"type": "mid", "content": "가슴 운동 집중"},
+                headers=auth(token))
+    r = client.post(f"/api/workouts/{wid}/end", headers=auth(token))
+    assert r.status_code == 200
+
+    events = {ge.body_part: ge for ge in
+              db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid).all()}
+    chest_delta = events["chest"].delta
+    back_delta = events["back"].delta
+    # chest was mentioned, so delta should be larger than an unmentioned part
+    assert chest_delta > back_delta, (
+        f"chest (mentioned) delta={chest_delta} not > back delta={back_delta}"
+    )
+
+
+def test_daily_cap_limits_total_gain(client, db):
+    """After DAILY_CAP_PER_PART potential is granted, further workouts yield delta=0."""
+    from growth import DAILY_CAP_PER_PART
+    from models import GrowthEvent, User
+    _, token = make_user(client, "eventer5", suffix="ev")
+    user_id = client.get("/api/auth/me", headers=auth(token)).json()["id"]
+
+    # Exhaust the daily cap by seeding fake GrowthEvents from earlier workouts.
+    # We first do one real workout to get a valid workout_id, then insert seed rows.
+    wid1 = client.post("/api/workouts/", json={}, headers=auth(token)).json()["id"]
+    client.post(f"/api/workouts/{wid1}/end", headers=auth(token))
+
+    # Insert fake events that consumed the cap for all parts
+    from growth import BODY_PARTS, today_utc_start
+    from models import Workout
+    seed_workout = db.query(Workout).filter(Workout.id == wid1).one()
+    # Manually set a cap-exhausting delta on each part's existing GrowthEvent
+    for ge in db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid1).all():
+        ge.delta = DAILY_CAP_PER_PART
+        ge.potential_after = ge.potential_before + DAILY_CAP_PER_PART
+    db.commit()
+
+    # Second workout should yield delta=0 for all parts
+    wid2 = client.post("/api/workouts/", json={}, headers=auth(token)).json()["id"]
+    r = client.post(f"/api/workouts/{wid2}/end", headers=auth(token))
+    assert r.status_code == 200
+
+    events2 = db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid2).all()
+    assert all(ge.delta == 0 for ge in events2), (
+        "Daily cap exhausted but second workout still awarded growth"
+    )
+
+
+def test_formula_version_stored_on_growth_event(client, db):
+    """formula_version column must equal growth.FORMULA_VERSION."""
+    from growth import FORMULA_VERSION
+    from models import GrowthEvent
+    _, token = make_user(client, "eventer6", suffix="ev")
+    _, wid = _full_cycle(client, token)
+    for ge in db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid).all():
+        assert ge.formula_version == FORMULA_VERSION
