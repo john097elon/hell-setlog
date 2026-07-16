@@ -18,10 +18,13 @@ from botocore.exceptions import BotoCoreError, ClientError
 from settings import Settings
 
 ALLOWED_IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
+ALLOWED_VIDEO_TYPES = frozenset({"video/mp4"})
+ALLOWED_MEDIA_TYPES = ALLOWED_IMAGE_TYPES | ALLOWED_VIDEO_TYPES
 EXTENSIONS = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp",
+    "video/mp4": ".mp4",
 }
 SIGNED_URL_SECONDS = 300
 
@@ -79,7 +82,7 @@ class SignedObjectUrl:
 @dataclass(frozen=True)
 class StoragePolicy:
     max_bytes: int
-    allowed_content_types: frozenset[str] = ALLOWED_IMAGE_TYPES
+    allowed_content_types: frozenset[str] = ALLOWED_MEDIA_TYPES
 
     def validate(self, content_type: str, size_bytes: int) -> None:
         if content_type not in self.allowed_content_types:

@@ -188,3 +188,40 @@ def test_reaction_permissions_and_duplication(client):
     # bob cannot delete his own previous reaction anymore
     del_r = client.delete(f"/api/reactions/{rid}", headers=auth(tbob))
     assert del_r.status_code == 403
+
+
+def test_party_feed_includes_video_media_metadata(client):
+    owner, token = make_user(client, "feedvideo", suffix="pt")
+    party = client.post(
+        "/api/parties/", json={"name": "video feed"}, headers=auth(token)
+    ).json()
+    upload = client.post(
+        "/api/media",
+        data={"party_id": str(party["id"])},
+        files={"file": ("clip.mp4", b"not-a-real-mp4", "video/mp4")},
+        headers=auth(token),
+    )
+    assert upload.status_code == 201, upload.text
+    key = upload.json()["key"]
+
+    workout = client.post(
+        "/api/workouts/", json={"party_id": party["id"]}, headers=auth(token)
+    ).json()
+    setlog = client.post(
+        f"/api/workouts/{workout['id']}/setlogs",
+        json={"type": "mid", "content": "", "file_path": key},
+        headers=auth(token),
+    )
+    assert setlog.status_code == 201, setlog.text
+
+    feed = client.get(f"/api/parties/{party['id']}/feed", headers=auth(token))
+    assert feed.status_code == 200, feed.text
+    event = next(item for item in feed.json() if item["id"] == f"setlog:{setlog.json()['id']}")
+    expected_media = {
+        "id": key,
+        "poster_url": None,
+        "duration_seconds": None,
+        "size_bytes": len(b"not-a-real-mp4"),
+    }
+    assert event["media"] == expected_media
+    assert event["data"]["media"] == expected_media

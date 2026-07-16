@@ -134,7 +134,7 @@ def test_transfer_preserves_ids_and_verifies_digests():
         report = migration.verify(source_url, target_url)
 
         assert migration.TABLE_ORDER == TABLE_ORDER
-        assert manifest.revision == "20260715_0002"
+        assert manifest.revision == "20260716_0003"
         assert report.ok is True
         assert all(report.counts[table] == 1 for table in TABLE_ORDER)
         with target.connect() as connection:

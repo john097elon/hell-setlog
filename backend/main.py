@@ -51,11 +51,13 @@ from routers.reactions import router as reactions_router  # noqa: E402
 from routers.stats import router as stats_router  # noqa: E402
 from routers.streak import router as streak_router  # noqa: E402
 from routers.users import router as users_router  # noqa: E402
+from routers.workout_records import router as workout_records_router  # noqa: E402
 from routers.workouts import router as workouts_router  # noqa: E402
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(parties_router, prefix="/api")
 app.include_router(workouts_router, prefix="/api")
+app.include_router(workout_records_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
 app.include_router(reactions_router, prefix="/api")
 app.include_router(streak_router, prefix="/api")

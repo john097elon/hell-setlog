@@ -96,6 +96,30 @@ describe('CharacterPreview', () => {
     expect(screen.getByText(/Lv\.15/)).toBeTruthy();
   });
 
+  it('shows explicit XP and growing status for positive potential', async () => {
+    const user = userEvent.setup();
+    render(<CharacterPreview username="xp-user" body_stats={[{ part: 'chest', level: 1, potential: 1 }]} />);
+    await user.click(screen.getByText('xp-user').closest('div')!);
+    expect(screen.getByText('XP 1/100')).toBeTruthy();
+    expect(screen.getByText('Growing')).toBeTruthy();
+  });
+
+  it('uses a text status at the level-up boundary', async () => {
+    const user = userEvent.setup();
+    render(<CharacterPreview username="boundary" body_stats={[{ part: 'chest', level: 1, potential: 90 }]} />);
+    await user.click(screen.getByText('boundary').closest('div')!);
+    expect(screen.getByText('Near level-up')).toBeTruthy();
+    expect(screen.getByLabelText('90 XP out of 100')).toBeTruthy();
+  });
+
+  it('handles zero potential without relying on color', async () => {
+    const user = userEvent.setup();
+    render(<CharacterPreview username="empty-xp" body_stats={[{ part: 'chest', level: 1, potential: 0 }]} />);
+    await user.click(screen.getByText('empty-xp').closest('div')!);
+    expect(screen.getByText('Ready to grow')).toBeTruthy();
+    expect(screen.getByText('XP 0/100')).toBeTruthy();
+  });
+
   it('has correct accessibility attributes', async () => {
     const user = userEvent.setup();
     render(<CharacterPreview username="carol" body_stats={STATS} />);

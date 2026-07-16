@@ -4,6 +4,8 @@ import api from '../api';
 import StreakBadge from '../components/StreakBadge';
 import type { BodyPart } from '../components/CharacterPreview';
 import { useWorkoutDraft } from '../hooks/useWorkoutDraft';
+import VideoAttachment from '../components/VideoAttachment';
+import { validateVideoFile } from '../utils/videoPreflight';
 
 interface Workout {
   id: string;
@@ -60,6 +62,8 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
   const [setlogContent, setSetlogContent] = useState('');
   const [setlogFile, setSetlogFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState('');
 
   // Timer
   const [elapsed, setElapsed] = useState(0);
@@ -195,14 +199,28 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
     e.preventDefault();
     if (!setlogContent.trim() && !setlogFile) return;
     setSubmitting(true);
+    setUploadError('');
     try {
-      // Upload the selected image first, then reference the returned key.
       let filePath: string | undefined;
       if (setlogFile) {
+        const isVideo = setlogFile.type.startsWith('video/') || /\.mp4$/i.test(setlogFile.name);
+        if (isVideo) {
+          if (!workout?.party_id) {
+            throw new Error('Video uploads require an active party workout.');
+          }
+          await validateVideoFile(setlogFile);
+        }
+
         const form = new FormData();
         form.append('file', setlogFile);
+        if (isVideo) form.append('party_id', String(workout?.party_id));
         const uploaded = await api.post('/media', form, {
           headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (event) => {
+            if (event.total) {
+              setUploadProgress(Math.round((event.loaded / event.total) * 100));
+            }
+          },
         });
         filePath = uploaded.data.key;
       }
@@ -216,13 +234,24 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
       setSetlogFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
-      const detail = err.response?.data?.detail;
-      alert((typeof detail === 'string' ? detail : detail?.message) || '세트로그 등록에 실패했습니다');
+      const response = err.response?.data;
+      const detail = response?.detail;
+      const code = response?.error?.code || detail?.error?.code || detail?.code;
+      const message = response?.error?.message
+        || (typeof detail === 'string' ? detail : detail?.message)
+        || err.message;
+      setUploadError(
+        code === 'file_too_large'
+          ? 'This video is too large. Choose an MP4 smaller than 10 MB.'
+          : code === 'unsupported_media_type'
+            ? 'Videos must be MP4 files.'
+            : message || 'Could not upload this media. Please try again.',
+      );
     } finally {
       setSubmitting(false);
+      setUploadProgress(null);
     }
   };
-
   const handleCancelWorkout = async () => {
     if (!id) return;
     if (!window.confirm('운동을 취소하시겠습니까? 성장 보상은 지급되지 않습니다.')) return;
@@ -538,7 +567,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4"
               onChange={(e) => setSetlogFile(e.target.files?.[0] ?? null)}
               style={{ display: 'none' }}
               id="setlog-file-input"
@@ -580,6 +609,8 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
               {submitting ? '등록 중...' : '등록'}
             </button>
           </div>
+          {uploadProgress !== null && <div role="progressbar" aria-valuenow={uploadProgress}>Uploading {uploadProgress}%</div>}
+          {uploadError && <div role="alert" style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>{uploadError}</div>}
         </form>
 
         {/* End workout button */}
@@ -743,6 +774,18 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
                         )}
                       </span>
                     </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '3px',
+                      fontSize: '0.7rem',
+                      color: 'var(--text-secondary)',
+                    }}>
+                      <span>{isNew ? 'Level-up achieved' : stat.potential > 0 ? 'Growing' : 'Ready to grow'}</span>
+                      <span aria-label={`${stat.potential} XP out of 100`}>XP {stat.potential}/100</span>
+                    </div>
                     {/* Level dots */}
                     <div style={{ display: 'flex', gap: '2px', marginBottom: '3px' }}>
                       {Array.from({ length: maxLevel }).map((_, i) => (
@@ -865,12 +908,16 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
 // Media is owner-only and behind bearer auth, so a plain <img src> can't load
 // it; fetch the bytes through the API client and render an object URL.
 function SetlogMedia({ path }: { path: string }) {
+  const isVideo = /\.mp4($|\?)/i.test(path);
   const [url, setUrl] = useState('');
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (isVideo) return;
     let objectUrl = '';
     let cancelled = false;
+    setUrl('');
+    setFailed(false);
     api.get(`/media/${path}`, { responseType: 'blob' })
       .then((res) => {
         if (cancelled) return;
@@ -882,8 +929,9 @@ function SetlogMedia({ path }: { path: string }) {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [path]);
+  }, [isVideo, path]);
 
+  if (isVideo) return <VideoAttachment path={path} />;
   if (failed) {
     return (
       <div style={{
@@ -891,7 +939,7 @@ function SetlogMedia({ path }: { path: string }) {
         borderRadius: '6px', border: '1px dashed var(--border)',
         textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem',
       }}>
-        📎 사진을 불러올 수 없습니다
+        Could not load this image.
       </div>
     );
   }
@@ -902,14 +950,14 @@ function SetlogMedia({ path }: { path: string }) {
         borderRadius: '6px', textAlign: 'center', color: 'var(--text-secondary)',
         fontSize: '0.8rem',
       }}>
-        📎 사진 불러오는 중...
+        Loading image…
       </div>
     );
   }
   return (
     <img
       src={url}
-      alt="세트로그 첨부 사진"
+      alt="Workout attachment"
       style={{
         marginTop: '6px', maxWidth: '100%', borderRadius: '6px',
         border: '1px solid var(--border)', display: 'block',
@@ -917,7 +965,6 @@ function SetlogMedia({ path }: { path: string }) {
     />
   );
 }
-
 // ---- Styles ----
 
 const labelStyle: React.CSSProperties = {

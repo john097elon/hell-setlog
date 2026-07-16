@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -51,6 +52,7 @@ class User(Base):
     party_memberships = relationship("PartyMember", back_populates="user")
     workouts = relationship("Workout", back_populates="user")
     setlogs = relationship("Setlog", back_populates="user")
+    workout_records = relationship("WorkoutRecord", back_populates="user")
     reactions = relationship("Reaction", back_populates="user")
 
 
@@ -247,6 +249,7 @@ class Workout(Base):
     user = relationship("User", back_populates="workouts")
     party = relationship("Party", back_populates="workouts")
     setlogs = relationship("Setlog", back_populates="workout")
+    workout_records = relationship("WorkoutRecord", back_populates="workout")
 
 
 class Setlog(Base):
@@ -278,6 +281,68 @@ class Setlog(Base):
     workout = relationship("Workout", back_populates="setlogs")
     user = relationship("User", back_populates="setlogs")
 
+
+class Exercise(Base):
+    __tablename__ = "exercises"
+    __table_args__ = (
+        UniqueConstraint("canonical_name", name="uq_exercise_canonical_name"),
+        CheckConstraint(
+            "unit_kind IN ('reps_weight', 'time', 'distance')",
+            name="ck_exercise_unit_kind",
+        ),
+        CheckConstraint(
+            "body_part IN ('chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'stamina')",
+            name="ck_exercise_body_part",
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    canonical_name = Column(String(100), nullable=False)
+    display_name_kr = Column(String(100), nullable=False)
+    unit_kind = Column(String(20), nullable=False)
+    body_part = Column(String(20), nullable=False)
+
+    workout_records = relationship("WorkoutRecord", back_populates="exercise")
+
+
+class WorkoutRecord(Base):
+    __tablename__ = "workout_records"
+    __table_args__ = (
+        UniqueConstraint("user_id", "idempotency_key", name="uq_workout_record_idempotency"),
+        CheckConstraint("status = 'submitted'", name="ck_workout_record_status"),
+        Index("ix_workout_records_user_performed_at", "user_id", "performed_at"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    workout_id = Column(Integer, ForeignKey("workouts.id", name="fk_workout_records_workout"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", name="fk_workout_records_user"), nullable=False)
+    exercise_id = Column(Integer, ForeignKey("exercises.id", name="fk_workout_records_exercise"), nullable=False)
+    performed_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    status = Column(String(20), nullable=False, default="submitted")
+    idempotency_key = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    workout = relationship("Workout", back_populates="workout_records")
+    user = relationship("User", back_populates="workout_records")
+    exercise = relationship("Exercise", back_populates="workout_records")
+    sets = relationship("ExerciseSet", back_populates="workout_record", order_by="ExerciseSet.set_index")
+
+
+class ExerciseSet(Base):
+    __tablename__ = "exercise_sets"
+    __table_args__ = (
+        UniqueConstraint("workout_record_id", "set_index", name="uq_exercise_set_record_index"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    workout_record_id = Column(Integer, ForeignKey("workout_records.id", name="fk_exercise_sets_record"), nullable=False)
+    set_index = Column(Integer, nullable=False)
+    reps = Column(Integer, nullable=True)
+    weight_kg = Column(Numeric(8, 2), nullable=True)
+    duration_seconds = Column(Integer, nullable=True)
+    distance_meters = Column(Numeric(10, 2), nullable=True)
+
+    workout_record = relationship("WorkoutRecord", back_populates="sets")
 
 class BodyStat(Base):
     __tablename__ = "body_stats"

@@ -211,6 +211,12 @@ class ReactionOut(BaseModel):
 # ── Party Feed ──────────────────────────────────────────────────────────────
 
 
+class FeedMedia(BaseModel):
+    id: str
+    poster_url: None = None
+    duration_seconds: Optional[float] = None
+    size_bytes: int
+
 class FeedEventData(BaseModel):
     """Union-typed payload — contains only the keys relevant to the event_type."""
 
@@ -219,6 +225,7 @@ class FeedEventData(BaseModel):
     type: Optional[str] = None
     content: Optional[str] = None
     file_path: Optional[str] = None
+    media: Optional[FeedMedia] = None
     workout_id: Optional[int] = None
     # workout_start / workout_end event fields
     notes: Optional[str] = None
@@ -247,6 +254,7 @@ class FeedEvent(BaseModel):
     content: Optional[str] = None
     setlog_type: Optional[str] = None
     file_path: Optional[str] = None
+    media: Optional[FeedMedia] = None
     workout_id: Optional[int] = None
     setlog_id: Optional[int] = None
     target_type: Optional[str] = None
@@ -306,3 +314,59 @@ class UserMeOut(BaseModel):
 # ── Rebuild forward references ──────────────────────────────────────────────
 WorkoutOut.model_rebuild()
 SetlogOut.model_rebuild()
+
+class ExerciseOut(BaseModel):
+    id: int
+    canonical_name: str
+    display_name_kr: str
+    unit_kind: str
+    body_part: str
+
+    model_config = {"from_attributes": True}
+
+
+class ExerciseSetCreate(BaseModel):
+    set_index: int = Field(..., ge=0)
+    reps: Optional[int] = Field(None, ge=0)
+    weight_kg: Optional[float] = Field(None, ge=0)
+    duration_seconds: Optional[int] = Field(None, ge=0)
+    distance_meters: Optional[float] = Field(None, ge=0)
+
+
+class ExerciseSetOut(ExerciseSetCreate):
+    model_config = {"from_attributes": True}
+
+
+class WorkoutRecordCreate(BaseModel):
+    workout_id: int
+    exercise_id: int
+    performed_at: Optional[datetime] = None
+    sets: list[ExerciseSetCreate]
+
+
+class WorkoutRecordOut(BaseModel):
+    id: int
+    workout_id: int
+    exercise: ExerciseOut
+    performed_at: datetime
+    status: str
+    sets: list[ExerciseSetOut]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class WorkoutRecordPage(BaseModel):
+    items: list[WorkoutRecordOut]
+    next_cursor: Optional[str] = None
+    has_more: bool
+
+
+class WorkoutRecordCalendarDay(BaseModel):
+    date: str
+    record_count: int
+    body_parts: list[str]
+
+
+class WorkoutRecordCalendar(BaseModel):
+    days: list[WorkoutRecordCalendarDay]

@@ -5,6 +5,7 @@ import CharacterPreview from '../components/CharacterPreview';
 import StreakBadge from '../components/StreakBadge';
 import { Button } from '../components/ui';
 import type { BodyPart } from '../components/CharacterPreview';
+import VideoAttachment from '../components/VideoAttachment';
 
 interface Member {
   id: string;
@@ -52,6 +53,7 @@ interface FeedEvent {
   content?: string;
   setlog_type?: 'start' | 'mid' | 'end';
   file_path?: string;
+  media?: { id: string; poster_url?: string | null; duration_seconds?: number; content_type?: string };
   created_at: string;
   referenced_event_id?: string;
   reaction_type?: string;
@@ -356,20 +358,13 @@ function PartyRoomPage() {
                     {evt.content}
                   </div>
                 )}
-                {evt.file_path && (
-                  <div style={{
-                    marginTop: '8px',
-                    padding: '20px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '8px',
-                    border: '1px dashed var(--border)',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.85rem',
-                  }}>
-                    📎 미디어 첨부됨
+                {evt.file_path && (evt.media?.content_type === 'video/mp4' || /\.mp4($|\?)/i.test(evt.file_path) ? (
+                  <VideoAttachment path={evt.file_path} posterUrl={evt.media?.poster_url} title={`${displayEventName} workout video`} />
+                ) : (
+                  <div style={{ marginTop: '8px', padding: '20px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    ?? Media attached
                   </div>
-                )}
+                ))}
                 <div style={timeStyle}>{formatTime(evt.created_at)}</div>
               </div>
             </div>
