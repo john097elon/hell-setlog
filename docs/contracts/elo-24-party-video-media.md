@@ -13,9 +13,8 @@ MVP 계약 문서. 구현 없음. W7·W8이 추가 추측 없이 병렬 구현 �
 
 ## 고정 범위
 
-- 코덱/컨테이너: MP4, 비디오 H.264, 오디오 AAC-LC. 그 외 컨테이너·코덱 전부 거부.
-- 최대 파일 크기: 10 MiB.
-- 최대 재생 길이: 60초.
+- 서버 검증: `content_type == video/mp4` + 최대 파일 크기 10 MiB. 그 외 전부 거부.
+- 코덱(H.264/AAC-LC)·재생 길이(60초) 검증은 모바일 클라이언트 책임(업로드 전 preflight) — 서버는 검증하지 않음. §후속 강화 범위 참고.
 - 트랜스코딩 없음 — 업로드된 파일 그대로 저장·서빙.
 
 ## 1. 업로드 엔드포인트
@@ -44,19 +43,18 @@ MVP 계약 문서. 구현 없음. W7·W8이 추가 추측 없이 병렬 구현 �
 
 ## 2. MP4 검증 오류
 
-기존 422/503 패턴(`backend/routers/media.py:66,71,73`)에 아래 사유를 추가.
+기존 422/503 패턴(`backend/routers/media.py:66,71,73`)에 아래 사유를 추가. 코덱·재생 길이 서버 검증은 후속 범위(§후속 강화 범위) — 이 계약의 서버는 `content_type`·크기만 본다.
 
 | HTTP | code | 조건 |
 |---|---|---|
-| 422 | `unsupported_media_type` | `content_type != video/mp4` 또는 코덱이 H.264/AAC-LC 아님 |
+| 422 | `unsupported_media_type` | `content_type != video/mp4` |
 | 422 | `file_too_large` | `size_bytes > 10*1024*1024` |
-| 422 | `duration_exceeded` | 재생 길이 > 60초 |
 | 422 | `storage_policy_error` | 기존 `StoragePolicyError` 재사용 |
 | 503 | `storage_unavailable` | 기존 `StorageUnavailable` 재사용 |
 
 오류 응답 형식:
 ```json
-{ "error": { "code": "duration_exceeded", "message": "..." } }
+{ "error": { "code": "file_too_large", "message": "..." } }
 ```
 
 ## 3. 피드 응답 (`media` 필드)
@@ -93,30 +91,15 @@ MVP 계약 문서. 구현 없음. W7·W8이 추가 추측 없이 병렬 구현 �
 - 접근 검사: `_authorize_media_access` 재사용 — 소유자 또는 해당 파티 활성 멤버만.
 - 실패: 403 `forbidden`(멤버 아님/비활성), 404 `object_not_found`(`ObjectNotFound`, 기존 패턴).
 
-## 5. 업로드 상태
+## 5. 업로드 진행·상태 — 책임 경계
 
-`GET /api/media/{key}/status` — 모바일 UI가 진행률·오류·수동 재생 트리거를 붙일 수 있도록 상태 필드 고정.
+별도 `/status`·processing 상태 엔드포인트 없음 (동기식 서버 중계 업로드라 조회할 진행 상태가 서버에 없음).
 
-응답 200:
-```json
-{
-  "status": "uploading",
-  "progress_percent": 63,
-  "error_code": null,
-  "plays_inline": true,
-  "poster_url": null,
-  "autoplay": false
-}
-```
-
-`status` enum: `uploading` → `processing` → `ready` | `failed`.
-
-- `progress_percent`: 업로드 진행률(0-100). `ready`/`failed`에서는 무의미하되 필드는 유지(마지막 값 또는 100).
-- `error_code`: `failed`일 때 §2의 코드 중 하나, 그 외 `null`.
-- `plays_inline`: 항상 `true` (모바일 `playsInline` 강제, 전체화면 자동 전환 금지).
-- `poster_url`: 항상 `null` (§3과 동일 이유).
-- `autoplay`: 항상 `false` — 클라이언트는 수동 재생만 트리거.
+- **업로드 진행률**: 서버가 제공하지 않음. 클라이언트가 Axios/XHR `onUploadProgress` 콜백으로 직접 표시.
+- **업로드 완료 후 상태**: POST `/api/media` 응답으로 확정. 200/201 = `ready`(§1 응답 본문 그대로 사용), 4xx/5xx = `error`(§2 오류 코드로 사유 판별). 클라이언트는 이 응답 하나로 `ready | error` 상태를 결정하고 별도 폴링을 하지 않는다.
+- **재생 가능 여부·60초 preflight**: 업로드 전 클라이언트 책임(§고정 범위). 서버는 검증하지 않는다.
+- `plays_inline`(항상 `playsInline` 강제, 전체화면 자동 전환 금지)·`autoplay`(항상 false, 수동 재생만) 은 서버 응답 필드가 아니라 클라이언트 플레이어 구현 규칙으로 고정.
 
 ## 후속 강화 범위 (이번 계약 제외)
 
-URL 단기화(300초 미만), 강퇴 직후 URL 회수, MP4 외 코덱 지원, 썸네일/poster 생성.
+URL 단기화(300초 미만), 강퇴 직후 URL 회수, 서버 측 코덱/재생 길이 검증, MP4 외 코덱 지원, 썸네일/poster 생성, 업로드 진행 상태 조회 엔드포인트.
