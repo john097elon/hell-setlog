@@ -18,7 +18,7 @@ export default defineConfig({
     { name: 'pwa-standalone-375x812', testMatch: '**/mobile-matrix.spec.ts', use: { ...devices['iPhone 12'], viewport: { width: 375, height: 812 } }, metadata: { displayMode: 'standalone' } },
   ],
   webServer: process.env.CI ? undefined : [
-    { command: 'cd ../backend && uvicorn main:app --port 8001 --reload', url: 'http://localhost:8001/api/health', reuseExistingServer: true, timeout: 15_000 },
+    { command: 'cd ../backend && .venv/Scripts/uvicorn main:app --port 8001 --reload', url: 'http://localhost:8001/api/health', reuseExistingServer: true, timeout: 15_000 },
     { command: 'cd ../frontend && npm run dev', url: 'http://localhost:5173', reuseExistingServer: true, timeout: 15_000 },
   ],
 });
