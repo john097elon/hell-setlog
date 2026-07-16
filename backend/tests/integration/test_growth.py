@@ -234,3 +234,13 @@ def test_formula_version_stored_on_growth_event(client, db):
     _, wid = _full_cycle(client, token)
     for ge in db.query(GrowthEvent).filter(GrowthEvent.workout_id == wid).all():
         assert ge.formula_version == FORMULA_VERSION
+
+
+def test_structured_body_parts_are_adapted_to_existing_growth_keywords():
+    """Structured W1 body-part values feed the unchanged compute_growth parser."""
+    from growth import _PART_KW_KR, structured_growth_contents
+
+    assert structured_growth_contents(("chest", "core")) == [
+        _PART_KW_KR["chest"],
+        _PART_KW_KR["core"],
+    ]

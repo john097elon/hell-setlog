@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 
@@ -29,6 +30,10 @@ _PART_KW_KR: dict[str, str] = {
     "stamina": "유산소",
 }
 
+
+def structured_growth_contents(body_parts: Iterable[str]) -> list[str]:
+    """Adapt W1 exercise body parts to compute_growth's existing text input."""
+    return [_PART_KW_KR[body_part] for body_part in body_parts]
 
 @dataclass(frozen=True)
 class PartGrowth:
