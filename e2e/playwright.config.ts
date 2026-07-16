@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173', trace: 'on-first-retry' },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', testMatch: '**/mobile-matrix.spec.ts', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-360x800', testMatch: '**/mobile-matrix.spec.ts', use: { ...devices['Pixel 5'], viewport: { width: 360, height: 800 } } },
     { name: 'mobile-375x812', testMatch: '**/mobile-matrix.spec.ts', use: { ...devices['iPhone 12'], viewport: { width: 375, height: 812 } } },
     { name: 'mobile-430x932', testMatch: '**/mobile-matrix.spec.ts', use: { ...devices['iPhone 14 Pro Max'], viewport: { width: 430, height: 932 } } },

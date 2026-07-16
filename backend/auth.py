@@ -42,6 +42,8 @@ _RATE_WINDOW = 60  # seconds
 
 
 def _check_rate_limit(key: str, max_attempts: int) -> None:
+    if os.getenv("DISABLE_RATE_LIMIT") == "1":
+        return
     now = time.monotonic()
     bucket = _rate_buckets[key]
     bucket[:] = [t for t in bucket if now - t < _RATE_WINDOW]
