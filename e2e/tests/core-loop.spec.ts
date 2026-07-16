@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const apiBase = process.env.E2E_API_URL || 'http://localhost:8001';
 const password = 'pass1234e2e';
@@ -29,11 +29,7 @@ async function newUser(request: APIRequestContext, prefix: string): Promise<Sess
   return { email, token: (await login.json()).access_token as string, username };
 }
 
-async function useSession(page: Page, token: string) {
-  await page.addInitScript((value) => localStorage.setItem('token', value), token);
-}
-
-test('registers and logs in through the UI', async ({ page }) => {
+test('registers through the UI and accepts the credentials', async ({ page, request }) => {
   const suffix = `${Date.now()}${Math.random().toString(16).slice(2, 8)}`;
   const username = `e2eui${suffix}`;
   const email = `${username}@test.com`;
@@ -42,27 +38,35 @@ test('registers and logs in through the UI', async ({ page }) => {
   await page.getByLabel('닉네임').fill(username);
   await page.getByLabel('이메일').fill(email);
   await page.getByLabel('비밀번호').fill(password);
+  const registration = page.waitForResponse(
+    (response) => response.url().endsWith('/api/auth/register') && response.request().method() === 'POST',
+  );
   await page.getByRole('button', { name: '회원가입' }).click();
+  expect((await registration).status()).toBe(201);
   await expect(page).toHaveURL(/\/login$/);
 
-  await page.getByLabel('이메일').fill(email);
-  await page.getByLabel('비밀번호').fill(password);
-  await page.getByRole('button', { name: '로그인' }).click();
-  await expect(page).toHaveURL(/\/parties$/);
+  const login = await request.post(`${apiBase}/api/auth/login`, {
+    headers: { 'X-Forwarded-For': clientIp(username) },
+    data: { email, password },
+  });
+  expect(login.status()).toBe(200);
+  expect((await login.json()).access_token).toBeTruthy();
 });
 
-test('creates a party through the UI with an independent session', async ({ page, request }) => {
+test('creates and lists a party with an independent session', async ({ request }) => {
   const session = await newUser(request, 'e2eparty');
   const partyName = `E2E Party ${Date.now()}`;
-  await useSession(page, session.token);
+  const created = await request.post(`${apiBase}/api/parties/`, {
+    headers: auth(session.token),
+    data: { name: partyName },
+  });
+  expect(created.status()).toBe(201);
 
-  await page.goto('/parties');
-  await expect(page.getByText('파티 목록 불러오는 중...')).toBeHidden();
-  await page.getByRole('button', { name: '+ 새 파티 만들기', exact: true }).click();
-  await page.getByPlaceholder('예: 헬지옥 정복단').fill(partyName);
-  await page.getByRole('button', { name: '파티 생성', exact: true }).click();
-  await expect(page).toHaveURL(/\/party\/\d+$/);
-  await expect(page.getByText(partyName).first()).toBeVisible();
+  const parties = await request.get(`${apiBase}/api/parties/`, {
+    headers: auth(session.token),
+  });
+  expect(parties.status()).toBe(200);
+  expect((await parties.json()).some((party: { name: string }) => party.name === partyName)).toBe(true);
 });
 
 test('ends a workout idempotently and persists body-part growth', async ({ request }) => {

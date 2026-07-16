@@ -126,7 +126,15 @@ test.describe('mobile core journeys', () => {
     await expectNoHorizontalOverflow(page);
 
     await page.getByRole('link', { name: 'Open session' }).click();
-    await page.getByRole('button', { name: 'End workout' }).click();
+    const endWorkout = page.getByRole('button', { name: 'End workout' });
+    await endWorkout.scrollIntoViewIfNeeded();
+    const receivesPointer = await endWorkout.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const target = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+      return target === element || element.contains(target);
+    });
+    expect(receivesPointer).toBe(true);
+    await endWorkout.click();
     await expect(page.getByLabel(/XP out of 100/).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });

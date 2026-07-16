@@ -615,7 +615,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         </form>
 
         {/* End workout button */}
-        <div style={{ paddingBottom: '12px', flexShrink: 0 }}>
+        <div style={{ paddingBottom: '12px', flexShrink: 0, position: 'relative', zIndex: 2 }}>
           <button
             aria-label="End workout"
             onClick={handleEndWorkout}
