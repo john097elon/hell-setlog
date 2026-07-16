@@ -14,7 +14,7 @@ const PASSWORD = 'pass1234e2e';
 
 test('register new user', async ({ page }) => {
   await page.goto('/register');
-  await page.getByLabel(/사용자명|username/i).fill(USERNAME);
+  await page.locator('input[type="text"]').fill(USERNAME);
   await page.getByLabel(/이메일|email/i).fill(EMAIL);
   await page.getByLabel(/비밀번호|password/i).fill(PASSWORD);
   await page.getByRole('button', { name: /가입|register|sign up/i }).click();

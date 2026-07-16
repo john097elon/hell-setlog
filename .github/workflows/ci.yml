@@ -151,12 +151,13 @@ jobs:
   e2e:
     name: E2E tests (Playwright)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
     needs: [backend-test, frontend-build]
     env:
       E2E_BASE_URL: http://localhost:5173
       E2E_API_URL: http://localhost:8001
       SECRET_KEY: ci-e2e-secret
+      DATABASE_URL: sqlite:///./data/e2e.db
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -165,6 +166,9 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r backend/requirements.txt
+      - name: Migrate E2E database
+        working-directory: backend
+        run: alembic -c alembic.ini upgrade head
       - name: Start backend
         run: |
           cd backend
