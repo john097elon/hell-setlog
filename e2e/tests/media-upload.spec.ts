@@ -15,10 +15,17 @@ const PNG = Buffer.from([
 ]);
 
 async function newUser(request: any, name: string) {
+  let hash = 0;
+  for (const character of name) hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0;
+  const headers = {
+    'X-Forwarded-For': `192.0.${Math.abs(hash >> 8) % 254}.${Math.abs(hash) % 254 + 1}`,
+  };
   await request.post(`${base}/api/auth/register`, {
+    headers,
     data: { username: name, email: `${name}@test.com`, password: 'pass1234' },
   });
   const res = await request.post(`${base}/api/auth/login`, {
+    headers,
     data: { username: name, password: 'pass1234' },
   });
   return (await res.json()).access_token as string;
