@@ -420,7 +420,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 80px)',
+        minHeight: 'calc(100dvh - 80px)',
       }}>
         {/* Timer bar */}
         <div style={{

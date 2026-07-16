@@ -127,7 +127,7 @@ test.describe('mobile core journeys', () => {
 
     await page.getByRole('link', { name: 'Open session' }).click();
     const endWorkout = page.getByRole('button', { name: 'End workout' });
-    await endWorkout.scrollIntoViewIfNeeded();
+    await endWorkout.evaluate((element) => element.scrollIntoView({ block: 'center' }));
     const receivesPointer = await endWorkout.evaluate((element) => {
       const bounds = element.getBoundingClientRect();
       const target = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
