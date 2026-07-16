@@ -24,7 +24,7 @@ from sqlalchemy.engine import URL, make_url
 from ops.backup import build_pg_environment, failure_result
 
 
-EXPECTED_REVISION = "20260715_0002"
+EXPECTED_REVISION = "20260716_0003"
 APPLICATION_TABLES = (
     "users",
     "characters",
@@ -35,6 +35,9 @@ APPLICATION_TABLES = (
     "body_stats",
     "growth_events",
     "reactions",
+    "exercises",
+    "workout_records",
+    "exercise_sets",
 )
 
 

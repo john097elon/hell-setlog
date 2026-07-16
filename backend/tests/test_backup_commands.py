@@ -276,3 +276,10 @@ def test_restore_failure_result_includes_only_safe_diagnostic():
         "error_type": "DatabaseRestoreFailed",
         "diagnostic": "safe reason",
     }
+
+def test_restore_rehearsal_tracks_current_workout_record_schema():
+    restore = operations_module("restore_rehearsal")
+    assert restore.EXPECTED_REVISION == "20260716_0003"
+    assert {"exercises", "workout_records", "exercise_sets"} <= set(
+        restore.APPLICATION_TABLES
+    )
