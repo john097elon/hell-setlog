@@ -7,8 +7,13 @@ from sqlalchemy.orm import Session
 
 from auth import get_current_user
 from database import get_db
-from growth import _PART_KW_KR as PART_KEYWORDS
-from growth import BODY_PARTS, FORMULA_VERSION, compute_growth, today_utc_start
+from growth import (
+    BODY_PARTS,
+    FORMULA_VERSION,
+    compute_growth,
+    structured_growth_contents,
+    today_utc_start,
+)
 from models import (
     BodyStat,
     Character,
@@ -287,7 +292,7 @@ def end_workout(
         .filter(WorkoutRecord.workout_id == workout_id)
         .all()
     )
-    contents.extend(PART_KEYWORDS[record.exercise.body_part] for record in structured_records)
+    contents.extend(structured_growth_contents(record.exercise.body_part for record in structured_records))
 
     # Daily cap: sum deltas already granted today per part
     daily_used: dict[str, int] = {}

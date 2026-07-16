@@ -124,3 +124,40 @@ def test_list_cursor_can_be_reused(client):
     )
     assert second_page.status_code == 200, second_page.text
     assert len(second_page.json()["items"]) == 1
+
+
+def test_structured_record_growth_is_idempotent_and_visible_on_character(client, db):
+    from models import GrowthEvent
+
+    _, token = make_user(client, "recordgrowth", suffix="records")
+    exercise = next(
+        item
+        for item in client.get("/api/exercises", headers=auth(token)).json()
+        if item["body_part"] == "chest" and item["unit_kind"] == "reps_weight"
+    )
+    workout_id = _start_workout(client, token)
+    created = client.post(
+        "/api/workout-records",
+        json={
+            "workout_id": workout_id,
+            "exercise_id": exercise["id"],
+            "sets": [{"set_index": 0, "reps": 10, "weight_kg": 60}],
+        },
+        headers=auth(token),
+    )
+    assert created.status_code == 201, created.text
+
+    first_end = client.post(f"/api/workouts/{workout_id}/end", headers=auth(token))
+    repeated_end = client.post(f"/api/workouts/{workout_id}/end", headers=auth(token))
+    character = client.get("/api/characters/me", headers=auth(token))
+
+    assert first_end.status_code == 200, first_end.text
+    assert repeated_end.json()["body_stats"] == first_end.json()["body_stats"]
+    assert db.query(GrowthEvent).filter(GrowthEvent.workout_id == workout_id).count() == 7
+    assert {
+        item["part"]: (item["level"], item["potential"])
+        for item in character.json()["body_stats"]
+    } == {
+        item["part"]: (item["level"], item["potential"])
+        for item in first_end.json()["body_stats"]
+    }
