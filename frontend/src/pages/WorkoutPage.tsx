@@ -449,6 +449,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         {/* Setlogs list - scrollable */}
         <div style={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
           padding: '16px 0',
           display: 'flex',

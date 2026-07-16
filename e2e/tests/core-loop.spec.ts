@@ -57,7 +57,8 @@ test('creates a party through the UI with an independent session', async ({ page
   await useSession(page, session.token);
 
   await page.goto('/parties');
-  await page.getByRole('button', { name: '+ 새 파티', exact: true }).first().click();
+  await expect(page.getByText('파티 목록 불러오는 중...')).toBeHidden();
+  await page.getByRole('button', { name: '+ 새 파티 만들기', exact: true }).click();
   await page.getByPlaceholder('예: 헬지옥 정복단').fill(partyName);
   await page.getByRole('button', { name: '파티 생성', exact: true }).click();
   await expect(page).toHaveURL(/\/party\/\d+$/);
@@ -87,8 +88,8 @@ test('ends a workout idempotently and persists body-part growth', async ({ reque
   expect(ended.status()).toBe(200);
   const result = await ended.json();
   expect(result.body_stats).toHaveLength(7);
-  expect(result.status).toBe('ended');
-  expect(result.ended_at).not.toBeNull();
+  expect(result.workout.status).toBe('ended');
+  expect(result.workout.ended_at).not.toBeNull();
 
   const persisted = await request.get(`${apiBase}/api/workouts/${workoutId}`, {
     headers: auth(session.token),
