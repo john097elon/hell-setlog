@@ -17,6 +17,7 @@ from schemas import (
     PartyJoin,
     PartyOut,
 )
+from storage import ObjectNotFound, ObjectStorage, get_storage
 
 router = APIRouter(prefix="/parties", tags=["parties"])
 
@@ -450,6 +451,7 @@ def get_party_feed(
     since: Optional[datetime] = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    storage: ObjectStorage = Depends(get_storage),
 ):
     """Return a unified timeline of party activity as flat events for active members."""
     party = db.query(Party).filter(Party.id == party_id).first()
@@ -623,6 +625,19 @@ def get_party_feed(
     )
 
     for s in setlogs:
+        media = None
+        if s.file_path and s.file_path.endswith(".mp4"):
+            try:
+                metadata = storage.head(s.file_path)
+            except ObjectNotFound:
+                pass
+            else:
+                media = {
+                    "id": s.file_path,
+                    "poster_url": None,
+                    "duration_seconds": None,
+                    "size_bytes": metadata.size_bytes,
+                }
         events.append(
             {
                 "id": f"setlog:{s.id}",
@@ -634,6 +649,7 @@ def get_party_feed(
                 "setlog_type": s.type,
                 "content": s.content,
                 "file_path": s.file_path,
+                "media": media,
                 "workout_id": s.workout_id,
                 "target_type": "setlog",
                 "target_id": s.id,
@@ -642,6 +658,7 @@ def get_party_feed(
                     type=s.type,
                     content=s.content,
                     file_path=s.file_path,
+                    media=media,
                     workout_id=s.workout_id,
                 ),
             }

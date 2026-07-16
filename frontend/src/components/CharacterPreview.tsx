@@ -6,6 +6,12 @@ interface BodyPart {
   potential: number;
 }
 
+function growthStatus(potential: number): string {
+  if (potential >= 90) return 'Near level-up';
+  if (potential > 0) return 'Growing';
+  return 'Ready to grow';
+}
+
 interface CharacterPreviewProps {
   username: string;
   characterName?: string;
@@ -308,6 +314,18 @@ function CharacterPreview({
                     }}>
                       Lv.{stat.level}
                     </span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '3px',
+                    fontSize: '0.65rem',
+                    color: 'var(--text-secondary)',
+                  }}>
+                    <span>{growthStatus(stat.potential)}</span>
+                    <span aria-label={`${stat.potential} XP out of 100`}>XP {stat.potential}/100</span>
                   </div>
                   {/* Level dots */}
                   <div style={{

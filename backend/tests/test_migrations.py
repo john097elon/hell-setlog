@@ -21,7 +21,7 @@ def alembic_config(connection=None) -> Config:
 def test_migrations_have_one_head():
     script = ScriptDirectory.from_config(alembic_config())
 
-    assert script.get_heads() == ["20260715_0002"]
+    assert script.get_heads() == ["20260716_0003"]
 
 
 def test_baseline_upgrades_and_downgrades_fresh_database():
@@ -39,6 +39,10 @@ def test_baseline_upgrades_and_downgrades_fresh_database():
             "setlogs",
             "body_stats",
             "reactions",
+            "growth_events",
+            "exercises",
+            "workout_records",
+            "exercise_sets",
         }
         command.downgrade(config, "base")
         assert inspect(connection).get_table_names() == ["alembic_version"]

@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import PartyListPage from './pages/PartyListPage';
 import PartyRoomPage from './pages/PartyRoomPage';
 import WorkoutPage from './pages/WorkoutPage';
+import WorkoutRecordsPage from './pages/WorkoutRecordsPage';
 import SettingsPage from './pages/SettingsPage';
 
 function App() {
@@ -15,7 +16,8 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/parties" element={<PartyListPage />} />
         <Route path="/party/:id" element={<PartyRoomPage />} />
-        <Route path="/workout" element={<WorkoutPage />} />
+        <Route path="/workout" element={<WorkoutRecordsPage />} />
+        <Route path="/workout/session" element={<WorkoutPage />} />
         <Route path="/workout/:id" element={<WorkoutPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
