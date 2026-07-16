@@ -420,7 +420,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 80px)',
+        minHeight: 'calc(100dvh - 80px)',
       }}>
         {/* Timer bar */}
         <div style={{
@@ -449,6 +449,7 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         {/* Setlogs list - scrollable */}
         <div style={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
           padding: '16px 0',
           display: 'flex',
@@ -614,8 +615,9 @@ const { draft, updateDraft, clearDraft } = useWorkoutDraft();
         </form>
 
         {/* End workout button */}
-        <div style={{ paddingBottom: '12px', flexShrink: 0 }}>
+        <div style={{ paddingBottom: '12px', flexShrink: 0, position: 'relative', zIndex: 2 }}>
           <button
+            aria-label="End workout"
             onClick={handleEndWorkout}
             disabled={ending}
             style={{

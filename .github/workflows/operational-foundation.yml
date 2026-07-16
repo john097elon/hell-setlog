@@ -109,6 +109,7 @@ jobs:
 
   deploy-staging:
     needs: image
+    if: vars.ENABLE_STAGING_DEPLOY == 'true'
     uses: ./.github/workflows/deploy-staging.yml
     with:
       image_digest: ${{ needs.image.outputs.image }}
