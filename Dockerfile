@@ -40,7 +40,8 @@ COPY backend/ /app/backend/
 COPY ops/ /app/ops/
 COPY --from=frontend-build /build/frontend/dist /app/frontend/dist
 
-RUN chmod 0555 /app/ops/*.sh \
+RUN sed -i 's/\r$//' /app/ops/*.sh \
+    && chmod 0555 /app/ops/*.sh \
     && chown -R 10001:10001 /app
 
 USER 10001:10001
