@@ -215,7 +215,7 @@ Expected: both commands exit 0 and no dependency uses Riverpod 3.x.
 - [ ] **Step 5: Commit the generated foundation**
 
 ```powershell
-git add .metadata devtools_options.yaml README.md android ios lib/main.dart test/widget_test.dart pubspec.yaml pubspec.lock analysis_options.yaml l10n.yaml lib/l10n .gitignore
+git add .metadata README.md android ios pubspec.yaml pubspec.lock analysis_options.yaml l10n.yaml lib/l10n .gitignore
 git commit -m "chore: create Flutter P0 foundation"
 ```
 
@@ -223,7 +223,7 @@ git commit -m "chore: create Flutter P0 foundation"
 
 **Files:**
 - Modify: `lib/main.dart`
-- Delete: `test/widget_test.dart`
+- Delete: generated `lib/main.dart` and `test/widget_test.dart` before writing the first app-specific test
 - Create: `test/app_test.dart`
 - Create: `lib/core/{constants,di,error,extensions,router,theme}/.gitkeep`
 - Create: `lib/data/{local,remote,repositories}/.gitkeep`
@@ -235,7 +235,9 @@ git commit -m "chore: create Flutter P0 foundation"
 - Produces: `HealSetLogApp`, a public root widget that later P0-02 code replaces internally without changing `main()`.
 - Consumes: `flutter_riverpod` only; it deliberately consumes no repository, router, theme, database, or remote dependency.
 
-- [ ] **Step 1: Write the failing app-root test**
+- [ ] **Step 1: Remove the generated counter example and write the failing app-root test**
+
+Delete the generated `lib/main.dart` and `test/widget_test.dart`; neither file is part of the HealSetLog implementation. Then create `test/app_test.dart`:
 
 Create `test/app_test.dart`:
 
