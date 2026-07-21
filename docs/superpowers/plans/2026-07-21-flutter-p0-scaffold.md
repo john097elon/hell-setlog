@@ -223,7 +223,7 @@ git commit -m "chore: create Flutter P0 foundation"
 
 **Files:**
 - Modify: `lib/main.dart`
-- Delete: generated `lib/main.dart` and `test/widget_test.dart` before writing the first app-specific test
+- Delete: `test/widget_test.dart`
 - Create: `test/app_test.dart`
 - Create: `lib/core/{constants,di,error,extensions,router,theme}/.gitkeep`
 - Create: `lib/data/{local,remote,repositories}/.gitkeep`
@@ -235,21 +235,22 @@ git commit -m "chore: create Flutter P0 foundation"
 - Produces: `HealSetLogApp`, a public root widget that later P0-02 code replaces internally without changing `main()`.
 - Consumes: `flutter_riverpod` only; it deliberately consumes no repository, router, theme, database, or remote dependency.
 
-- [ ] **Step 1: Remove the generated counter example and write the failing app-root test**
-
-Delete the generated `lib/main.dart` and `test/widget_test.dart`; neither file is part of the HealSetLog implementation. Then create `test/app_test.dart`:
+- [ ] **Step 1: Write the failing app-root test**
 
 Create `test/app_test.dart`:
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heal_setlog/main.dart';
+import 'package:heal_setlog/main.dart' as app;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  testWidgets('앱 루트가 렌더링된다', (WidgetTester tester) async {
-    await tester.pumpWidget(const HealSetLogApp());
+  testWidgets('앱 루트가 Riverpod 범위 안에서 렌더링된다', (WidgetTester tester) async {
+    app.main();
+    await tester.pump();
 
+    expect(find.byType(ProviderScope), findsOneWidget);
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
@@ -263,11 +264,11 @@ Run:
 & 'C:\Users\john\develop\flutter\bin\flutter.bat' test test/app_test.dart
 ```
 
-Expected: FAIL because `HealSetLogApp` is not defined.
+Expected: FAIL because the generated counter app does not contain `ProviderScope`.
 
 - [ ] **Step 3: Implement the minimal provider-scoped root**
 
-Replace `lib/main.dart` with:
+Replace the generated counter example in `lib/main.dart` with:
 
 ```dart
 import 'package:flutter/material.dart';
