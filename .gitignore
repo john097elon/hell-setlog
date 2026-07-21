@@ -1,25 +1,18 @@
-# Python
-__pycache__/
-*.py[cod]
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+.vscode/
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+.agent-cache/
+.codegraph/
 .venv/
-.venv*/
-.uv-cache/
-.docker-config/
-.pytest_cache/
-.test-tmp/
-pytest-cache-files-*/
-
-# Environment and operator artifacts
-.env
-!.env.example
-*.dump
-*.manifest.json
-
-# Backend runtime data
-backend/data/
-backend/uploads/
-
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.npm-cache/
+backend/
+frontend/
+ops/

@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="45" fill="#1a1a1a" stroke="#ff883d" stroke-width="3"/>
-  <circle cx="50" cy="40" r="15" fill="#ff883d"/>
-  <rect x="30" y="60" width="40" height="25" rx="8" fill="#ff883d"/>
-  <text x="50" y="90" font-family="sans-serif" font-size="10" fill="#888888" text-anchor="middle">STAGE 2</text>
-</svg>
