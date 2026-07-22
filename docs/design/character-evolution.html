@@ -1,0 +1,305 @@
+<title>HealSetLog · 진화 라인 컨셉</title>
+<style>
+  :root {
+    --bg: #14121a;
+    --bg-raise: #1d1a26;
+    --bg-card: #211d2c;
+    --line: #322c42;
+    --ink: #efeaf6;
+    --ink-soft: #b3aac6;
+    --ink-faint: #7d7492;
+    --gold: #f5c542;
+    --crimson: #ff4d54;
+    --cyan: #38bdf8;
+    --violet: #a78bfa;
+    --shadow: 0 18px 50px -20px rgba(0,0,0,.7);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f1ec;
+      --bg-raise: #fbf9f5;
+      --bg-card: #ffffff;
+      --line: #e3ddd2;
+      --ink: #1d1a26;
+      --ink-soft: #4f4860;
+      --ink-faint: #8a8298;
+      --shadow: 0 18px 40px -24px rgba(40,30,60,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14121a; --bg-raise: #1d1a26; --bg-card: #211d2c; --line: #322c42;
+    --ink: #efeaf6; --ink-soft: #b3aac6; --ink-faint: #7d7492;
+    --shadow: 0 18px 50px -20px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f1ec; --bg-raise: #fbf9f5; --bg-card: #ffffff; --line: #e3ddd2;
+    --ink: #1d1a26; --ink-soft: #4f4860; --ink-faint: #8a8298;
+    --shadow: 0 18px 40px -24px rgba(40,30,60,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: clamp(24px, 5vw, 72px) clamp(18px, 4vw, 40px); }
+
+  .eyebrow {
+    font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 700; margin: 0 0 14px;
+  }
+  h1 {
+    font-size: clamp(30px, 6vw, 58px); line-height: 1.02; margin: 0;
+    font-weight: 800; letter-spacing: -.02em; text-wrap: balance;
+  }
+  h1 .glow { color: var(--gold); }
+  .thesis {
+    max-width: 60ch; color: var(--ink-soft); font-size: clamp(15px, 2vw, 18px);
+    margin: 18px 0 0;
+  }
+  .thesis b { color: var(--ink); font-weight: 700; }
+
+  /* evolution line hero */
+  .line-hero {
+    margin: clamp(32px, 5vw, 56px) 0 0;
+    background: linear-gradient(180deg, var(--bg-raise), transparent);
+    border: 1px solid var(--line); border-radius: 20px;
+    padding: clamp(18px, 3vw, 34px); box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  .track {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr);
+    align-items: end; gap: 10px; min-width: 640px;
+  }
+  .node { text-align: center; position: relative; }
+  .node .art { display: flex; align-items: flex-end; justify-content: center; height: 168px; }
+  .node svg { display: block; }
+  .arrow { align-self: center; color: var(--ink-faint); font-size: 22px; padding-bottom: 46px; }
+  .lvl {
+    display: inline-block; margin-top: 12px; font-size: 11px; font-weight: 800;
+    letter-spacing: .1em; color: var(--bg); background: var(--gold);
+    padding: 3px 9px; border-radius: 999px;
+  }
+  .node .nm { display: block; margin-top: 8px; font-weight: 700; font-size: 15px; }
+  .node .role { display: block; font-size: 12px; color: var(--ink-faint); }
+
+  /* stage cards */
+  .grid {
+    margin-top: clamp(36px, 5vw, 64px);
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px; display: flex; flex-direction: column; gap: 10px;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: var(--stage, var(--violet));
+  }
+  .card .cap { display: flex; align-items: center; justify-content: space-between; }
+  .card .cap .n { font-size: 12px; font-weight: 800; letter-spacing: .12em; color: var(--ink-faint); }
+  .card .cap .lv { font-size: 12px; font-weight: 800; color: var(--stage, var(--violet)); }
+  .card h3 { margin: 2px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .card .trig {
+    margin-top: auto; font-size: 12px; color: var(--ink-faint);
+    border-top: 1px dashed var(--line); padding-top: 10px;
+  }
+  .card .trig b { color: var(--ink); font-weight: 700; }
+
+  /* stat color system + mechanics */
+  .split { margin-top: clamp(36px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+  .panel { background: var(--bg-raise); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .panel h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+  .panel .sub { margin: 0 0 16px; font-size: 13px; color: var(--ink-faint); }
+  .stat { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .stat:first-of-type { border-top: 0; }
+  .swatch { width: 34px; height: 34px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+  .stat .lbl { font-weight: 700; font-size: 14px; }
+  .stat .desc { font-size: 12.5px; color: var(--ink-soft); }
+  .exp { display: flex; flex-direction: column; gap: 0; }
+  .exp .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+  .exp .row:first-child { border-top: 0; }
+  .exp .row .v { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .exp .row .v.crit { color: var(--crimson); }
+  .formula { margin-top: 14px; font-size: 12.5px; color: var(--ink-faint); background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .formula code { color: var(--cyan); font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+
+  footer { margin-top: clamp(32px, 4vw, 48px); padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); }
+  footer b { color: var(--ink-soft); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--cyan); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; margin-right: 8px; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">HealSetLog · Character Design</p>
+  <h1>운동할수록 진화하는 <span class="glow">짐 크리처</span></h1>
+  <p class="thesis">기록은 지루해서 이탈한다. 눈에 보이는 <b>성장</b>이 있으면 습관이 된다. 고양이에서 시작해 세트를 쌓을수록 <b>5단계로 진화</b>하는 마스코트 — 사이즈만 커지는 게 아니라 형태·장비·오라까지 바뀐다. 포켓몬/디지몬식 진화 라인.</p>
+
+  <!-- HERO: evolution line -->
+  <div class="line-hero" aria-label="5단계 진화 라인">
+    <div class="track">
+      <!-- Stage 1 -->
+      <div class="node">
+        <div class="art">
+          <svg width="86" height="96" viewBox="0 0 86 96" fill="none" role="img" aria-label="냐옹이">
+            <ellipse cx="43" cy="90" rx="26" ry="5" fill="rgba(0,0,0,.25)"/>
+            <path d="M30 40 L26 26 L38 36 Z M56 40 L60 26 L48 36 Z" fill="#8b8398"/>
+            <circle cx="43" cy="52" r="20" fill="#9a91a8"/>
+            <ellipse cx="43" cy="74" rx="14" ry="15" fill="#9a91a8"/>
+            <circle cx="36" cy="50" r="2.4" fill="#221f2b"/>
+            <circle cx="50" cy="50" r="2.4" fill="#221f2b"/>
+            <path d="M40 57 q3 3 6 0" stroke="#221f2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="lvl">Lv.1</span>
+        <span class="nm">냐옹이</span>
+        <span class="role">약골 · 시작</span>
+      </div>
+      <div class="arrow">→</div>
+      <!-- Stage 2 -->
+      <div class="node">
+        <div class="art">
+          <svg width="92" height="104" viewBox="0 0 92 104" fill="none" role="img" aria-label="근냥이">
+            <ellipse cx="46" cy="98" rx="28" ry="5" fill="rgba(0,0,0,.25)"/>
+            <path d="M32 42 L28 27 L40 38 Z M60 42 L64 27 L52 38 Z" fill="#8fb7c9"/>
+            <circle cx="46" cy="52" r="20" fill="#a7cadb"/>
+            <path d="M30 74 q16 -12 32 0 q2 14 -16 16 q-18 -2 -16 -16Z" fill="#a7cadb"/>
+            <path d="M34 72 q4 4 4 9 M58 72 q-4 4 -4 9" stroke="#6f97a8" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="39" cy="50" r="2.6" fill="#1b2b33"/>
+            <circle cx="53" cy="50" r="2.6" fill="#1b2b33"/>
+            <path d="M42 57 q4 4 8 0" stroke="#1b2b33" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="lvl">Lv.10</span>
+        <span class="nm">근냥이</span>
+        <span class="role">입문 · 잔근육</span>
+      </div>
+      <div class="arrow">→</div>
+      <!-- Stage 3 -->
+      <div class="node">
+        <div class="art">
+          <svg width="100" height="112" viewBox="0 0 100 112" fill="none" role="img" aria-label="머슬캣">
+            <ellipse cx="50" cy="106" rx="32" ry="6" fill="rgba(0,0,0,.28)"/>
+            <path d="M34 40 L29 23 L43 36 Z M66 40 L71 23 L57 36 Z" fill="#e0b23f"/>
+            <circle cx="50" cy="50" r="21" fill="#f0c04a"/>
+            <path d="M26 80 q24 -20 48 0 q3 18 -24 22 q-27 -4 -24 -22Z" fill="#f0c04a"/>
+            <path d="M50 62 v34 M34 74 q6 6 6 14 M66 74 q-6 6 -6 14" stroke="#c9942a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            <circle cx="43" cy="48" r="2.8" fill="#3a2a08"/>
+            <circle cx="57" cy="48" r="2.8" fill="#3a2a08"/>
+            <path d="M45 56 q5 5 10 0" stroke="#3a2a08" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="lvl">Lv.25</span>
+        <span class="nm">머슬캣</span>
+        <span class="role">중급 · 벌크업</span>
+      </div>
+      <div class="arrow">→</div>
+      <!-- Stage 4 -->
+      <div class="node">
+        <div class="art">
+          <svg width="108" height="120" viewBox="0 0 108 120" fill="none" role="img" aria-label="타이탄냥">
+            <ellipse cx="54" cy="114" rx="36" ry="6" fill="rgba(0,0,0,.3)"/>
+            <circle cx="54" cy="58" r="40" fill="none" stroke="#ff6a70" stroke-width="1.5" opacity=".35"/>
+            <path d="M36 40 L30 20 L46 34 Z M72 40 L78 20 L62 34 Z" fill="#e2464d"/>
+            <circle cx="54" cy="50" r="22" fill="#ff5960"/>
+            <path d="M24 84 q30 -26 60 0 q4 22 -30 26 q-34 -4 -30 -26Z" fill="#ff5960"/>
+            <path d="M54 62 v42 M32 76 q8 8 8 18 M76 76 q-8 8 -8 18 M40 88 h28" stroke="#b02b31" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <rect x="40" y="30" width="28" height="7" rx="3" fill="#3a2226"/>
+            <circle cx="46" cy="48" r="3" fill="#fff"/><circle cx="62" cy="48" r="3" fill="#fff"/>
+          </svg>
+        </div>
+        <span class="lvl">Lv.50</span>
+        <span class="nm">타이탄냥</span>
+        <span class="role">상급 · 장비/오라</span>
+      </div>
+      <div class="arrow">→</div>
+      <!-- Stage 5 -->
+      <div class="node">
+        <div class="art">
+          <svg width="120" height="130" viewBox="0 0 120 130" fill="none" role="img" aria-label="냐관왕">
+            <ellipse cx="60" cy="124" rx="40" ry="7" fill="rgba(0,0,0,.32)"/>
+            <circle cx="60" cy="62" r="48" fill="none" stroke="#f5c542" stroke-width="2" opacity=".45"/>
+            <circle cx="60" cy="62" r="40" fill="none" stroke="#ff5960" stroke-width="1.5" opacity=".4"/>
+            <path d="M40 40 L33 17 L51 33 Z M80 40 L87 17 L69 33 Z" fill="#e2464d"/>
+            <circle cx="60" cy="54" r="24" fill="#ff5960"/>
+            <path d="M24 92 q36 -30 72 0 q5 24 -36 28 q-41 -4 -36 -28Z" fill="#ff5960"/>
+            <path d="M60 66 v46 M34 82 q9 9 9 20 M86 82 q-9 9 -9 20 M42 96 h36" stroke="#b02b31" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M44 30 l5 9 6 -11 6 11 5 -9 -1 14 h-26 Z" fill="#f5c542"/>
+            <circle cx="51" cy="52" r="3.2" fill="#fff"/><circle cx="69" cy="52" r="3.2" fill="#fff"/>
+            <path d="M55 61 q5 5 10 0" stroke="#5a1a1e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="lvl">Lv.100</span>
+        <span class="nm">냐관왕</span>
+        <span class="role">전설 · 보스폼</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE CARDS -->
+  <div class="grid">
+    <article class="card" style="--stage:#9a91a8">
+      <div class="cap"><span class="n">STAGE 01</span><span class="lv">Lv.1</span></div>
+      <h3>냐옹이</h3>
+      <p>작고 동그란 회색 새끼고양이. 아직 근육 0, 표정도 시큰둥. 첫 실행 기본폼.</p>
+      <div class="trig"><b>진화 조건</b> · 계정 생성</div>
+    </article>
+    <article class="card" style="--stage:#a7cadb">
+      <div class="cap"><span class="n">STAGE 02</span><span class="lv">Lv.10</span></div>
+      <h3>근냥이</h3>
+      <p>자세가 서고 잔근육이 붙기 시작. 눈빛에 의욕. 몸통이 살짝 탄탄해진다.</p>
+      <div class="trig"><b>진화 조건</b> · Lv.10 도달</div>
+    </article>
+    <article class="card" style="--stage:#f0c04a">
+      <div class="cap"><span class="n">STAGE 03</span><span class="lv">Lv.25</span></div>
+      <h3>머슬캣</h3>
+      <p>누가 봐도 근육질. 가슴·팔 라인이 잡히고 스탯 컬러가 몸에 물들기 시작.</p>
+      <div class="trig"><b>진화 조건</b> · Lv.25 도달</div>
+    </article>
+    <article class="card" style="--stage:#ff5960">
+      <div class="cap"><span class="n">STAGE 04</span><span class="lv">Lv.50</span></div>
+      <h3>타이탄냥</h3>
+      <p>거대·강력. 헤드기어/벨트 장비와 은은한 오라. 지배적 스탯 색이 뚜렷해진다.</p>
+      <div class="trig"><b>진화 조건</b> · Lv.50 도달</div>
+    </article>
+    <article class="card" style="--stage:#f5c542">
+      <div class="cap"><span class="n">STAGE 05</span><span class="lv">Lv.100</span></div>
+      <h3>냐관왕</h3>
+      <p>전설의 보스폼. 왕관 + 이중 오라. 최종 자랑거리. (사용자 명명 채택)</p>
+      <div class="trig"><b>진화 조건</b> · Lv.100 도달</div>
+    </article>
+  </div>
+
+  <!-- STAT SYSTEM + MECHANICS -->
+  <div class="split">
+    <section class="panel">
+      <h2>스탯 컬러 시스템</h2>
+      <p class="sub">SSOT §4 <code style="color:var(--cyan)">CharacterStat</code> — 지배적 스탯이 폼의 오라·색조에 반영된다 (Lv.25부터 가시화).</p>
+      <div class="stat"><span class="swatch" style="background:#ff4d54"></span><div><div class="lbl">근력 · strength</div><div class="desc">고중량/저반복 위주 → 벌크·crimson 오라</div></div></div>
+      <div class="stat"><span class="swatch" style="background:#38bdf8"></span><div><div class="lbl">지구력 · endurance</div><div class="desc">고반복/유산소 → 슬림·cyan 오라</div></div></div>
+      <div class="stat"><span class="swatch" style="background:#f5c542"></span><div><div class="lbl">꾸준함 · consistency</div><div class="desc">연속 출석/파티 → 골드 오라·광채</div></div></div>
+    </section>
+
+    <section class="panel">
+      <h2>성장 = EXP</h2>
+      <p class="sub">SSOT §5 고정 규칙. 하루 획득 상한 500.</p>
+      <div class="exp">
+        <div class="row"><span>세트 완료</span><span class="v">+5</span></div>
+        <div class="row"><span>세션 완료</span><span class="v">+50</span></div>
+        <div class="row"><span>PR 달성</span><span class="v crit">+200</span></div>
+        <div class="row"><span>파티원과 같은 날 운동</span><span class="v">+30</span></div>
+        <div class="row"><span>연속 출석 7일</span><span class="v">+100</span></div>
+      </div>
+      <div class="formula">레벨업 필요 EXP · <code>100 × level^1.5</code> — 스테이지 전환 <code>Lv 1 / 10 / 25 / 50 / 100</code></div>
+    </section>
+  </div>
+
+  <footer>
+    <span class="tag">MVP: 선형 진화</span>
+    <span class="tag">P6+ : 분기 진화</span>
+    <p style="margin:12px 0 0"><b>스코프</b> — MVP는 단일 라인 5폼(선형). 스탯 최고치에 따라 갈라지는 <b>분기 진화</b>(근력형/지구력형/꾸준형 별도 종점)는 아트·로직 물량이 커서 캐릭터 단계(P6) 이후 별도 논의. 위 실루엣은 방향 확인용 개념 스케치이며 최종 아트 아님.</p>
+  </footer>
+</div>
