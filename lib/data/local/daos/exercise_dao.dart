@@ -11,8 +11,9 @@ class ExerciseDao extends DatabaseAccessor<AppDatabase>
     with _$ExerciseDaoMixin {
   ExerciseDao(super.db);
 
-  Future<List<Exercise>> getAll() =>
-      (select(exercises)..orderBy([(table) => OrderingTerm.asc(table.nameKo)])).get();
+  Future<List<Exercise>> getAll() => (select(
+    exercises,
+  )..orderBy([(table) => OrderingTerm.asc(table.nameKo)])).get();
 
   Future<List<Exercise>> searchExercises({
     String? query,
@@ -25,7 +26,8 @@ class ExerciseDao extends DatabaseAccessor<AppDatabase>
       final pattern = '%$normalizedQuery%';
       statement.where(
         (table) =>
-            table.name.lower().like(pattern) | table.nameKo.lower().like(pattern),
+            table.name.lower().like(pattern) |
+            table.nameKo.lower().like(pattern),
       );
     }
     if (muscleGroup != null) {
@@ -38,8 +40,9 @@ class ExerciseDao extends DatabaseAccessor<AppDatabase>
     return statement.get();
   }
 
-  Future<Exercise?> getById(String id) =>
-      (select(exercises)..where((table) => table.id.equals(id))).getSingleOrNull();
+  Future<Exercise?> getById(String id) => (select(
+    exercises,
+  )..where((table) => table.id.equals(id))).getSingleOrNull();
 
   Future<void> insertAll(List<ExercisesCompanion> values) =>
       batch((batch) => batch.insertAll(exercises, values));

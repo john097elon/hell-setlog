@@ -19,7 +19,9 @@ AppDatabase appDatabase(AppDatabaseRef ref) {
 /// Provides the local repository after its built-in exercise list is seeded.
 @Riverpod(keepAlive: true)
 Future<ExerciseRepository> exerciseRepository(ExerciseRepositoryRef ref) async {
-  final repository = ExerciseRepositoryImpl(ref.watch(appDatabaseProvider).exerciseDao);
+  final repository = ExerciseRepositoryImpl(
+    ref.watch(appDatabaseProvider).exerciseDao,
+  );
   await repository.ensureSeeded();
   return repository;
 }

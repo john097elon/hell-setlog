@@ -21,7 +21,10 @@ void main() {
   test('seeds 60 exercises with Korean names', () async {
     final result = await repository.getAll();
 
-    final exercises = result.when(ok: (value) => value, err: (_) => <Exercise>[]);
+    final exercises = result.when(
+      ok: (value) => value,
+      err: (_) => <Exercise>[],
+    );
     expect(exercises, hasLength(60));
     expect(exercises.every((exercise) => exercise.nameKo.isNotEmpty), isTrue);
   });
@@ -41,8 +44,16 @@ void main() {
       equipment: Equipment.barbell,
     );
 
-    final legExercises = legs.when(ok: (value) => value, err: (_) => <Exercise>[]);
-    expect(legExercises.every((exercise) => exercise.muscleGroup == MuscleGroup.legs), isTrue);
+    final legExercises = legs.when(
+      ok: (value) => value,
+      err: (_) => <Exercise>[],
+    );
+    expect(
+      legExercises.every(
+        (exercise) => exercise.muscleGroup == MuscleGroup.legs,
+      ),
+      isTrue,
+    );
     expect(_names(bench), contains('Bench Press'));
   });
 
@@ -63,5 +74,7 @@ void main() {
   });
 }
 
-List<String> _names(Result<List<Exercise>, Failure> result) =>
-    result.when(ok: (value) => value.map((exercise) => exercise.name).toList(), err: (_) => []);
+List<String> _names(Result<List<Exercise>, Failure> result) => result.when(
+  ok: (value) => value.map((exercise) => exercise.name).toList(),
+  err: (_) => [],
+);

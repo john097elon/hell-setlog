@@ -2,7 +2,16 @@
 enum MuscleGroup { chest, back, shoulders, legs, arms, core, fullBody, other }
 
 /// 사용 장비.
-enum Equipment { barbell, dumbbell, machine, cable, bodyweight, kettlebell, band, other }
+enum Equipment {
+  barbell,
+  dumbbell,
+  machine,
+  cable,
+  bodyweight,
+  kettlebell,
+  band,
+  other,
+}
 
 /// 운동 종목. 로컬 DB가 원본이고 동기화는 추후 P3에서 추가한다.
 class Exercise {

@@ -59,15 +59,16 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     }
   }
 
-  database.ExercisesCompanion _toCompanion(Exercise exercise) => database.ExercisesCompanion.insert(
-    id: exercise.id,
-    name: exercise.name,
-    nameKo: exercise.nameKo,
-    muscleGroup: exercise.muscleGroup.index,
-    equipment: exercise.equipment.index,
-    isCustom: Value(exercise.isCustom),
-    thumbnailUrl: Value(exercise.thumbnailUrl),
-  );
+  database.ExercisesCompanion _toCompanion(Exercise exercise) =>
+      database.ExercisesCompanion.insert(
+        id: exercise.id,
+        name: exercise.name,
+        nameKo: exercise.nameKo,
+        muscleGroup: exercise.muscleGroup.index,
+        equipment: exercise.equipment.index,
+        isCustom: Value(exercise.isCustom),
+        thumbnailUrl: Value(exercise.thumbnailUrl),
+      );
 
   Exercise _toEntity(database.Exercise data) => Exercise(
     id: data.id,
