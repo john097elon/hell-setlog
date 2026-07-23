@@ -1071,6 +1071,216 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'전송'**
   String get partySend;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsProfile.
+  ///
+  /// In ko, this message translates to:
+  /// **'프로필'**
+  String get settingsProfile;
+
+  /// No description provided for @settingsEditProfile.
+  ///
+  /// In ko, this message translates to:
+  /// **'프로필 편집'**
+  String get settingsEditProfile;
+
+  /// No description provided for @settingsLevelXp.
+  ///
+  /// In ko, this message translates to:
+  /// **'LV {level} · {xp} XP'**
+  String settingsLevelXp(int level, int xp);
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsWorkoutReminder.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 리마인더'**
+  String get settingsWorkoutReminder;
+
+  /// No description provided for @settingsPartyNotification.
+  ///
+  /// In ko, this message translates to:
+  /// **'파티 알림'**
+  String get settingsPartyNotification;
+
+  /// No description provided for @settingsChatNotification.
+  ///
+  /// In ko, this message translates to:
+  /// **'채팅 알림'**
+  String get settingsChatNotification;
+
+  /// No description provided for @settingsMonsterGrowth.
+  ///
+  /// In ko, this message translates to:
+  /// **'몬스터 성장 알림'**
+  String get settingsMonsterGrowth;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인정보'**
+  String get settingsPrivacy;
+
+  /// No description provided for @settingsFeedVisibility.
+  ///
+  /// In ko, this message translates to:
+  /// **'피드 공개범위'**
+  String get settingsFeedVisibility;
+
+  /// No description provided for @settingsWorkoutVisibility.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동기록 공개'**
+  String get settingsWorkoutVisibility;
+
+  /// No description provided for @settingsApp.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱 설정'**
+  String get settingsApp;
+
+  /// No description provided for @settingsDarkMode.
+  ///
+  /// In ko, this message translates to:
+  /// **'다크 모드'**
+  String get settingsDarkMode;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In ko, this message translates to:
+  /// **'언어'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsKorean.
+  ///
+  /// In ko, this message translates to:
+  /// **'한국어'**
+  String get settingsKorean;
+
+  /// No description provided for @settingsWeightUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'무게 단위'**
+  String get settingsWeightUnit;
+
+  /// No description provided for @settingsKg.
+  ///
+  /// In ko, this message translates to:
+  /// **'kg'**
+  String get settingsKg;
+
+  /// No description provided for @settingsLb.
+  ///
+  /// In ko, this message translates to:
+  /// **'lb'**
+  String get settingsLb;
+
+  /// No description provided for @settingsSubscription.
+  ///
+  /// In ko, this message translates to:
+  /// **'구독'**
+  String get settingsSubscription;
+
+  /// No description provided for @settingsProUpgrade.
+  ///
+  /// In ko, this message translates to:
+  /// **'HELL-LOG PRO 업그레이드'**
+  String get settingsProUpgrade;
+
+  /// No description provided for @settingsProDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'더 깊은 운동 경험을 준비하고 있어요'**
+  String get settingsProDescription;
+
+  /// No description provided for @settingsOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'기타'**
+  String get settingsOther;
+
+  /// No description provided for @settingsNotices.
+  ///
+  /// In ko, this message translates to:
+  /// **'공지사항'**
+  String get settingsNotices;
+
+  /// No description provided for @settingsSupport.
+  ///
+  /// In ko, this message translates to:
+  /// **'문의하기'**
+  String get settingsSupport;
+
+  /// No description provided for @settingsPrivacyPolicy.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인정보처리방침'**
+  String get settingsPrivacyPolicy;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In ko, this message translates to:
+  /// **'버전'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsLogout.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그아웃'**
+  String get settingsLogout;
+
+  /// No description provided for @settingsMockMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'목업 화면에서는 실제 변경이 저장되지 않습니다'**
+  String get settingsMockMessage;
+
+  /// No description provided for @settingsProMockMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'PRO 구독은 정식 출시 후 이용할 수 있습니다'**
+  String get settingsProMockMessage;
+
+  /// No description provided for @settingsLogoutMockMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그아웃은 목업에서만 표시됩니다'**
+  String get settingsLogoutMockMessage;
+
+  /// No description provided for @settingsEditName.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름'**
+  String get settingsEditName;
+
+  /// No description provided for @settingsEditSave.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료'**
+  String get settingsEditSave;
+
+  /// No description provided for @settingsPublic.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체 공개'**
+  String get settingsPublic;
+
+  /// No description provided for @settingsPrivate.
+  ///
+  /// In ko, this message translates to:
+  /// **'비공개'**
+  String get settingsPrivate;
 }
 
 class _AppLocalizationsDelegate

@@ -3,7 +3,7 @@ import 'package:heal_setlog/features/app_shell/presentation/app_shell.dart';
 import 'package:heal_setlog/features/auth/presentation/login_page.dart';
 import 'package:heal_setlog/features/auth/presentation/register_page.dart';
 import 'package:heal_setlog/features/home/presentation/home_page.dart';
-import 'package:heal_setlog/features/character/presentation/profile_page.dart';
+import 'package:heal_setlog/features/settings/presentation/settings_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_room_page.dart';
 import 'package:heal_setlog/features/app_shell/presentation/workout_tab_page.dart';
@@ -46,7 +46,7 @@ GoRouter createAppRouter() => GoRouter(
         GoRoute(path: '/party', builder: (context, state) => const PartyPage()),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => const ProfilePage(),
+          builder: (context, state) => const SettingsPage(),
         ),
       ],
     ),

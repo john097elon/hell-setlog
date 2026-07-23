@@ -512,4 +512,111 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get partySend => '전송';
+
+  @override
+  String get settingsTitle => '설정';
+
+  @override
+  String get settingsProfile => '프로필';
+
+  @override
+  String get settingsEditProfile => '프로필 편집';
+
+  @override
+  String settingsLevelXp(int level, int xp) {
+    return 'LV $level · $xp XP';
+  }
+
+  @override
+  String get settingsNotifications => '알림';
+
+  @override
+  String get settingsWorkoutReminder => '운동 리마인더';
+
+  @override
+  String get settingsPartyNotification => '파티 알림';
+
+  @override
+  String get settingsChatNotification => '채팅 알림';
+
+  @override
+  String get settingsMonsterGrowth => '몬스터 성장 알림';
+
+  @override
+  String get settingsPrivacy => '개인정보';
+
+  @override
+  String get settingsFeedVisibility => '피드 공개범위';
+
+  @override
+  String get settingsWorkoutVisibility => '운동기록 공개';
+
+  @override
+  String get settingsApp => '앱 설정';
+
+  @override
+  String get settingsDarkMode => '다크 모드';
+
+  @override
+  String get settingsLanguage => '언어';
+
+  @override
+  String get settingsKorean => '한국어';
+
+  @override
+  String get settingsWeightUnit => '무게 단위';
+
+  @override
+  String get settingsKg => 'kg';
+
+  @override
+  String get settingsLb => 'lb';
+
+  @override
+  String get settingsSubscription => '구독';
+
+  @override
+  String get settingsProUpgrade => 'HELL-LOG PRO 업그레이드';
+
+  @override
+  String get settingsProDescription => '더 깊은 운동 경험을 준비하고 있어요';
+
+  @override
+  String get settingsOther => '기타';
+
+  @override
+  String get settingsNotices => '공지사항';
+
+  @override
+  String get settingsSupport => '문의하기';
+
+  @override
+  String get settingsPrivacyPolicy => '개인정보처리방침';
+
+  @override
+  String get settingsVersion => '버전';
+
+  @override
+  String get settingsLogout => '로그아웃';
+
+  @override
+  String get settingsMockMessage => '목업 화면에서는 실제 변경이 저장되지 않습니다';
+
+  @override
+  String get settingsProMockMessage => 'PRO 구독은 정식 출시 후 이용할 수 있습니다';
+
+  @override
+  String get settingsLogoutMockMessage => '로그아웃은 목업에서만 표시됩니다';
+
+  @override
+  String get settingsEditName => '이름';
+
+  @override
+  String get settingsEditSave => '완료';
+
+  @override
+  String get settingsPublic => '전체 공개';
+
+  @override
+  String get settingsPrivate => '비공개';
 }
