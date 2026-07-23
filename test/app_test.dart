@@ -121,7 +121,7 @@ void main() {
         .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
         .onSelectionChanged!(<int>{2});
     await tester.pump();
-    expect(find.text('곧 만나요'), findsOneWidget);
+    expect(find.text('타이냥'), findsOneWidget);
   });
 
   testWidgets('renders the personal dashboard and workout CTA', (

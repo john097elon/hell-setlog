@@ -9,6 +9,33 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get monsterMockName => '타이냥';
+
+  @override
+  String get monsterExperience => 'EXP';
+
+  @override
+  String get monsterBodyTypeUpper => '상체형';
+
+  @override
+  String get monsterBodyTypeLower => '하체형';
+
+  @override
+  String get monsterBodyTypeBalanced => '균형형';
+
+  @override
+  String get monsterStatArm => 'ARM';
+
+  @override
+  String get monsterStatLeg => 'LEG';
+
+  @override
+  String get monsterStatCore => 'CORE';
+
+  @override
+  String get monsterStatEndure => 'ENDURE';
+
+  @override
   String get appName => '헬셋로그';
 
   @override

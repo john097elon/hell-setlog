@@ -94,6 +94,60 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('ko')];
 
+  /// No description provided for @monsterMockName.
+  ///
+  /// In ko, this message translates to:
+  /// **'타이냥'**
+  String get monsterMockName;
+
+  /// No description provided for @monsterExperience.
+  ///
+  /// In ko, this message translates to:
+  /// **'EXP'**
+  String get monsterExperience;
+
+  /// No description provided for @monsterBodyTypeUpper.
+  ///
+  /// In ko, this message translates to:
+  /// **'상체형'**
+  String get monsterBodyTypeUpper;
+
+  /// No description provided for @monsterBodyTypeLower.
+  ///
+  /// In ko, this message translates to:
+  /// **'하체형'**
+  String get monsterBodyTypeLower;
+
+  /// No description provided for @monsterBodyTypeBalanced.
+  ///
+  /// In ko, this message translates to:
+  /// **'균형형'**
+  String get monsterBodyTypeBalanced;
+
+  /// No description provided for @monsterStatArm.
+  ///
+  /// In ko, this message translates to:
+  /// **'ARM'**
+  String get monsterStatArm;
+
+  /// No description provided for @monsterStatLeg.
+  ///
+  /// In ko, this message translates to:
+  /// **'LEG'**
+  String get monsterStatLeg;
+
+  /// No description provided for @monsterStatCore.
+  ///
+  /// In ko, this message translates to:
+  /// **'CORE'**
+  String get monsterStatCore;
+
+  /// No description provided for @monsterStatEndure.
+  ///
+  /// In ko, this message translates to:
+  /// **'ENDURE'**
+  String get monsterStatEndure;
+
   /// No description provided for @appName.
   ///
   /// In ko, this message translates to:

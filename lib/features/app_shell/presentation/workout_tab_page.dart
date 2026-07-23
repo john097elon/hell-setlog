@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/features/character/presentation/monster_page.dart';
 import 'package:heal_setlog/features/stats/presentation/stats_page.dart';
 import 'package:heal_setlog/features/workout_log/presentation/workout_page.dart';
 
@@ -43,40 +44,9 @@ class _WorkoutTabPageState extends State<WorkoutTabPage> {
         children: const <Widget>[
           WorkoutPage(embedded: true),
           StatsPage(embedded: true),
-          _MonsterPlaceholder(),
+          MonsterPage(),
         ],
       ),
     );
   }
-}
-
-class _MonsterPlaceholder extends StatelessWidget {
-  const _MonsterPlaceholder();
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(
-            Icons.pets_outlined,
-            size: 52,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            context.l10n.monsterComingSoon,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.monsterComingSoonDescription,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    ),
-  );
 }

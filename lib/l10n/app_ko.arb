@@ -1,4 +1,13 @@
 {
+  "monsterMockName": "타이냥",
+  "monsterExperience": "EXP",
+  "monsterBodyTypeUpper": "상체형",
+  "monsterBodyTypeLower": "하체형",
+  "monsterBodyTypeBalanced": "균형형",
+  "monsterStatArm": "ARM",
+  "monsterStatLeg": "LEG",
+  "monsterStatCore": "CORE",
+  "monsterStatEndure": "ENDURE",
   "@@locale": "ko",
   "appName": "헬셋로그",
   "login": "로그인",
