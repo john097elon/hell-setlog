@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/character/presentation/models/monster_view_data.dart';
 import 'package:heal_setlog/features/character/presentation/widgets/monster_stat_grid.dart';
 
@@ -23,7 +24,7 @@ class MonsterPage extends StatelessWidget {
         Text(
           '${copy.level} ${data.level} · ${_bodyTypeLabel(context, data.bodyType)}',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.mutedText,
+            color: context.tokens.mutedText,
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -50,8 +51,8 @@ class MonsterPage extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: data.experienceProgress,
                 minHeight: 10,
-                color: AppColors.brand,
-                backgroundColor: AppColors.mutedSurface,
+                color: context.tokens.brand,
+                backgroundColor: context.tokens.surface,
               ),
             ),
             const SizedBox(width: AppSpacing.md),

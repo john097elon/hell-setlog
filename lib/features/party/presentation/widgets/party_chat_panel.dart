@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/party/presentation/models/party_view_data.dart';
 
 /// 로컬 상태로만 채팅 버블을 추가하는 목업 패널이다.
@@ -54,8 +55,8 @@ class _PartyChatPanelState extends State<PartyChatPanel> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: chat.isMine
-                        ? AppColors.brandDim
-                        : AppColors.mutedSurface,
+                        ? context.tokens.brandDim
+                        : context.tokens.surface,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(

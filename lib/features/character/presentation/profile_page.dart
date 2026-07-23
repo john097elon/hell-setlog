@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 /// 캐릭터 성장과 운동 취향을 보여주는 로컬 프로필 목업 화면이다.
 class ProfilePage extends StatefulWidget {
@@ -44,12 +45,12 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 children: <Widget>[
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 40,
-                    backgroundColor: AppColors.brand,
+                    backgroundColor: context.tokens.brand,
                     child: Icon(
                       Icons.person_rounded,
-                      color: AppColors.text,
+                      color: context.tokens.onBrand,
                       size: 44,
                     ),
                   ),

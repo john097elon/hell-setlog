@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/character/presentation/models/monster_view_data.dart';
 
 /// 몬스터의 부위별 목업 스탯을 카드 그리드로 표시한다.
@@ -59,8 +60,8 @@ class _MonsterStatCard extends StatelessWidget {
             LinearProgressIndicator(
               value: stat.progress,
               minHeight: 6,
-              color: AppColors.brand,
-              backgroundColor: AppColors.mutedSurface,
+              color: context.tokens.brand,
+              backgroundColor: context.tokens.surface,
             ),
           ],
         ),

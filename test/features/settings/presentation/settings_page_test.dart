@@ -5,12 +5,13 @@ import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/settings/presentation/settings_page.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('renders settings sections and rows', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app());
+    await tester.pumpWidget(await _app());
 
     expect(find.byType(Switch), findsNWidgets(4));
     await _scrollDown(tester);
@@ -24,7 +25,7 @@ void main() {
   testWidgets('reflects notification toggle state', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app());
+    await tester.pumpWidget(await _app());
 
     final toggle = find.byType(Switch).first;
     expect(tester.widget<Switch>(toggle).value, isTrue);
@@ -34,7 +35,7 @@ void main() {
   });
 
   testWidgets('selects kg and lb weight units', (WidgetTester tester) async {
-    await tester.pumpWidget(_app());
+    await tester.pumpWidget(await _app());
     await _scrollDown(tester);
     final finder = _weightUnitButton;
     expect(tester.widget<SegmentedButton>(finder).selected, isNotEmpty);
@@ -45,14 +46,17 @@ void main() {
   });
 }
 
-Widget _app() => ProviderScope(
-  child: MaterialApp(
-    theme: buildAppTheme(),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: const SettingsPage(),
-  ),
-);
+Future<Widget> _app() async {
+  SharedPreferences.setMockInitialValues(<String, Object>{});
+  return ProviderScope(
+    child: MaterialApp(
+      theme: buildAppTheme(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const SettingsPage(),
+    ),
+  );
+}
 
 Future<void> _scrollDown(WidgetTester tester) async {
   await tester.drag(find.byType(ListView), const Offset(0, -400));

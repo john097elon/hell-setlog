@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/workout.dart';
 import '../../../../core/extensions/build_context_x.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_tokens.dart';
 
 /// A mock recording control with local-only visual state.
 class RecordRingButton extends StatefulWidget {
@@ -57,16 +57,16 @@ class _RecordRingButtonState extends State<RecordRingButton> {
               width: 72,
               height: 72,
               padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.background,
+              decoration: BoxDecoration(
+                color: context.tokens.bg,
                 shape: BoxShape.circle,
                 border: Border.fromBorderSide(
-                  BorderSide(color: AppColors.brandLight, width: 3),
+                  BorderSide(color: context.tokens.brandLight, width: 3),
                 ),
               ),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: AppColors.brand,
+                  color: context.tokens.brand,
                   borderRadius: BorderRadius.circular(_isRecording ? 12 : 30),
                 ),
               ),

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
+import 'package:heal_setlog/features/settings/application/theme_controller.dart';
 import 'package:heal_setlog/features/settings/presentation/models/settings_view_data.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
@@ -17,6 +20,8 @@ class SettingsPage extends ConsumerWidget {
     final copy = context.l10n;
     final state = ref.watch(settingsControllerProvider);
     final controller = ref.read(settingsControllerProvider.notifier);
+    final selectedTheme = ref.watch(themeControllerProvider);
+    final themeController = ref.read(themeControllerProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: Text(copy.settingsTitle)),
       body: ListView(
@@ -69,6 +74,22 @@ class SettingsPage extends ConsumerWidget {
           SettingSection(
             title: copy.settingsApp,
             children: <Widget>[
+              SettingRow(
+                title: '테마',
+                trailing: SegmentedButton<AppThemeId>(
+                  segments: AppThemeId.values
+                      .map(
+                        (id) => ButtonSegment<AppThemeId>(
+                          value: id,
+                          label: Text(id.label),
+                        ),
+                      )
+                      .toList(growable: false),
+                  selected: <AppThemeId>{selectedTheme},
+                  onSelectionChanged: (value) =>
+                      themeController.select(value.single),
+                ),
+              ),
               SettingToggle(
                 title: copy.settingsDarkMode,
                 value: state.darkMode,
@@ -207,12 +228,12 @@ class _ProfileCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Row(
           children: <Widget>[
-            const CircleAvatar(
+            CircleAvatar(
               radius: 32,
-              backgroundColor: AppColors.brand,
+              backgroundColor: context.tokens.brand,
               child: Icon(
                 Icons.person_rounded,
-                color: AppColors.text,
+                color: context.tokens.onBrand,
                 size: 36,
               ),
             ),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/router/app_router.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/features/settings/application/theme_controller.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
 
 /// 헬셋로그 애플리케이션을 시작한다.
@@ -10,16 +11,16 @@ void main() {
   runApp(const ProviderScope(child: HealSetLogApp()));
 }
 
-/// 레거시 UI 목업을 표시하는 애플리케이션 루트다.
-class HealSetLogApp extends StatefulWidget {
+/// 애플리케이션 루트다.
+class HealSetLogApp extends ConsumerStatefulWidget {
   /// 애플리케이션 루트를 생성한다.
   const HealSetLogApp({super.key});
 
   @override
-  State<HealSetLogApp> createState() => _HealSetLogAppState();
+  ConsumerState<HealSetLogApp> createState() => _HealSetLogAppState();
 }
 
-class _HealSetLogAppState extends State<HealSetLogApp> {
+class _HealSetLogAppState extends ConsumerState<HealSetLogApp> {
   late final GoRouter _router = createAppRouter();
 
   @override
@@ -29,7 +30,7 @@ class _HealSetLogAppState extends State<HealSetLogApp> {
           AppLocalizations.of(context)!.appName,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: buildAppTheme(),
+      theme: themeFor(ref.watch(themeControllerProvider)),
       routerConfig: _router,
     );
   }

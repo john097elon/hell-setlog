@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 
 /// 근육군별 운동 볼륨 비중을 가로 막대로 보여준다.
@@ -74,8 +75,8 @@ class _BodyPartBar extends StatelessWidget {
         child: LinearProgressIndicator(
           value: percent,
           minHeight: 8,
-          color: AppColors.brand,
-          backgroundColor: AppColors.mutedSurface,
+          color: context.tokens.brand,
+          backgroundColor: context.tokens.surface,
         ),
       ),
     ],

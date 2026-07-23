@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/workout_set.dart';
 
 /// 세트 한 줄. 커밋된 세트는 큰 정적 숫자로, 입력 중인 draft는 스텝퍼로 보여준다.
@@ -38,7 +39,7 @@ class SetRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final numberStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
       fontFeatures: kTabularFigures,
-      color: _isDone ? scheme.primary : AppColors.text,
+      color: _isDone ? scheme.primary : context.tokens.text,
     );
 
     final row = Container(
@@ -60,7 +61,7 @@ class SetRow extends StatelessWidget {
               '${index + 1}',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.mutedText,
+                color: context.tokens.mutedText,
                 fontFeatures: kTabularFigures,
               ),
             ),
@@ -70,8 +71,9 @@ class SetRow extends StatelessWidget {
                 ? _Stepper(
                     value: _weightText,
                     style: numberStyle,
-                    onMinus: () =>
-                        onWeightChanged((weight - 2.5).clamp(0, double.infinity)),
+                    onMinus: () => onWeightChanged(
+                      (weight - 2.5).clamp(0, double.infinity),
+                    ),
                     onPlus: () => onWeightChanged(weight + 2.5),
                   )
                 : Center(child: Text(_weightText, style: numberStyle)),
@@ -95,7 +97,7 @@ class SetRow extends StatelessWidget {
               icon: Icon(
                 _isDone ? Icons.check_circle : Icons.check_circle_outline,
               ),
-              color: _isDone ? scheme.primary : AppColors.faintText,
+              color: _isDone ? scheme.primary : context.tokens.faintText,
             ),
           ),
         ],
@@ -108,7 +110,10 @@ class SetRow extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+        child: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.error,
+        ),
       ),
       onDismissed: (_) => onDelete!(),
       child: row,
@@ -160,11 +165,11 @@ class _StepBtn extends StatelessWidget {
       height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.mutedSurface,
+        color: context.tokens.surface,
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.tokens.border),
       ),
-      child: Icon(icon, size: 18, color: AppColors.mutedText),
+      child: Icon(icon, size: 18, color: context.tokens.mutedText),
     ),
   );
 }

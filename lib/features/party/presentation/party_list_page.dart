@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 /// 레거시 내 파티와 파티 생성·가입 흐름을 표시하는 목업 화면이다.
 class PartyListPage extends StatefulWidget {
@@ -186,9 +187,9 @@ class _PartyCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: <Widget>[
-              const CircleAvatar(
-                backgroundColor: AppColors.mutedSurface,
-                child: Icon(Icons.groups_rounded, color: AppColors.brand),
+              CircleAvatar(
+                backgroundColor: context.tokens.surface,
+                child: Icon(Icons.groups_rounded, color: context.tokens.brand),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(

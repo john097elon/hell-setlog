@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/extensions/build_context_x.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_tokens.dart';
 import 'models/share_view_data.dart';
 import 'widgets/record_ring_button.dart';
 
@@ -52,7 +52,7 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: Material(
-          color: AppColors.surface,
+          color: context.tokens.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -60,14 +60,14 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Center(
+                Center(
                   child: SizedBox(
                     width: 36,
                     height: 4,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                        color: context.tokens.border,
+                        borderRadius: const BorderRadius.all(Radius.circular(2)),
                       ),
                     ),
                   ),
@@ -92,7 +92,7 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
                       .map(
                         (tag) => Chip(
                           label: Text(tag),
-                          side: const BorderSide(color: AppColors.border),
+                          side: BorderSide(color: context.tokens.border),
                         ),
                       )
                       .toList(growable: false),
@@ -133,18 +133,18 @@ class _CameraPreviewPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) => AspectRatio(
     aspectRatio: 16 / 9,
     child: DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.mutedSurface,
-        borderRadius: BorderRadius.all(Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
       ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(
+            Icon(
               Icons.videocam_outlined,
               size: 40,
-              color: AppColors.mutedText,
+              color: context.tokens.mutedText,
             ),
             const SizedBox(height: 8),
             Text(
@@ -152,7 +152,7 @@ class _CameraPreviewPlaceholder extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+              ).textTheme.bodyMedium?.copyWith(color: context.tokens.mutedText),
             ),
           ],
         ),

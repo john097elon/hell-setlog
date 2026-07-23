@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 /// 멤버와 활동 피드를 보여주는 파티 방 목업 화면이다.
 class PartyRoomPage extends StatefulWidget {
@@ -77,9 +78,9 @@ class _PartyRoomPageState extends State<PartyRoomPage> {
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      const Icon(
+                      Icon(
                         Icons.emoji_events_rounded,
-                        color: AppColors.brand,
+                        color: context.tokens.brand,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(child: Text(copy.feedWorkoutDone)),
@@ -129,7 +130,7 @@ class _FeedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: AppColors.brand),
+        leading: Icon(icon, color: context.tokens.brand),
         title: Text(message),
       ),
     );

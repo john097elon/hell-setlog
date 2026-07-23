@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/core/widgets/app_states.dart';
 import 'package:heal_setlog/features/party/presentation/models/party_view_data.dart';
 
@@ -79,9 +80,9 @@ class _ExplorePanelState extends State<ExplorePanel> {
               ),
               child: Card(
                 child: ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.groups_rounded,
-                    color: AppColors.brand,
+                    color: context.tokens.brand,
                   ),
                   title: Text(party.name),
                   subtitle: Text(
@@ -101,9 +102,9 @@ class _ExplorePanelState extends State<ExplorePanel> {
         const SizedBox(height: AppSpacing.xl),
         Card(
           child: ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.workspace_premium_rounded,
-              color: AppColors.brand,
+              color: context.tokens.brand,
             ),
             title: Text(copy.partyProTitle),
             subtitle: Text(copy.partyProDescription),
