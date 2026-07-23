@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../domain/entities/exercise.dart';
@@ -48,13 +49,23 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   Widget _startView(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(context.l10n.todayWorkout)),
     body: Center(
-      child: FilledButton.icon(
-        onPressed: () async {
-          await ref.read(workoutSessionControllerProvider).startSession();
-          ref.invalidate(activeSessionProvider);
-        },
-        icon: const Icon(Icons.play_arrow),
-        label: Text(context.l10n.startWorkout),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          FilledButton.icon(
+            onPressed: () async {
+              await ref.read(workoutSessionControllerProvider).startSession();
+              ref.invalidate(activeSessionProvider);
+            },
+            icon: const Icon(Icons.play_arrow),
+            label: Text(context.l10n.startWorkout),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: () => context.push('/routines'),
+            child: Text(context.l10n.record),
+          ),
+        ],
       ),
     ),
   );

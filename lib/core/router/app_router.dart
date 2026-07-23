@@ -8,6 +8,8 @@ import 'package:heal_setlog/features/party/presentation/party_list_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_room_page.dart';
 import 'package:heal_setlog/features/stats/presentation/stats_page.dart';
 import 'package:heal_setlog/features/workout_log/presentation/workout_page.dart';
+import 'package:heal_setlog/features/routine/presentation/routine_editor_page.dart';
+import 'package:heal_setlog/features/routine/presentation/routine_list_page.dart';
 
 /// 애플리케이션 목업의 새 라우터 인스턴스를 생성한다.
 GoRouter createAppRouter() => GoRouter(
@@ -29,6 +31,18 @@ GoRouter createAppRouter() => GoRouter(
         GoRoute(
           path: '/workout',
           builder: (context, state) => const WorkoutPage(),
+        ),
+        GoRoute(
+          path: '/routines',
+          builder: (context, state) => const RoutineListPage(),
+        ),
+        GoRoute(
+          path: '/routines/edit/:id',
+          builder: (context, state) => RoutineEditorPage(
+            routineId: state.pathParameters['id'] == 'new'
+                ? null
+                : state.pathParameters['id'],
+          ),
         ),
         GoRoute(path: '/stats', builder: (context, state) => const StatsPage()),
         GoRoute(
