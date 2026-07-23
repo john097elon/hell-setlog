@@ -957,6 +957,120 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'실행 취소'**
   String get undo;
+
+  /// No description provided for @partyCreateShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'개설'**
+  String get partyCreateShort;
+
+  /// No description provided for @partyExplore.
+  ///
+  /// In ko, this message translates to:
+  /// **'탐색'**
+  String get partyExplore;
+
+  /// No description provided for @partyChat.
+  ///
+  /// In ko, this message translates to:
+  /// **'채팅'**
+  String get partyChat;
+
+  /// No description provided for @partyMemberProgress.
+  ///
+  /// In ko, this message translates to:
+  /// **'{members}/{limit}명'**
+  String partyMemberProgress(int members, int limit);
+
+  /// No description provided for @partyMissionProgress.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘의 미션 {completed}/{target}'**
+  String partyMissionProgress(int completed, int target);
+
+  /// No description provided for @partyTodayXp.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 +240 XP'**
+  String get partyTodayXp;
+
+  /// No description provided for @partyRandomMatch.
+  ///
+  /// In ko, this message translates to:
+  /// **'RANDOM MATCH'**
+  String get partyRandomMatch;
+
+  /// No description provided for @partyRandomMatchDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 함께 운동할 파티를 찾아보세요.'**
+  String get partyRandomMatchDescription;
+
+  /// No description provided for @partyGo.
+  ///
+  /// In ko, this message translates to:
+  /// **'GO'**
+  String get partyGo;
+
+  /// No description provided for @partyInviteFriends.
+  ///
+  /// In ko, this message translates to:
+  /// **'친구 초대'**
+  String get partyInviteFriends;
+
+  /// No description provided for @partyLevel.
+  ///
+  /// In ko, this message translates to:
+  /// **'LV {level}'**
+  String partyLevel(int level);
+
+  /// No description provided for @partyInvited.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대됨'**
+  String get partyInvited;
+
+  /// No description provided for @partyAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get partyAll;
+
+  /// No description provided for @muscleLowerBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'하체'**
+  String get muscleLowerBody;
+
+  /// No description provided for @partySearchHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'파티 검색'**
+  String get partySearchHint;
+
+  /// No description provided for @partyProTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'PRO 파티'**
+  String get partyProTitle;
+
+  /// No description provided for @partyProDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'PRO 전용 파티 혜택을 확인하세요.'**
+  String get partyProDescription;
+
+  /// No description provided for @partyChatHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'메시지를 입력하세요'**
+  String get partyChatHint;
+
+  /// No description provided for @partySend.
+  ///
+  /// In ko, this message translates to:
+  /// **'전송'**
+  String get partySend;
 }
 
 class _AppLocalizationsDelegate

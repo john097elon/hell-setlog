@@ -449,4 +449,67 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get undo => '실행 취소';
+
+  @override
+  String get partyCreateShort => '개설';
+
+  @override
+  String get partyExplore => '탐색';
+
+  @override
+  String get partyChat => '채팅';
+
+  @override
+  String partyMemberProgress(int members, int limit) {
+    return '$members/$limit명';
+  }
+
+  @override
+  String partyMissionProgress(int completed, int target) {
+    return '오늘의 미션 $completed/$target';
+  }
+
+  @override
+  String get partyTodayXp => '오늘 +240 XP';
+
+  @override
+  String get partyRandomMatch => 'RANDOM MATCH';
+
+  @override
+  String get partyRandomMatchDescription => '지금 함께 운동할 파티를 찾아보세요.';
+
+  @override
+  String get partyGo => 'GO';
+
+  @override
+  String get partyInviteFriends => '친구 초대';
+
+  @override
+  String partyLevel(int level) {
+    return 'LV $level';
+  }
+
+  @override
+  String get partyInvited => '초대됨';
+
+  @override
+  String get partyAll => '전체';
+
+  @override
+  String get muscleLowerBody => '하체';
+
+  @override
+  String get partySearchHint => '파티 검색';
+
+  @override
+  String get partyProTitle => 'PRO 파티';
+
+  @override
+  String get partyProDescription => 'PRO 전용 파티 혜택을 확인하세요.';
+
+  @override
+  String get partyChatHint => '메시지를 입력하세요';
+
+  @override
+  String get partySend => '전송';
 }

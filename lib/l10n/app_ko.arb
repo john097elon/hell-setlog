@@ -161,4 +161,26 @@
   "selectExercise": "종목 선택",
   "setDeleted": "세트를 삭제했어요",
   "undo": "실행 취소"
+  ,"partyCreateShort": "개설"
+  ,"partyExplore": "탐색"
+  ,"partyChat": "채팅"
+  ,"partyMemberProgress": "{members}/{limit}명"
+  ,"@partyMemberProgress": {"placeholders": {"members": {"type": "int"}, "limit": {"type": "int"}}}
+  ,"partyMissionProgress": "오늘의 미션 {completed}/{target}"
+  ,"@partyMissionProgress": {"placeholders": {"completed": {"type": "int"}, "target": {"type": "int"}}}
+  ,"partyTodayXp": "오늘 +240 XP"
+  ,"partyRandomMatch": "RANDOM MATCH"
+  ,"partyRandomMatchDescription": "지금 함께 운동할 파티를 찾아보세요."
+  ,"partyGo": "GO"
+  ,"partyInviteFriends": "친구 초대"
+  ,"partyLevel": "LV {level}"
+  ,"@partyLevel": {"placeholders": {"level": {"type": "int"}}}
+  ,"partyInvited": "초대됨"
+  ,"partyAll": "전체"
+  ,"muscleLowerBody": "하체"
+  ,"partySearchHint": "파티 검색"
+  ,"partyProTitle": "PRO 파티"
+  ,"partyProDescription": "PRO 전용 파티 혜택을 확인하세요."
+  ,"partyChatHint": "메시지를 입력하세요"
+  ,"partySend": "전송"
 }
