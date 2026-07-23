@@ -27,34 +27,44 @@ class SetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final row = ListTile(
-      title: Row(
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Row(
         children: <Widget>[
-          SizedBox(width: 30, child: Text('${index + 1}')),
-          _Stepper(
-            value: weight.toStringAsFixed(
-              weight == weight.roundToDouble() ? 0 : 1,
-            ),
-            onMinus: () =>
-                onWeightChanged((weight - 2.5).clamp(0, double.infinity)),
-            onPlus: () => onWeightChanged(weight + 2.5),
+          SizedBox(
+            width: 42,
+            child: Text('${index + 1}', textAlign: TextAlign.center),
           ),
-          const SizedBox(width: 8),
-          _Stepper(
-            value: '$reps',
-            onMinus: () => onRepsChanged((reps - 1).clamp(0, 999)),
-            onPlus: () => onRepsChanged(reps + 1),
-          ),
-          IconButton(
-            key: const Key('complete-set'),
-            tooltip: context.l10n.completeSet,
-            onPressed: onComplete,
-            icon: Icon(
-              set?.isCompleted == true
-                  ? Icons.check_circle
-                  : Icons.check_circle_outline,
+          Expanded(
+            child: _Stepper(
+              value: weight.toStringAsFixed(
+                weight == weight.roundToDouble() ? 0 : 1,
+              ),
+              onMinus: () =>
+                  onWeightChanged((weight - 2.5).clamp(0, double.infinity)),
+              onPlus: () => onWeightChanged(weight + 2.5),
             ),
-            color: Theme.of(context).colorScheme.primary,
+          ),
+          Expanded(
+            child: _Stepper(
+              value: '$reps',
+              onMinus: () => onRepsChanged((reps - 1).clamp(0, 999)),
+              onPlus: () => onRepsChanged(reps + 1),
+            ),
+          ),
+          SizedBox(
+            width: 44,
+            child: IconButton(
+              key: const Key('complete-set'),
+              tooltip: context.l10n.completeSet,
+              onPressed: onComplete,
+              icon: Icon(
+                set?.isCompleted == true
+                    ? Icons.check_circle
+                    : Icons.check_circle_outline,
+              ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -85,20 +95,31 @@ class _Stepper extends StatelessWidget {
   final VoidCallback onMinus;
   final VoidCallback onPlus;
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        IconButton(onPressed: onMinus, icon: const Icon(Icons.remove)),
-        Expanded(
+  Widget build(BuildContext context) => Row(
+    children: <Widget>[
+      IconButton(
+        constraints: const BoxConstraints.tightFor(width: 32, height: 40),
+        padding: EdgeInsets.zero,
+        onPressed: onMinus,
+        icon: const Icon(Icons.remove, size: 18),
+      ),
+      Expanded(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Text(
             value,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+            ),
           ),
         ),
-        IconButton(onPressed: onPlus, icon: const Icon(Icons.add)),
-      ],
-    ),
+      ),
+      IconButton(
+        constraints: const BoxConstraints.tightFor(width: 32, height: 40),
+        padding: EdgeInsets.zero,
+        onPressed: onPlus,
+        icon: const Icon(Icons.add, size: 18),
+      ),
+    ],
   );
 }

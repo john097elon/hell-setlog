@@ -340,6 +340,36 @@ abstract class AppLocalizations {
   /// **'세트 완료'**
   String get completeSet;
 
+  /// No description provided for @setColumn.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트'**
+  String get setColumn;
+
+  /// No description provided for @weightKg.
+  ///
+  /// In ko, this message translates to:
+  /// **'KG'**
+  String get weightKg;
+
+  /// No description provided for @reps.
+  ///
+  /// In ko, this message translates to:
+  /// **'회'**
+  String get reps;
+
+  /// No description provided for @addSet.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트 추가'**
+  String get addSet;
+
+  /// No description provided for @addExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 추가'**
+  String get addExercise;
+
   /// No description provided for @endWorkout.
   ///
   /// In ko, this message translates to:

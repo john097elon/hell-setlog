@@ -132,6 +132,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get completeSet => '세트 완료';
 
   @override
+  String get setColumn => '세트';
+
+  @override
+  String get weightKg => 'KG';
+
+  @override
+  String get reps => '회';
+
+  @override
+  String get addSet => '세트 추가';
+
+  @override
+  String get addExercise => '운동 추가';
+
+  @override
   String get endWorkout => '운동 종료';
 
   @override

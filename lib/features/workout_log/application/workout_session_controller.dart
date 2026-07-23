@@ -46,21 +46,26 @@ class WorkoutSessionController {
     );
     return added.when(
       ok: (set) async {
-        final completed = await _repository.completeSet(set.id);
-        completed.when(
-          ok: (value) => _ref
-              .read(restTimerProvider.notifier)
-              .start(
-                value.restSeconds == 0
-                    ? kDefaultRestSeconds
-                    : value.restSeconds,
-              ),
-          err: (_) {},
-        );
-        return completed;
+        return _completeSet(set.id);
       },
       err: (failure) async => Err(failure),
     );
+  }
+
+  Future<Result<WorkoutSet, Failure>> completeSet(String setId) =>
+      _completeSet(setId);
+
+  Future<Result<WorkoutSet, Failure>> _completeSet(String setId) async {
+    final completed = await _repository.completeSet(setId);
+    completed.when(
+      ok: (value) => _ref
+          .read(restTimerProvider.notifier)
+          .start(
+            value.restSeconds == 0 ? kDefaultRestSeconds : value.restSeconds,
+          ),
+      err: (_) {},
+    );
+    return completed;
   }
 
   Future<Result<void, Failure>> deleteSet(String setId) =>
