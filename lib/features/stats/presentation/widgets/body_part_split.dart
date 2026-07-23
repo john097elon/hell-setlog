@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 
 /// 근육군별 운동 볼륨 비중을 가로 막대로 보여준다.
@@ -17,7 +19,7 @@ class BodyPartSplit extends StatelessWidget {
       children: entries
           .map(
             (entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: _BodyPartBar(
                 label: _label(context, entry.key),
                 percent: total == 0 ? 0 : entry.value / total,
@@ -59,21 +61,21 @@ class _BodyPartBar extends StatelessWidget {
             child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
-            '${(percent * 100).round()}%',
-            style: Theme.of(context).textTheme.labelLarge,
+            '${formatInt(percent * 100)}%',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontFeatures: kTabularFigures),
           ),
         ],
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: AppSpacing.sm),
       ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(4)),
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.sm)),
         child: LinearProgressIndicator(
           value: percent,
           minHeight: 8,
-          color: Theme.of(context).colorScheme.primary,
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest,
+          color: AppColors.brand,
+          backgroundColor: AppColors.mutedSurface,
         ),
       ),
     ],

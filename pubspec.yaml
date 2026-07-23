@@ -1,7 +1,7 @@
 name: heal_setlog
 description: 헬스 기록 습관을 만드는 오프라인 퍼스트 운동 로그 앱.
 publish_to: none
-version: 0.1.0+1
+version: 0.1.0+2
 
 environment:
   sdk: ^3.12.2

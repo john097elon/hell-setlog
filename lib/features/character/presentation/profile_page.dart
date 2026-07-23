@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 
 /// 캐릭터 성장과 운동 취향을 보여주는 로컬 프로필 목업 화면이다.
 class ProfilePage extends StatefulWidget {
@@ -36,40 +37,40 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(title: Text(copy.profileTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: <Widget>[
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 children: <Widget>[
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 40,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(
+                    backgroundColor: AppColors.brand,
+                    child: Icon(
                       Icons.person_rounded,
-                      color: Colors.white,
+                      color: AppColors.text,
                       size: 44,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     copy.sampleCurrentUser,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text('${copy.level} 12'),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   TextFormField(
                     initialValue: copy.sampleCurrentUser,
                     decoration: InputDecoration(labelText: copy.nickname),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     initialValue: 'hellsetlog',
                     decoration: InputDecoration(labelText: copy.avatarSeed),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   _StatRow(label: copy.strength, value: 0.78),
                   _StatRow(label: copy.endurance, value: 0.62),
                   _StatRow(label: copy.consistency, value: 0.9),
@@ -77,12 +78,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           Text(copy.workoutTags, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: tags
                 .map(
                   (String tag) => FilterChip(
@@ -93,14 +94,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 )
                 .toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           FilledButton(
             onPressed: () => ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(copy.saved))),
             child: Text(copy.save),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(copy.mockOnlyNotice, textAlign: TextAlign.center),
         ],
       ),
@@ -117,12 +118,12 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(label),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           LinearProgressIndicator(value: value, minHeight: 8),
         ],
       ),

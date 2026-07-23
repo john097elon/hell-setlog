@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/character/presentation/models/monster_view_data.dart';
 import 'package:heal_setlog/features/character/presentation/widgets/monster_stat_grid.dart';
 
@@ -14,20 +16,20 @@ class MonsterPage extends StatelessWidget {
     final copy = context.l10n;
     final theme = Theme.of(context);
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: <Widget>[
         Text(copy.monsterMockName, style: theme.textTheme.headlineMedium),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           '${copy.level} ${data.level} · ${_bodyTypeLabel(context, data.bodyType)}',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: AppColors.mutedText,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xl),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Center(
               child: Image.asset(
                 data.stageAssetPath,
@@ -39,24 +41,29 @@ class MonsterPage extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xl),
         Text(copy.monsterExperience, style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: <Widget>[
             Expanded(
               child: LinearProgressIndicator(
                 value: data.experienceProgress,
                 minHeight: 10,
-                color: theme.colorScheme.primary,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                color: AppColors.brand,
+                backgroundColor: AppColors.mutedSurface,
               ),
             ),
-            const SizedBox(width: 12),
-            Text('${data.experience} / ${data.experienceMaximum}'),
+            const SizedBox(width: AppSpacing.md),
+            Text(
+              '${formatInt(data.experience)} / ${formatInt(data.experienceMaximum)}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontFeatures: kTabularFigures,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: AppSpacing.xxl),
         MonsterStatGrid(
           stats: data.stats,
           labelFor: (MonsterStatKind kind) => _statLabel(context, kind),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/settings/presentation/models/settings_view_data.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.dart';
@@ -19,10 +20,10 @@ class SettingsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(copy.settingsTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: <Widget>[
           _ProfileCard(onEdit: () => _showEditDialog(context)),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           SettingSection(
             title: copy.settingsNotifications,
             children: <Widget>[
@@ -170,12 +171,12 @@ class SettingsPage extends ConsumerWidget {
         context: context,
         builder: (BuildContext sheetContext) => SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(message),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 FilledButton(
                   onPressed: () => Navigator.pop(sheetContext),
                   child: Text(context.l10n.cancel),
@@ -203,19 +204,19 @@ class _ProfileCard extends StatelessWidget {
     final data = SettingsViewData.mock;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Row(
           children: <Widget>[
-            CircleAvatar(
+            const CircleAvatar(
               radius: 32,
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: AppColors.brand,
               child: Icon(
                 Icons.person_rounded,
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: AppColors.text,
                 size: 36,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,7 +225,7 @@ class _ProfileCard extends StatelessWidget {
                     data.name,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     copy.settingsLevelXp(data.level, data.experience),
                     style: Theme.of(context).textTheme.bodyMedium,

@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 
 /// 최근 7일의 운동 볼륨을 막대 차트로 보여준다.
 class WeeklyVolumeChart extends StatelessWidget {
@@ -20,8 +21,6 @@ class WeeklyVolumeChart extends StatelessWidget {
     final maxVolume = values.reduce(
       (double left, double right) => left > right ? left : right,
     );
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SizedBox(
       height: 200,
       child: BarChart(
@@ -48,7 +47,7 @@ class WeeklyVolumeChart extends StatelessWidget {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   final index = value.toInt();
                   if (index < 0 || index >= dates.length) {
-                    return const SizedBox.shrink();
+                    return const SizedBox(width: 0, height: 0);
                   }
                   final date = dates[index];
                   return SideTitleWidget(
@@ -71,10 +70,10 @@ class WeeklyVolumeChart extends StatelessWidget {
               barRods: <BarChartRodData>[
                 BarChartRodData(
                   toY: values[index],
-                  color: colorScheme.primary,
+                  color: AppColors.brand,
                   width: 16,
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
+                    top: Radius.circular(AppRadius.sm),
                   ),
                 ),
               ],

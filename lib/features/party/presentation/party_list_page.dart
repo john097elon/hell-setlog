@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 
 /// 레거시 내 파티와 파티 생성·가입 흐름을 표시하는 목업 화면이다.
 class PartyListPage extends StatefulWidget {
@@ -27,16 +28,16 @@ class _PartyListPageState extends State<PartyListPage> {
     return Scaffold(
       appBar: AppBar(title: Text(copy.myParties)),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: <Widget>[
           Text(
             copy.partySubtitle,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: <Widget>[
               FilledButton.icon(
                 onPressed: () => setState(() => _mode = _PartyFormMode.create),
@@ -56,37 +57,37 @@ class _PartyListPageState extends State<PartyListPage> {
             ],
           ),
           if (_mode != _PartyFormMode.none) ...<Widget>[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             _PartyForm(
               mode: _mode,
               onCancel: () => setState(() => _mode = _PartyFormMode.none),
               onSubmit: () => _showFeedback(copy.mockOnlyNotice),
             ),
           ],
-          const SizedBox(height: 28),
+          const SizedBox(height: AppSpacing.xxl),
           Text(copy.myParties, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _PartyCard(
             name: copy.samplePartyName,
             description: copy.samplePartyDescription,
             members: copy.memberCount,
             onTap: () => context.go('/party/room'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _PartyCard(
             name: copy.samplePartyNameSecond,
             description: copy.samplePartyDescriptionSecond,
             members: copy.memberCountSecond,
             onTap: () => context.go('/party/room'),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: AppSpacing.xxl),
           Text(
             copy.randomPartyTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(copy.randomPartyDescription),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _PartyCard(
             name: copy.samplePartyNameSecond,
             description: copy.randomPartyDescription,
@@ -118,7 +119,7 @@ class _PartyForm extends StatelessWidget {
     final bool isCreate = mode == _PartyFormMode.create;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: <Widget>[
             TextFormField(
@@ -128,7 +129,7 @@ class _PartyForm extends StatelessWidget {
               ),
             ),
             if (isCreate) ...<Widget>[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 decoration: InputDecoration(
                   labelText: copy.partyDescription,
@@ -136,7 +137,7 @@ class _PartyForm extends StatelessWidget {
                 ),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: <Widget>[
                 Expanded(
@@ -145,7 +146,7 @@ class _PartyForm extends StatelessWidget {
                     child: Text(copy.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: FilledButton(
                     onPressed: onSubmit,
@@ -179,32 +180,29 @@ class _PartyCard extends StatelessWidget {
     final copy = context.l10n;
     return Card(
       child: InkWell(
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: <Widget>[
-              CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.groups_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              const CircleAvatar(
+                backgroundColor: AppColors.mutedSurface,
+                child: Icon(Icons.groups_rounded, color: AppColors.brand),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(name, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       description,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(members, style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),

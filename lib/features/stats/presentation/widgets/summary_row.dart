@@ -26,7 +26,7 @@ class SummaryRow extends StatelessWidget {
             value: copy.statsWorkoutDaysValue(workoutDays),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: _SummaryCard(
             icon: Icons.fitness_center_rounded,
@@ -53,19 +53,19 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: 16),
+          Icon(icon, color: AppColors.brand),
+          const SizedBox(height: AppSpacing.lg),
           Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontFeatures: kTabularFigures,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontFeatures: kTabularFigures),
           ),
         ],
       ),

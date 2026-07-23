@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/party/presentation/models/party_view_data.dart';
 
 /// 로컬 상태로만 채팅 버블을 추가하는 목업 패널이다.
@@ -36,12 +37,11 @@ class _PartyChatPanelState extends State<PartyChatPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Column(
       children: <Widget>[
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             itemCount: _messages.length,
             itemBuilder: (BuildContext context, int index) {
               final chat = _messages[index];
@@ -50,13 +50,13 @@ class _PartyChatPanelState extends State<PartyChatPanel> {
                     ? Alignment.centerRight
                     : Alignment.centerLeft,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: chat.isMine
-                        ? colors.primaryContainer
-                        : colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
+                        ? AppColors.brandDim
+                        : AppColors.mutedSurface,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +77,12 @@ class _PartyChatPanelState extends State<PartyChatPanel> {
         SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.sm,
+              AppSpacing.xl,
+              AppSpacing.md,
+            ),
             child: Row(
               children: <Widget>[
                 Expanded(

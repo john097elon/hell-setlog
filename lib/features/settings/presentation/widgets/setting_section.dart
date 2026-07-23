@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 
 /// Groups related settings rows under a consistent section title.
 class SettingSection extends StatelessWidget {
@@ -13,12 +14,15 @@ class SettingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 24),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(
+            left: AppSpacing.xs,
+            bottom: AppSpacing.sm,
+          ),
           child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
         Card(child: Column(children: children)),

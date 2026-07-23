@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/widgets/app_states.dart';
 import 'package:heal_setlog/features/party/presentation/models/party_view_data.dart';
 
 /// 목업 파티를 검색하고 부위별로 거르는 패널이다.
@@ -31,7 +33,7 @@ class _ExplorePanelState extends State<ExplorePanel> {
           party.name.toLowerCase().contains(_query.toLowerCase());
     }).toList();
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: <Widget>[
         TextField(
           onChanged: (String value) => setState(() => _query = value),
@@ -40,7 +42,7 @@ class _ExplorePanelState extends State<ExplorePanel> {
             prefixIcon: const Icon(Icons.search_rounded),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         SizedBox(
           height: 40,
           child: ListView.builder(
@@ -50,7 +52,7 @@ class _ExplorePanelState extends State<ExplorePanel> {
               final filter = filters[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index == filters.length - 1 ? 0 : 8,
+                  right: index == filters.length - 1 ? 0 : AppSpacing.sm,
                 ),
                 child: ChoiceChip(
                   label: Text(filter),
@@ -61,37 +63,47 @@ class _ExplorePanelState extends State<ExplorePanel> {
             },
           ),
         ),
-        const SizedBox(height: 20),
-        ...List<Widget>.generate(filtered.length, (int index) {
-          final party = filtered[index];
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: index == filtered.length - 1 ? 0 : 12,
-            ),
-            child: Card(
-              child: ListTile(
-                leading: Icon(
-                  Icons.groups_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(party.name),
-                subtitle: Text(
-                  copy.partyMemberProgress(party.members, party.missionTarget),
-                ),
-                trailing: OutlinedButton(
-                  onPressed: () => _showMockNotice(context),
-                  child: Text(copy.join),
+        const SizedBox(height: AppSpacing.xl),
+        if (filtered.isEmpty)
+          AppEmptyState(
+            icon: Icons.groups_outlined,
+            title: copy.partyExplore,
+            message: copy.partySearchHint,
+          )
+        else
+          ...List<Widget>.generate(filtered.length, (int index) {
+            final party = filtered[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == filtered.length - 1 ? 0 : AppSpacing.md,
+              ),
+              child: Card(
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.groups_rounded,
+                    color: AppColors.brand,
+                  ),
+                  title: Text(party.name),
+                  subtitle: Text(
+                    copy.partyMemberProgress(
+                      party.members,
+                      party.missionTarget,
+                    ),
+                  ),
+                  trailing: OutlinedButton(
+                    onPressed: () => _showMockNotice(context),
+                    child: Text(copy.join),
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
-        const SizedBox(height: 20),
+            );
+          }),
+        const SizedBox(height: AppSpacing.xl),
         Card(
           child: ListTile(
-            leading: Icon(
+            leading: const Icon(
               Icons.workspace_premium_rounded,
-              color: Theme.of(context).colorScheme.primary,
+              color: AppColors.brand,
             ),
             title: Text(copy.partyProTitle),
             subtitle: Text(copy.partyProDescription),

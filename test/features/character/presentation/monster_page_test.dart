@@ -14,7 +14,7 @@ void main() {
     expect(find.text('타이냥'), findsOneWidget);
     expect(find.text('레벨 50 · 균형형'), findsOneWidget);
     expect(find.text('EXP'), findsOneWidget);
-    expect(find.text('820 / 1000'), findsOneWidget);
+    expect(find.text('820 / 1,000'), findsOneWidget);
     expect(find.byType(MonsterStatGrid), findsOneWidget);
   });
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/character/presentation/models/monster_view_data.dart';
 
 /// 몬스터의 부위별 목업 스탯을 카드 그리드로 표시한다.
@@ -18,8 +20,8 @@ class MonsterStatGrid extends StatelessWidget {
     physics: const NeverScrollableScrollPhysics(),
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
+      crossAxisSpacing: AppSpacing.md,
+      mainAxisSpacing: AppSpacing.md,
       childAspectRatio: 1.55,
     ),
     itemCount: stats.length,
@@ -41,19 +43,24 @@ class _MonsterStatCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(label, style: theme.textTheme.labelLarge),
             const Spacer(),
-            Text('${stat.value}', style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
+            Text(
+              formatInt(stat.value),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontFeatures: kTabularFigures,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             LinearProgressIndicator(
               value: stat.progress,
               minHeight: 6,
-              color: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              color: AppColors.brand,
+              backgroundColor: AppColors.mutedSurface,
             ),
           ],
         ),

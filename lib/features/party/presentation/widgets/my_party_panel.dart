@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/party/presentation/models/party_view_data.dart';
 
 /// 내 파티 카드와 목업 초대 기능을 보여주는 패널이다.
@@ -25,33 +26,33 @@ class _MyPartyPanelState extends State<MyPartyPanel> {
     final copy = context.l10n;
     final party = myPartyViewData;
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: <Widget>[
         Text(copy.myParties, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(party.name, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   copy.partyMemberProgress(party.members, party.missionTarget),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 LinearProgressIndicator(
                   value: party.missionCompleted / party.missionTarget,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   copy.partyMissionProgress(
                     party.missionCompleted,
                     party.missionTarget,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   copy.partyTodayXp,
                   style: Theme.of(context).textTheme.titleMedium,
@@ -60,10 +61,10 @@ class _MyPartyPanelState extends State<MyPartyPanel> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -71,9 +72,9 @@ class _MyPartyPanelState extends State<MyPartyPanel> {
                   copy.partyRandomMatch,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(copy.partyRandomMatchDescription),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Align(
                   alignment: Alignment.centerRight,
                   child: FilledButton(
@@ -85,12 +86,12 @@ class _MyPartyPanelState extends State<MyPartyPanel> {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xl),
         Text(
           copy.partyInviteFriends,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         SizedBox(
           height: 104,
           child: ListView.builder(
@@ -101,13 +102,15 @@ class _MyPartyPanelState extends State<MyPartyPanel> {
               final isInvited = _invitedFriends.contains(friend.name);
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index == partyFriendViewData.length - 1 ? 0 : 12,
+                  right: index == partyFriendViewData.length - 1
+                      ? 0
+                      : AppSpacing.md,
                 ),
                 child: SizedBox(
                   width: 124,
                   child: Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       child: Column(
                         children: <Widget>[
                           Text(
