@@ -3130,6 +3130,613 @@ class RoutineItemsCompanion extends UpdateCompanion<RoutineItem> {
   }
 }
 
+class $PersonalRecordsTable extends PersonalRecords
+    with TableInfo<$PersonalRecordsTable, PersonalRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PersonalRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<double> value = GeneratedColumn<double>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _achievedAtMeta = const VerificationMeta(
+    'achievedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> achievedAt = GeneratedColumn<DateTime>(
+    'achieved_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    exerciseId,
+    type,
+    value,
+    achievedAt,
+    sessionId,
+    updatedAt,
+    deletedAt,
+    syncStatus,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'personal_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PersonalRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('achieved_at')) {
+      context.handle(
+        _achievedAtMeta,
+        achievedAt.isAcceptableOrUnknown(data['achieved_at']!, _achievedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_achievedAtMeta);
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PersonalRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PersonalRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value'],
+      )!,
+      achievedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}achieved_at'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sync_status'],
+      )!,
+    );
+  }
+
+  @override
+  $PersonalRecordsTable createAlias(String alias) {
+    return $PersonalRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class PersonalRecord extends DataClass implements Insertable<PersonalRecord> {
+  final String id;
+  final String userId;
+  final String exerciseId;
+  final int type;
+  final double value;
+  final DateTime achievedAt;
+  final String sessionId;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final int syncStatus;
+  const PersonalRecord({
+    required this.id,
+    required this.userId,
+    required this.exerciseId,
+    required this.type,
+    required this.value,
+    required this.achievedAt,
+    required this.sessionId,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.syncStatus,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['type'] = Variable<int>(type);
+    map['value'] = Variable<double>(value);
+    map['achieved_at'] = Variable<DateTime>(achievedAt);
+    map['session_id'] = Variable<String>(sessionId);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['sync_status'] = Variable<int>(syncStatus);
+    return map;
+  }
+
+  PersonalRecordsCompanion toCompanion(bool nullToAbsent) {
+    return PersonalRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      exerciseId: Value(exerciseId),
+      type: Value(type),
+      value: Value(value),
+      achievedAt: Value(achievedAt),
+      sessionId: Value(sessionId),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory PersonalRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PersonalRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      type: serializer.fromJson<int>(json['type']),
+      value: serializer.fromJson<double>(json['value']),
+      achievedAt: serializer.fromJson<DateTime>(json['achievedAt']),
+      sessionId: serializer.fromJson<String>(json['sessionId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'type': serializer.toJson<int>(type),
+      'value': serializer.toJson<double>(value),
+      'achievedAt': serializer.toJson<DateTime>(achievedAt),
+      'sessionId': serializer.toJson<String>(sessionId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'syncStatus': serializer.toJson<int>(syncStatus),
+    };
+  }
+
+  PersonalRecord copyWith({
+    String? id,
+    String? userId,
+    String? exerciseId,
+    int? type,
+    double? value,
+    DateTime? achievedAt,
+    String? sessionId,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    int? syncStatus,
+  }) => PersonalRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    exerciseId: exerciseId ?? this.exerciseId,
+    type: type ?? this.type,
+    value: value ?? this.value,
+    achievedAt: achievedAt ?? this.achievedAt,
+    sessionId: sessionId ?? this.sessionId,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    syncStatus: syncStatus ?? this.syncStatus,
+  );
+  PersonalRecord copyWithCompanion(PersonalRecordsCompanion data) {
+    return PersonalRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      type: data.type.present ? data.type.value : this.type,
+      value: data.value.present ? data.value.value : this.value,
+      achievedAt: data.achievedAt.present
+          ? data.achievedAt.value
+          : this.achievedAt,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonalRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('type: $type, ')
+          ..write('value: $value, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    exerciseId,
+    type,
+    value,
+    achievedAt,
+    sessionId,
+    updatedAt,
+    deletedAt,
+    syncStatus,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PersonalRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.exerciseId == this.exerciseId &&
+          other.type == this.type &&
+          other.value == this.value &&
+          other.achievedAt == this.achievedAt &&
+          other.sessionId == this.sessionId &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.syncStatus == this.syncStatus);
+}
+
+class PersonalRecordsCompanion extends UpdateCompanion<PersonalRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> exerciseId;
+  final Value<int> type;
+  final Value<double> value;
+  final Value<DateTime> achievedAt;
+  final Value<String> sessionId;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> syncStatus;
+  final Value<int> rowid;
+  const PersonalRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.value = const Value.absent(),
+    this.achievedAt = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PersonalRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    required String exerciseId,
+    required int type,
+    required double value,
+    required DateTime achievedAt,
+    required String sessionId,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       exerciseId = Value(exerciseId),
+       type = Value(type),
+       value = Value(value),
+       achievedAt = Value(achievedAt),
+       sessionId = Value(sessionId),
+       updatedAt = Value(updatedAt);
+  static Insertable<PersonalRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? exerciseId,
+    Expression<int>? type,
+    Expression<double>? value,
+    Expression<DateTime>? achievedAt,
+    Expression<String>? sessionId,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (type != null) 'type': type,
+      if (value != null) 'value': value,
+      if (achievedAt != null) 'achieved_at': achievedAt,
+      if (sessionId != null) 'session_id': sessionId,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PersonalRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? exerciseId,
+    Value<int>? type,
+    Value<double>? value,
+    Value<DateTime>? achievedAt,
+    Value<String>? sessionId,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? syncStatus,
+    Value<int>? rowid,
+  }) {
+    return PersonalRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      exerciseId: exerciseId ?? this.exerciseId,
+      type: type ?? this.type,
+      value: value ?? this.value,
+      achievedAt: achievedAt ?? this.achievedAt,
+      sessionId: sessionId ?? this.sessionId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<double>(value.value);
+    }
+    if (achievedAt.present) {
+      map['achieved_at'] = Variable<DateTime>(achievedAt.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<int>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonalRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('type: $type, ')
+          ..write('value: $value, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3140,9 +3747,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $WorkoutSetsTable workoutSets = $WorkoutSetsTable(this);
   late final $RoutinesTable routines = $RoutinesTable(this);
   late final $RoutineItemsTable routineItems = $RoutineItemsTable(this);
+  late final $PersonalRecordsTable personalRecords = $PersonalRecordsTable(
+    this,
+  );
   late final ExerciseDao exerciseDao = ExerciseDao(this as AppDatabase);
   late final WorkoutDao workoutDao = WorkoutDao(this as AppDatabase);
   late final RoutineDao routineDao = RoutineDao(this as AppDatabase);
+  late final StatsDao statsDao = StatsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3153,6 +3764,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutSets,
     routines,
     routineItems,
+    personalRecords,
   ];
 }
 
@@ -4678,6 +5290,313 @@ typedef $$RoutineItemsTableProcessedTableManager =
       RoutineItem,
       PrefetchHooks Function()
     >;
+typedef $$PersonalRecordsTableCreateCompanionBuilder =
+    PersonalRecordsCompanion Function({
+      required String id,
+      required String userId,
+      required String exerciseId,
+      required int type,
+      required double value,
+      required DateTime achievedAt,
+      required String sessionId,
+      required DateTime updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> syncStatus,
+      Value<int> rowid,
+    });
+typedef $$PersonalRecordsTableUpdateCompanionBuilder =
+    PersonalRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> exerciseId,
+      Value<int> type,
+      Value<double> value,
+      Value<DateTime> achievedAt,
+      Value<String> sessionId,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> syncStatus,
+      Value<int> rowid,
+    });
+
+class $$PersonalRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PersonalRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PersonalRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<double> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+}
+
+class $$PersonalRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PersonalRecordsTable,
+          PersonalRecord,
+          $$PersonalRecordsTableFilterComposer,
+          $$PersonalRecordsTableOrderingComposer,
+          $$PersonalRecordsTableAnnotationComposer,
+          $$PersonalRecordsTableCreateCompanionBuilder,
+          $$PersonalRecordsTableUpdateCompanionBuilder,
+          (
+            PersonalRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $PersonalRecordsTable,
+              PersonalRecord
+            >,
+          ),
+          PersonalRecord,
+          PrefetchHooks Function()
+        > {
+  $$PersonalRecordsTableTableManager(
+    _$AppDatabase db,
+    $PersonalRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PersonalRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PersonalRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PersonalRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> exerciseId = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<double> value = const Value.absent(),
+                Value<DateTime> achievedAt = const Value.absent(),
+                Value<String> sessionId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonalRecordsCompanion(
+                id: id,
+                userId: userId,
+                exerciseId: exerciseId,
+                type: type,
+                value: value,
+                achievedAt: achievedAt,
+                sessionId: sessionId,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String exerciseId,
+                required int type,
+                required double value,
+                required DateTime achievedAt,
+                required String sessionId,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonalRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                exerciseId: exerciseId,
+                type: type,
+                value: value,
+                achievedAt: achievedAt,
+                sessionId: sessionId,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PersonalRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PersonalRecordsTable,
+      PersonalRecord,
+      $$PersonalRecordsTableFilterComposer,
+      $$PersonalRecordsTableOrderingComposer,
+      $$PersonalRecordsTableAnnotationComposer,
+      $$PersonalRecordsTableCreateCompanionBuilder,
+      $$PersonalRecordsTableUpdateCompanionBuilder,
+      (
+        PersonalRecord,
+        BaseReferences<_$AppDatabase, $PersonalRecordsTable, PersonalRecord>,
+      ),
+      PersonalRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4692,4 +5611,6 @@ class $AppDatabaseManager {
       $$RoutinesTableTableManager(_db, _db.routines);
   $$RoutineItemsTableTableManager get routineItems =>
       $$RoutineItemsTableTableManager(_db, _db.routineItems);
+  $$PersonalRecordsTableTableManager get personalRecords =>
+      $$PersonalRecordsTableTableManager(_db, _db.personalRecords);
 }
