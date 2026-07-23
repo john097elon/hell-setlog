@@ -47,9 +47,10 @@ void main() {
     expect(find.textContaining('0000'), findsNothing);
     expect(find.text('KG'), findsOneWidget);
 
+    // 기록된 세트 1개(체크박스 1) + 명시적 세트 추가 1개(체크박스 1) = 2.
     await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
     await tester.pump();
-    expect(find.byKey(const Key('complete-set')), findsNWidgets(3));
+    expect(find.byKey(const Key('complete-set')), findsNWidgets(2));
   });
 
   testWidgets('completes a draft set with one tap', (tester) async {
@@ -74,6 +75,9 @@ void main() {
     ).thenAnswer((_) async => Ok(added.copyWith(isCompleted: true)));
     await _pumpPage(tester, workoutRepository, session, [recordedSet]);
 
+    // 명시적으로 세트를 추가한 뒤 그 draft의 완료 체크를 한 번 탭한다.
+    await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('complete-set')).last);
     await tester.pump();
 

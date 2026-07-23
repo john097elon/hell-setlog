@@ -75,18 +75,20 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     return Scaffold(
       appBar: widget.embedded
           ? null
-          : AppBar(
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => _end(session),
-                  child: Text(context.l10n.endWorkout),
-                ),
-              ],
-            ),
+          : AppBar(title: Text(context.l10n.todayWorkout)),
       body: sets.when(
         loading: () => const SizedBox.shrink(),
         error: (_, _) => const SizedBox.shrink(),
         data: (items) => _sessionList(session, items, timer),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: FilledButton.icon(
+          key: const Key('finish-workout'),
+          onPressed: () => _end(session),
+          icon: const Icon(Icons.check),
+          label: Text(context.l10n.endWorkout),
+        ),
       ),
     );
   }
@@ -170,7 +172,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         ),
       );
     }
-    final count = (_extraDrafts[exerciseId] ?? 0) + 1;
+    final count = _extraDrafts[exerciseId] ?? 0;
     final prefill = prefillForExercise(sets, exerciseId);
     for (var index = 0; index < count; index++) {
       final key = '$exerciseId-$index';
@@ -197,6 +199,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         _selectedExerciseNames[exercise.id] = exercise.nameKo;
         final prefill = prefillForExercise(sets, exercise.id);
         _drafts['${exercise.id}-0'] = _SetDraft(prefill.weight, prefill.reps);
+        // 종목 추가 시 기록할 첫 세트 한 줄을 보여준다.
+        _extraDrafts[exercise.id] = 1;
         setState(() {});
       });
 
@@ -215,9 +219,12 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         );
     if (!mounted) return;
     result.when(
-      ok: (_) => setState(
-        () => _drafts.removeWhere((_, value) => identical(value, draft)),
-      ),
+      ok: (_) => setState(() {
+        _drafts.removeWhere((_, value) => identical(value, draft));
+        // 완료된 세트는 커밋되어 목록에 남으므로 draft 한 줄을 줄인다.
+        final remaining = (_extraDrafts[exerciseId] ?? 1) - 1;
+        _extraDrafts[exerciseId] = remaining < 0 ? 0 : remaining;
+      }),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),

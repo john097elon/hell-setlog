@@ -104,13 +104,14 @@ class _Stepper extends StatelessWidget {
         icon: const Icon(Icons.remove, size: 18),
       ),
       Expanded(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-            ),
+        child: Text(
+          value,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.visible,
+          softWrap: false,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
           ),
         ),
       ),
