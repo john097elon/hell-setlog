@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heal_setlog/core/router/app_router.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/features/app_shell/presentation/workout_tab_page.dart';
+import 'package:heal_setlog/l10n/app_localizations.dart';
 import 'package:heal_setlog/main.dart' as app;
 
 void main() {
@@ -14,7 +18,7 @@ void main() {
     expect(find.byType(TextFormField), findsNWidgets(2));
   });
 
-  testWidgets('목업 로그인 뒤 다섯 탭이 있는 홈으로 이동한다', (WidgetTester tester) async {
+  testWidgets('목업 로그인 뒤 네 탭이 있는 홈으로 이동한다', (WidgetTester tester) async {
     app.main();
     await tester.pump();
 
@@ -74,6 +78,62 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TextFormField), findsNWidgets(2));
+  });
+  testWidgets('renders four destinations and switches workout subtabs', (
+    WidgetTester tester,
+  ) async {
+    final router = createAppRouter();
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: buildAppTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+    router.go('/home');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: buildAppTheme(),
+          home: const WorkoutTabPage(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('세트로그'), findsOneWidget);
+
+    tester
+        .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+        .onSelectionChanged!(<int>{1});
+    await tester.pump();
+    expect(find.text('몬스터'), findsOneWidget);
+
+    tester
+        .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+        .onSelectionChanged!(<int>{2});
+    await tester.pump();
+    expect(find.text('곧 만나요'), findsOneWidget);
+  });
+
+  testWidgets('renders the personal dashboard and workout CTA', (
+    WidgetTester tester,
+  ) async {
+    app.main();
+    await tester.pump();
+    await _login(tester);
+
+    expect(find.text('오늘의 운동'), findsWidgets);
+    expect(find.widgetWithText(FilledButton, '운동 시작하기'), findsOneWidget);
+    expect(find.text('루틴'), findsOneWidget);
   });
 }
 

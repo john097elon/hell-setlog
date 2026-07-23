@@ -51,6 +51,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get record => '기록';
 
   @override
+  String get workout => '운동';
+
+  @override
   String get stats => '통계';
 
   @override
@@ -67,6 +70,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get startWorkout => '운동 시작하기';
+
+  @override
+  String get routines => '루틴';
+
+  @override
+  String get routinesDescription => '저장한 루틴을 바로 시작하세요';
 
   @override
   String get streak => '연속 운동';
@@ -161,6 +170,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get statsLoadError => '통계를 불러오지 못했어요';
+
+  @override
+  String get monster => '몬스터';
+
+  @override
+  String get monsterComingSoon => '곧 만나요';
+
+  @override
+  String get monsterComingSoonDescription => '몬스터 성장은 P6에서 제공됩니다.';
 
   @override
   String get muscleChest => '가슴';

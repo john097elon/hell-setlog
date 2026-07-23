@@ -15,7 +15,10 @@ import 'widgets/set_row.dart';
 
 /// Local-first workout recording screen.
 class WorkoutPage extends ConsumerStatefulWidget {
-  const WorkoutPage({super.key});
+  const WorkoutPage({this.embedded = false, super.key});
+
+  /// 운동 탭 안에 배치될 때 내부 앱 바를 숨긴다.
+  final bool embedded;
   @override
   ConsumerState<WorkoutPage> createState() => _WorkoutPageState();
 }
@@ -47,7 +50,9 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   }
 
   Widget _startView(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(context.l10n.todayWorkout)),
+    appBar: widget.embedded
+        ? null
+        : AppBar(title: Text(context.l10n.todayWorkout)),
     body: Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -74,19 +79,21 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final sets = ref.watch(sessionSetsProvider(session.id));
     final timer = ref.watch(restTimerProvider);
     return Scaffold(
-      appBar: AppBar(
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              await ref
-                  .read(workoutSessionControllerProvider)
-                  .endSession(session.id);
-              ref.invalidate(activeSessionProvider);
-            },
-            child: Text(context.l10n.endWorkout),
-          ),
-        ],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () async {
+                    await ref
+                        .read(workoutSessionControllerProvider)
+                        .endSession(session.id);
+                    ref.invalidate(activeSessionProvider);
+                  },
+                  child: Text(context.l10n.endWorkout),
+                ),
+              ],
+            ),
       body: sets.when(
         loading: () => const SizedBox.shrink(),
         error: (_, _) => const SizedBox.shrink(),

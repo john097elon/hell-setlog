@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 
-/// 오늘의 운동과 파티 활동을 요약하는 목업 홈 화면이다.
+/// 오늘의 운동과 루틴을 요약하는 개인 대시보드다.
 class HomePage extends StatelessWidget {
   /// 홈 화면을 생성한다.
   const HomePage({super.key});
@@ -56,13 +56,13 @@ class HomePage extends StatelessWidget {
           Card(
             child: ListTile(
               leading: Icon(
-                Icons.groups_rounded,
+                Icons.format_list_bulleted_rounded,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              title: Text(copy.partyActivity),
-              subtitle: Text(copy.partyActivityMessage),
+              title: Text(copy.routines),
+              subtitle: Text(copy.routinesDescription),
               trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => context.go('/party'),
+              onTap: () => context.push('/routines'),
             ),
           ),
         ],

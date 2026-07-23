@@ -178,6 +178,12 @@ abstract class AppLocalizations {
   /// **'기록'**
   String get record;
 
+  /// No description provided for @workout.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동'**
+  String get workout;
+
   /// No description provided for @stats.
   ///
   /// In ko, this message translates to:
@@ -213,6 +219,18 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'운동 시작하기'**
   String get startWorkout;
+
+  /// No description provided for @routines.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴'**
+  String get routines;
+
+  /// No description provided for @routinesDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장한 루틴을 바로 시작하세요'**
+  String get routinesDescription;
 
   /// No description provided for @streak.
   ///
@@ -393,6 +411,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'통계를 불러오지 못했어요'**
   String get statsLoadError;
+
+  /// No description provided for @monster.
+  ///
+  /// In ko, this message translates to:
+  /// **'몬스터'**
+  String get monster;
+
+  /// No description provided for @monsterComingSoon.
+  ///
+  /// In ko, this message translates to:
+  /// **'곧 만나요'**
+  String get monsterComingSoon;
+
+  /// No description provided for @monsterComingSoonDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'몬스터 성장은 P6에서 제공됩니다.'**
+  String get monsterComingSoonDescription;
 
   /// No description provided for @muscleChest.
   ///

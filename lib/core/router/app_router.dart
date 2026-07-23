@@ -6,8 +6,7 @@ import 'package:heal_setlog/features/home/presentation/home_page.dart';
 import 'package:heal_setlog/features/character/presentation/profile_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_list_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_room_page.dart';
-import 'package:heal_setlog/features/stats/presentation/stats_page.dart';
-import 'package:heal_setlog/features/workout_log/presentation/workout_page.dart';
+import 'package:heal_setlog/features/app_shell/presentation/workout_tab_page.dart';
 import 'package:heal_setlog/features/routine/presentation/routine_editor_page.dart';
 import 'package:heal_setlog/features/routine/presentation/routine_list_page.dart';
 
@@ -30,7 +29,7 @@ GoRouter createAppRouter() => GoRouter(
         GoRoute(path: '/home', builder: (context, state) => const HomePage()),
         GoRoute(
           path: '/workout',
-          builder: (context, state) => const WorkoutPage(),
+          builder: (context, state) => const WorkoutTabPage(),
         ),
         GoRoute(
           path: '/routines',
@@ -44,7 +43,6 @@ GoRouter createAppRouter() => GoRouter(
                 : state.pathParameters['id'],
           ),
         ),
-        GoRoute(path: '/stats', builder: (context, state) => const StatsPage()),
         GoRoute(
           path: '/party',
           builder: (context, state) => const PartyListPage(),

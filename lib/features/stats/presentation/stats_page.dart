@@ -8,13 +8,16 @@ import 'package:heal_setlog/features/stats/presentation/widgets/weekly_volume_ch
 
 /// 운동 기록을 주간 볼륨과 근육군 비중으로 표시한다.
 class StatsPage extends ConsumerWidget {
-  const StatsPage({super.key});
+  const StatsPage({this.embedded = false, super.key});
+
+  /// 운동 탭 안에 배치될 때 내부 앱 바를 숨긴다.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weekly = ref.watch(weeklyVolumeProvider());
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.statsTitle)),
+      appBar: embedded ? null : AppBar(title: Text(context.l10n.statsTitle)),
       body: weekly.when(
         data: (result) => result.when(
           ok: (volumes) => volumes.isEmpty

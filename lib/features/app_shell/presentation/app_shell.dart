@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 
-/// 다섯 개의 주요 목업 화면을 전환하는 하단 내비게이션 셸이다.
+/// 네 개의 주요 화면을 전환하는 하단 내비게이션 셸이다.
 class AppShell extends StatelessWidget {
   /// 하단 내비게이션 위에 표시할 현재 라우트 화면이다.
   const AppShell({required this.child, super.key});
@@ -28,14 +28,9 @@ class AppShell extends StatelessWidget {
             label: copy.home,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.edit_note_outlined),
-            selectedIcon: const Icon(Icons.edit_note),
-            label: copy.record,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.bar_chart_outlined),
-            selectedIcon: const Icon(Icons.bar_chart),
-            label: copy.stats,
+            icon: const Icon(Icons.fitness_center_outlined),
+            selectedIcon: const Icon(Icons.fitness_center),
+            label: copy.workout,
           ),
           NavigationDestination(
             icon: const Icon(Icons.groups_outlined),
@@ -52,14 +47,10 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  int _selectedIndex(String path) =>
-      _paths.indexWhere((String item) => path.startsWith(item));
+  int _selectedIndex(String path) {
+    if (path.startsWith('/workout') || path.startsWith('/routines')) return 1;
+    return _paths.indexWhere((String item) => path.startsWith(item));
+  }
 }
 
-const List<String> _paths = <String>[
-  '/home',
-  '/workout',
-  '/stats',
-  '/party',
-  '/profile',
-];
+const List<String> _paths = <String>['/home', '/workout', '/party', '/profile'];
