@@ -129,6 +129,64 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsLaterDescription => '지금은 기존 디자인을 확인하는 목업 화면입니다.';
 
   @override
+  String get statsThisWeek => '이번 주';
+
+  @override
+  String get statsWorkoutDays => '운동 일수';
+
+  @override
+  String statsWorkoutDaysValue(int count) {
+    return '$count일';
+  }
+
+  @override
+  String get statsTotalVolume => '총 볼륨';
+
+  @override
+  String statsVolumeValue(String volume) {
+    return '$volume kg';
+  }
+
+  @override
+  String get statsWeeklyVolume => '주간 볼륨';
+
+  @override
+  String get statsBodyPartSplit => '부위별 볼륨';
+
+  @override
+  String get statsNoData => '아직 기록된 운동이 없어요';
+
+  @override
+  String get statsNoDataDescription => '운동을 기록하면 이번 주의 변화를 볼 수 있어요.';
+
+  @override
+  String get statsLoadError => '통계를 불러오지 못했어요';
+
+  @override
+  String get muscleChest => '가슴';
+
+  @override
+  String get muscleBack => '등';
+
+  @override
+  String get muscleShoulders => '어깨';
+
+  @override
+  String get muscleLegs => '하체';
+
+  @override
+  String get muscleArms => '팔';
+
+  @override
+  String get muscleCore => '코어';
+
+  @override
+  String get muscleFullBody => '전신';
+
+  @override
+  String get muscleOther => '기타';
+
+  @override
   String get myParties => '내 파티';
 
   @override

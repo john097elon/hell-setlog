@@ -334,6 +334,114 @@ abstract class AppLocalizations {
   /// **'지금은 기존 디자인을 확인하는 목업 화면입니다.'**
   String get statsLaterDescription;
 
+  /// No description provided for @statsThisWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'이번 주'**
+  String get statsThisWeek;
+
+  /// No description provided for @statsWorkoutDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 일수'**
+  String get statsWorkoutDays;
+
+  /// No description provided for @statsWorkoutDaysValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}일'**
+  String statsWorkoutDaysValue(int count);
+
+  /// No description provided for @statsTotalVolume.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 볼륨'**
+  String get statsTotalVolume;
+
+  /// No description provided for @statsVolumeValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'{volume} kg'**
+  String statsVolumeValue(String volume);
+
+  /// No description provided for @statsWeeklyVolume.
+  ///
+  /// In ko, this message translates to:
+  /// **'주간 볼륨'**
+  String get statsWeeklyVolume;
+
+  /// No description provided for @statsBodyPartSplit.
+  ///
+  /// In ko, this message translates to:
+  /// **'부위별 볼륨'**
+  String get statsBodyPartSplit;
+
+  /// No description provided for @statsNoData.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 기록된 운동이 없어요'**
+  String get statsNoData;
+
+  /// No description provided for @statsNoDataDescription.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동을 기록하면 이번 주의 변화를 볼 수 있어요.'**
+  String get statsNoDataDescription;
+
+  /// No description provided for @statsLoadError.
+  ///
+  /// In ko, this message translates to:
+  /// **'통계를 불러오지 못했어요'**
+  String get statsLoadError;
+
+  /// No description provided for @muscleChest.
+  ///
+  /// In ko, this message translates to:
+  /// **'가슴'**
+  String get muscleChest;
+
+  /// No description provided for @muscleBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'등'**
+  String get muscleBack;
+
+  /// No description provided for @muscleShoulders.
+  ///
+  /// In ko, this message translates to:
+  /// **'어깨'**
+  String get muscleShoulders;
+
+  /// No description provided for @muscleLegs.
+  ///
+  /// In ko, this message translates to:
+  /// **'하체'**
+  String get muscleLegs;
+
+  /// No description provided for @muscleArms.
+  ///
+  /// In ko, this message translates to:
+  /// **'팔'**
+  String get muscleArms;
+
+  /// No description provided for @muscleCore.
+  ///
+  /// In ko, this message translates to:
+  /// **'코어'**
+  String get muscleCore;
+
+  /// No description provided for @muscleFullBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'전신'**
+  String get muscleFullBody;
+
+  /// No description provided for @muscleOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'기타'**
+  String get muscleOther;
+
   /// No description provided for @myParties.
   ///
   /// In ko, this message translates to:
