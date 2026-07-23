@@ -12,6 +12,7 @@ import '../application/workout_session_controller.dart';
 import 'widgets/exercise_picker_sheet.dart';
 import 'widgets/rest_timer_bar.dart';
 import 'widgets/set_row.dart';
+import 'share_workout_sheet.dart';
 
 /// Local-first workout recording screen.
 class WorkoutPage extends ConsumerStatefulWidget {
@@ -85,10 +86,19 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () async {
-                    await ref
+                    final result = await ref
                         .read(workoutSessionControllerProvider)
                         .endSession(session.id);
-                    ref.invalidate(activeSessionProvider);
+                    if (!mounted) return;
+                    result.when(
+                      ok: (_) {
+                        ref.invalidate(activeSessionProvider);
+                        showShareWorkoutSheet(context);
+                      },
+                      err: (failure) => ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(failure.message))),
+                    );
                   },
                   child: Text(context.l10n.endWorkout),
                 ),

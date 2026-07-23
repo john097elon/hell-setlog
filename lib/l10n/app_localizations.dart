@@ -1281,6 +1281,54 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'비공개'**
   String get settingsPrivate;
+
+  /// No description provided for @close.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get close;
+
+  /// No description provided for @shareWorkout.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 공유'**
+  String get shareWorkout;
+
+  /// No description provided for @cameraPreviewMock.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라 미리보기 (P5)'**
+  String get cameraPreviewMock;
+
+  /// No description provided for @tapToRecord.
+  ///
+  /// In ko, this message translates to:
+  /// **'탭하여 녹화'**
+  String get tapToRecord;
+
+  /// No description provided for @recording.
+  ///
+  /// In ko, this message translates to:
+  /// **'녹화 중'**
+  String get recording;
+
+  /// No description provided for @shareCaptionHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 소감을 남겨보세요'**
+  String get shareCaptionHint;
+
+  /// No description provided for @shareToFeed.
+  ///
+  /// In ko, this message translates to:
+  /// **'피드에 공유'**
+  String get shareToFeed;
+
+  /// No description provided for @workoutSharedMock.
+  ///
+  /// In ko, this message translates to:
+  /// **'피드에 공유됨 (mock)'**
+  String get workoutSharedMock;
 }
 
 class _AppLocalizationsDelegate

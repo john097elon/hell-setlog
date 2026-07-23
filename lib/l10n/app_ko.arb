@@ -219,4 +219,13 @@
   "settingsEditSave": "완료",
   "settingsPublic": "전체 공개",
   "settingsPrivate": "비공개"
+,
+  "close": "닫기",
+  "shareWorkout": "운동 공유",
+  "cameraPreviewMock": "카메라 미리보기 (P5)",
+  "tapToRecord": "탭하여 녹화",
+  "recording": "녹화 중",
+  "shareCaptionHint": "운동 소감을 남겨보세요",
+  "shareToFeed": "피드에 공유",
+  "workoutSharedMock": "피드에 공유됨 (mock)"
 }

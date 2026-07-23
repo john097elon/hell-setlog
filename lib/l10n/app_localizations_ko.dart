@@ -619,4 +619,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsPrivate => '비공개';
+
+  @override
+  String get close => '닫기';
+
+  @override
+  String get shareWorkout => '운동 공유';
+
+  @override
+  String get cameraPreviewMock => '카메라 미리보기 (P5)';
+
+  @override
+  String get tapToRecord => '탭하여 녹화';
+
+  @override
+  String get recording => '녹화 중';
+
+  @override
+  String get shareCaptionHint => '운동 소감을 남겨보세요';
+
+  @override
+  String get shareToFeed => '피드에 공유';
+
+  @override
+  String get workoutSharedMock => '피드에 공유됨 (mock)';
 }
