@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 ///
 /// 중립색은 순수 회색 대신 브랜드(레드) 쪽으로 아주 살짝 치우쳐 "선택된" 느낌을 준다.
 abstract final class AppColors {
-  // ── Primitive: 중립(따뜻한 저채도) ──
-  static const _n0 = Color(0xFF0E0D0F); // 가장 어두운 배경
-  static const _n1 = Color(0xFF171519); // 살짝 올라온 표면
-  static const _n2 = Color(0xFF201D23); // 카드
-  static const _n3 = Color(0xFF2C2830); // 경계/구분선
-  static const _n4 = Color(0xFF3A353F); // 강한 경계
+  // ── Primitive: 중립(쿨 뉴트럴 차콜, 프리미엄) ──
+  static const _n0 = Color(0xFF0F1013); // 가장 어두운 배경
+  static const _n1 = Color(0xFF17191F); // 살짝 올라온 표면
+  static const _n2 = Color(0xFF1D2027); // 카드
+  static const _n3 = Color(0xFF2A2E37); // 경계/구분선
+  static const _n4 = Color(0xFF3A404B); // 강한 경계
 
-  // ── Primitive: 브랜드 레드 램프 ──
-  static const _red = Color(0xFFFF3D3D);
-  static const _redBright = Color(0xFFFF6B6B);
-  static const _redDim = Color(0xFFD62F2F);
+  // ── Primitive: 브랜드 레드 램프(크리스프) ──
+  static const _red = Color(0xFFFF453A);
+  static const _redBright = Color(0xFFFF6D64);
+  static const _redDim = Color(0xFFE0362C);
 
   // ── Primitive: 시맨틱 상태색(액센트와 분리) ──
-  static const _green = Color(0xFF46C46A); // 성공/PR/증가
-  static const _amber = Color(0xFFF5B23C); // 경고/주의
+  static const _green = Color(0xFF30D158); // 성공/PR/증가
+  static const _amber = Color(0xFFFFB340); // 경고/주의
 
   // ── Semantic (화면에서 이 이름들을 쓴다) ──
   /// 앱 최하단 배경.
@@ -46,13 +46,13 @@ abstract final class AppColors {
   static const brandDim = _redDim;
 
   /// 본문 주 텍스트.
-  static const text = Color(0xFFF4F1F6);
+  static const text = Color(0xFFF2F4F7);
 
   /// 보조 텍스트.
-  static const mutedText = Color(0xFFA8A0B2);
+  static const mutedText = Color(0xFF9AA1AD);
 
   /// 흐린 텍스트/라벨.
-  static const faintText = Color(0xFF6F6878);
+  static const faintText = Color(0xFF656C78);
 
   /// 성공/PR/증가.
   static const success = _green;
