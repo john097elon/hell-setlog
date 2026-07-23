@@ -30,7 +30,7 @@ void main() {
     expect(find.text('운동 일수'), findsOneWidget);
     expect(find.text('2일'), findsOneWidget);
     expect(find.text('총 볼륨'), findsOneWidget);
-    expect(find.text('2000 kg'), findsOneWidget);
+    expect(find.text('2,000 kg'), findsOneWidget);
   });
 
   testWidgets('renders body-part split percentages', (tester) async {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
+import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
@@ -36,7 +37,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   Widget build(BuildContext context) {
     final active = ref.watch(activeSessionProvider);
     return active.when(
-      loading: () => const Scaffold(body: SizedBox.shrink()),
+      loading: () => const Scaffold(body: AppLoading()),
       error: (_, _) =>
           Scaffold(body: Center(child: Text(context.l10n.workoutInProgress))),
       data: (result) => result.when(ok: _activeView, err: (_) => _startView()),
@@ -77,7 +78,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           ? null
           : AppBar(title: Text(context.l10n.todayWorkout)),
       body: sets.when(
-        loading: () => const SizedBox.shrink(),
+        loading: () => const AppLoading(),
         error: (_, _) => const SizedBox.shrink(),
         data: (items) => _sessionList(session, items, timer),
       ),

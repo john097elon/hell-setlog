@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 
 /// 이번 주 운동 기록의 핵심 수치를 표시한다.
 class SummaryRow extends StatelessWidget {
@@ -29,7 +31,7 @@ class SummaryRow extends StatelessWidget {
           child: _SummaryCard(
             icon: Icons.fitness_center_rounded,
             label: copy.statsTotalVolume,
-            value: copy.statsVolumeValue(totalVolume.toStringAsFixed(0)),
+            value: copy.statsVolumeValue(formatWeight(totalVolume)),
           ),
         ),
       ],
@@ -57,9 +59,14 @@ class _SummaryCard extends StatelessWidget {
         children: <Widget>[
           Icon(icon, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontFeatures: kTabularFigures,
+            ),
+          ),
         ],
       ),
     ),
