@@ -31,25 +31,6 @@ void main() {
     expect(find.text('파티'), findsOneWidget);
   });
 
-  testWidgets('기록 탭에서 운동 시작과 완료 목업을 이어서 표시한다', (WidgetTester tester) async {
-    app.main();
-    await tester.pump();
-    await _login(tester);
-
-    await tester.tap(find.text('기록'));
-    await tester.pumpAndSettle();
-    expect(find.text('운동 시작하기'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(FilledButton, '운동 시작하기'));
-    await tester.pump();
-    expect(find.text('운동 진행 중'), findsWidgets);
-
-    await tester.tap(find.widgetWithText(FilledButton, '세트 완료'));
-    await tester.tap(find.widgetWithText(OutlinedButton, '운동 종료'));
-    await tester.pump();
-    expect(find.text('운동 완료!'), findsOneWidget);
-  });
-
   testWidgets('파티 탭에서 파티 방과 활동 피드를 연다', (WidgetTester tester) async {
     app.main();
     await tester.pump();
@@ -82,20 +63,6 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, '저장'));
     await tester.pump();
     expect(find.text('설정이 저장되었습니다'), findsOneWidget);
-  });
-
-  testWidgets('운동 진행 화면에 레거시 기록 유형과 사진 목업 버튼이 있다', (WidgetTester tester) async {
-    app.main();
-    await tester.pump();
-    await _login(tester);
-
-    await tester.tap(find.text('기록'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, '운동 시작하기'));
-    await tester.pump();
-
-    expect(find.text('중간'), findsOneWidget);
-    expect(find.text('사진'), findsOneWidget);
   });
 
   testWidgets('프로필에 레거시 설정 입력 항목이 있다', (WidgetTester tester) async {

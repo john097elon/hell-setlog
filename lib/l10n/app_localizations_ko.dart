@@ -326,4 +326,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get sampleMemberSeoyeon => '서연';
+
+  @override
+  String get rest => '휴식';
+
+  @override
+  String addSeconds(int seconds) {
+    return '+$seconds초';
+  }
+
+  @override
+  String get skip => '건너뛰기';
+
+  @override
+  String get selectExercise => '종목 선택';
+
+  @override
+  String get setDeleted => '세트를 삭제했어요';
+
+  @override
+  String get undo => '실행 취소';
 }

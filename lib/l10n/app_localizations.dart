@@ -723,6 +723,42 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'서연'**
   String get sampleMemberSeoyeon;
+
+  /// No description provided for @rest.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식'**
+  String get rest;
+
+  /// No description provided for @addSeconds.
+  ///
+  /// In ko, this message translates to:
+  /// **'+{seconds}초'**
+  String addSeconds(int seconds);
+
+  /// No description provided for @skip.
+  ///
+  /// In ko, this message translates to:
+  /// **'건너뛰기'**
+  String get skip;
+
+  /// No description provided for @selectExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목 선택'**
+  String get selectExercise;
+
+  /// No description provided for @setDeleted.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트를 삭제했어요'**
+  String get setDeleted;
+
+  /// No description provided for @undo.
+  ///
+  /// In ko, this message translates to:
+  /// **'실행 취소'**
+  String get undo;
 }
 
 class _AppLocalizationsDelegate

@@ -1,243 +1,150 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 레거시 운동 시작·진행·완료 흐름을 로컬 상태로 재현하는 목업 화면이다.
-class WorkoutPage extends StatefulWidget {
-  /// 운동 기록 목업 화면을 생성한다.
+import '../../../core/extensions/build_context_x.dart';
+import '../../../domain/entities/exercise.dart';
+import '../../../domain/entities/workout_session.dart';
+import '../../../domain/entities/workout_set.dart';
+import '../application/rest_timer_controller.dart';
+import '../application/workout_providers.dart';
+import '../application/workout_session_controller.dart';
+import 'widgets/exercise_picker_sheet.dart';
+import 'widgets/rest_timer_bar.dart';
+import 'widgets/set_row.dart';
+
+/// Local-first workout recording screen.
+class WorkoutPage extends ConsumerStatefulWidget {
   const WorkoutPage({super.key});
-
   @override
-  State<WorkoutPage> createState() => _WorkoutPageState();
+  ConsumerState<WorkoutPage> createState() => _WorkoutPageState();
 }
 
-class _WorkoutPageState extends State<WorkoutPage> {
-  final List<int> _completedSets = <int>[];
-  Timer? _timer;
-  Duration _elapsed = Duration.zero;
-  _WorkoutPhase _phase = _WorkoutPhase.ready;
-  String _recordType = 'start';
+class _WorkoutPageState extends ConsumerState<WorkoutPage> {
+  Exercise? _exercise;
+  double _weight = 0;
+  int _reps = 0;
 
-  void _start() {
-    setState(() => _phase = _WorkoutPhase.active);
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      setState(() => _elapsed += const Duration(seconds: 1));
-    });
-  }
-
-  void _completeSet() {
-    setState(() => _completedSets.add(_completedSets.length + 1));
-  }
-
-  void _end() {
-    _timer?.cancel();
-    setState(() => _phase = _WorkoutPhase.complete);
-  }
-
-  void _restart() {
+  void _selectExercise(Exercise exercise, List<WorkoutSet> sets) {
+    final prefill = prefillForExercise(sets, exercise.id);
     setState(() {
-      _completedSets.clear();
-      _elapsed = Duration.zero;
-      _recordType = 'start';
-      _phase = _WorkoutPhase.ready;
+      _exercise = exercise;
+      _weight = prefill.weight;
+      _reps = prefill.reps;
     });
   }
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  Widget build(BuildContext context) {
+    final active = ref.watch(activeSessionProvider);
+    return active.when(
+      loading: () => const Scaffold(body: SizedBox.shrink()),
+      error: (_, _) =>
+          Scaffold(body: Center(child: Text(context.l10n.workoutInProgress))),
+      data: (result) =>
+          result.when(ok: _activeView, err: (_) => _startView(context)),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return switch (_phase) {
-      _WorkoutPhase.ready => _ReadyWorkout(onStart: _start),
-      _WorkoutPhase.active => _ActiveWorkout(
-        elapsed: _elapsed,
-        completedSets: _completedSets,
-        recordType: _recordType,
-        onRecordTypeChanged: (String value) =>
-            setState(() => _recordType = value),
-        onCompleteSet: _completeSet,
-        onEnd: _end,
+  Widget _startView(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(context.l10n.todayWorkout)),
+    body: Center(
+      child: FilledButton.icon(
+        onPressed: () async {
+          await ref.read(workoutSessionControllerProvider).startSession();
+          ref.invalidate(activeSessionProvider);
+        },
+        icon: const Icon(Icons.play_arrow),
+        label: Text(context.l10n.startWorkout),
       ),
-      _WorkoutPhase.complete => _CompleteWorkout(
-        elapsed: _elapsed,
-        sets: _completedSets.length,
-        onRestart: _restart,
-      ),
-    };
-  }
-}
+    ),
+  );
 
-enum _WorkoutPhase { ready, active, complete }
-
-class _ReadyWorkout extends StatelessWidget {
-  const _ReadyWorkout({required this.onStart});
-
-  final VoidCallback onStart;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = context.l10n;
+  Widget _activeView(WorkoutSession session) {
+    final sets = ref.watch(sessionSetsProvider(session.id));
+    final timer = ref.watch(restTimerProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(copy.todayWorkout)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: <Widget>[
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Icon(
-                    Icons.local_fire_department_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    copy.todayWorkout,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    copy.todayWorkoutDescription,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 28),
-                  TextFormField(
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: copy.memoOptional,
-                      hintText: copy.memoHint,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  FilledButton.icon(
-                    onPressed: onStart,
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: Text(copy.startWorkout),
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        actions: <Widget>[
+          TextButton(
+            onPressed: () async {
+              await ref
+                  .read(workoutSessionControllerProvider)
+                  .endSession(session.id);
+              ref.invalidate(activeSessionProvider);
+            },
+            child: Text(context.l10n.endWorkout),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ActiveWorkout extends StatelessWidget {
-  const _ActiveWorkout({
-    required this.elapsed,
-    required this.completedSets,
-    required this.recordType,
-    required this.onRecordTypeChanged,
-    required this.onCompleteSet,
-    required this.onEnd,
-  });
-
-  final Duration elapsed;
-  final List<int> completedSets;
-  final String recordType;
-  final ValueChanged<String> onRecordTypeChanged;
-  final VoidCallback onCompleteSet;
-  final VoidCallback onEnd;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(copy.workoutInProgress)),
-      body: SafeArea(
-        top: false,
-        child: Column(
+      body: sets.when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => const SizedBox.shrink(),
+        data: (items) => Column(
           children: <Widget>[
+            RestTimerBar(
+              state: timer,
+              onAdd: () => ref.read(restTimerProvider.notifier).addSeconds(),
+              onSkip: () => ref.read(restTimerProvider.notifier).skip(),
+            ),
             Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: <Widget>[
-                  Text(copy.workoutInProgress),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatElapsed(elapsed),
-                    style: Theme.of(context).textTheme.displaySmall,
+                  Expanded(
+                    child: Text(
+                      _exercise?.nameKo ?? context.l10n.selectExercise,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text('${copy.completedSets} ${completedSets.length}'),
-                  const SizedBox(height: 16),
-                  SegmentedButton<String>(
-                    segments: <ButtonSegment<String>>[
-                      ButtonSegment<String>(
-                        value: 'start',
-                        label: Text(copy.recordTypeStart),
-                      ),
-                      ButtonSegment<String>(
-                        value: 'middle',
-                        label: Text(copy.recordTypeMiddle),
-                      ),
-                      ButtonSegment<String>(
-                        value: 'end',
-                        label: Text(copy.recordTypeEnd),
-                      ),
-                    ],
-                    selected: <String>{recordType},
-                    onSelectionChanged: (Set<String> value) =>
-                        onRecordTypeChanged(value.first),
+                  OutlinedButton(
+                    onPressed: () => showExercisePickerSheet(
+                      context,
+                      (exercise) => _selectExercise(exercise, items),
+                    ),
+                    child: Text(context.l10n.selectExercise),
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: completedSets.isEmpty
-                  ? Center(child: Text(copy.todayWorkoutDescription))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: completedSets.length,
-                      itemBuilder: (BuildContext context, int index) => Card(
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.check_circle_rounded,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(copy.setItem(completedSets[index])),
-                          subtitle: Text(copy.sampleSetDetails),
-                        ),
-                      ),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  FilledButton.icon(
-                    onPressed: onCompleteSet,
-                    icon: const Icon(Icons.add_task_rounded),
-                    label: Text(copy.completeSet),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(copy.photoMockNotice)),
-                    ),
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    label: Text(copy.photo),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: onEnd,
-                    icon: const Icon(Icons.flag_rounded),
-                    label: Text(copy.endWorkout),
-                  ),
-                ],
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: items.length + (_exercise == null ? 0 : 1),
+                itemBuilder: (context, index) {
+                  if (index == items.length) {
+                    return SetRow(
+                      index: items
+                          .where((set) => set.exerciseId == _exercise!.id)
+                          .length,
+                      weight: _weight,
+                      reps: _reps,
+                      onWeightChanged: (value) =>
+                          setState(() => _weight = value),
+                      onRepsChanged: (value) => setState(() => _reps = value),
+                      onComplete: () async {
+                        await ref
+                            .read(workoutSessionControllerProvider)
+                            .completeDraft(
+                              sessionId: session.id,
+                              exerciseId: _exercise!.id,
+                              weight: _weight,
+                              reps: _reps,
+                            );
+                      },
+                    );
+                  }
+                  final set = items[index];
+                  return SetRow(
+                    index: set.setIndex,
+                    weight: set.weight,
+                    reps: set.reps,
+                    set: set,
+                    onWeightChanged: (_) {},
+                    onRepsChanged: (_) {},
+                    onComplete: () {},
+                    onDelete: () => _delete(set),
+                  );
+                },
               ),
             ),
           ],
@@ -245,99 +152,18 @@ class _ActiveWorkout extends StatelessWidget {
       ),
     );
   }
-}
 
-class _CompleteWorkout extends StatelessWidget {
-  const _CompleteWorkout({
-    required this.elapsed,
-    required this.sets,
-    required this.onRestart,
-  });
-
-  final Duration elapsed;
-  final int sets;
-  final VoidCallback onRestart;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = context.l10n;
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Icon(
-                      Icons.emoji_events_rounded,
-                      size: 52,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      copy.workoutComplete,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      copy.potentialAccumulated,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        _Summary(
-                          label: copy.totalTime,
-                          value: _formatElapsed(elapsed),
-                        ),
-                        _Summary(label: copy.setLogs, value: '$sets'),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: onRestart,
-                      child: Text(copy.startNewWorkout),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/home'),
-                      child: Text(copy.goHome),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+  void _delete(WorkoutSet set) {
+    ref.read(workoutSessionControllerProvider).deleteSet(set.id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.setDeleted),
+        action: SnackBarAction(
+          label: context.l10n.undo,
+          onPressed: () =>
+              ref.read(workoutSessionControllerProvider).restoreSet(set),
         ),
       ),
     );
   }
-}
-
-class _Summary extends StatelessWidget {
-  const _Summary({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Text(value, style: Theme.of(context).textTheme.titleLarge),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
-  }
-}
-
-String _formatElapsed(Duration elapsed) {
-  String twoDigits(int value) => value.toString().padLeft(2, '0');
-  return '${twoDigits(elapsed.inHours)}:${twoDigits(elapsed.inMinutes.remainder(60))}:${twoDigits(elapsed.inSeconds.remainder(60))}';
 }

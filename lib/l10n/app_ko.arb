@@ -118,5 +118,12 @@
   "sampleSetDetails": "60 kg · 10회",
   "sampleCurrentUser": "존",
   "sampleMemberMinsu": "민수",
-  "sampleMemberSeoyeon": "서연"
+  "sampleMemberSeoyeon": "서연",
+  "rest": "휴식",
+  "addSeconds": "+{seconds}초",
+  "@addSeconds": {"placeholders": {"seconds": {"type": "int"}}},
+  "skip": "건너뛰기",
+  "selectExercise": "종목 선택",
+  "setDeleted": "세트를 삭제했어요",
+  "undo": "실행 취소"
 }

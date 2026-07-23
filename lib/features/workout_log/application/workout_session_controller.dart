@@ -1,0 +1,84 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
+
+import '../../../core/error/result.dart';
+import '../../../core/error/failure.dart';
+import '../../../core/constants/workout.dart';
+import '../../../domain/entities/workout_set.dart';
+import '../../../domain/entities/workout_session.dart';
+import '../../../domain/repositories/workout_repository.dart';
+import 'rest_timer_controller.dart';
+import 'workout_providers.dart';
+
+part 'workout_session_controller.g.dart';
+
+/// Coordinates UI actions while keeping repository calls out of presentation.
+@riverpod
+WorkoutSessionController workoutSessionController(
+  WorkoutSessionControllerRef ref,
+) => WorkoutSessionController(ref.watch(workoutRepositoryProvider), ref);
+
+class WorkoutSessionController {
+  WorkoutSessionController(this._repository, this._ref);
+
+  final WorkoutRepository _repository;
+  final Ref _ref;
+
+  Future<Result<WorkoutSession, Failure>> startSession() =>
+      _repository.startSession();
+
+  Future<Result<WorkoutSession, Failure>> endSession(String sessionId) =>
+      _repository.endSession(sessionId);
+
+  Future<Result<WorkoutSet, Failure>> completeDraft({
+    required String sessionId,
+    required String exerciseId,
+    required double weight,
+    required int reps,
+    int restSeconds = 0,
+  }) async {
+    final added = await _repository.addSet(
+      sessionId: sessionId,
+      exerciseId: exerciseId,
+      weight: weight,
+      reps: reps,
+      restSeconds: restSeconds,
+    );
+    return added.when(
+      ok: (set) async {
+        final completed = await _repository.completeSet(set.id);
+        completed.when(
+          ok: (value) => _ref
+              .read(restTimerProvider.notifier)
+              .start(
+                value.restSeconds == 0
+                    ? kDefaultRestSeconds
+                    : value.restSeconds,
+              ),
+          err: (_) {},
+        );
+        return completed;
+      },
+      err: (failure) async => Err(failure),
+    );
+  }
+
+  Future<Result<void, Failure>> deleteSet(String setId) =>
+      _repository.deleteSet(setId);
+
+  Future<Result<WorkoutSet, Failure>> restoreSet(WorkoutSet set) =>
+      _repository.updateSet(set.copyWith(deletedAt: null));
+}
+
+/// Values used for the next set row, copied from the most recent set.
+SetPrefill prefillForExercise(Iterable<WorkoutSet> sets, String exerciseId) {
+  final matching = sets.where((set) => set.exerciseId == exerciseId);
+  final previous = matching.isEmpty ? null : matching.last;
+  return SetPrefill(previous?.weight ?? 0, previous?.reps ?? 0);
+}
+
+class SetPrefill {
+  const SetPrefill(this.weight, this.reps);
+  final double weight;
+  final int reps;
+}
