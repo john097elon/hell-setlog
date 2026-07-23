@@ -21,7 +21,6 @@ class WeeklyVolumeChart extends StatelessWidget {
       (double left, double right) => left > right ? left : right,
     );
     final colorScheme = Theme.of(context).colorScheme;
-    final labels = MaterialLocalizations.of(context);
 
     return SizedBox(
       height: 200,
@@ -51,10 +50,13 @@ class WeeklyVolumeChart extends StatelessWidget {
                   if (index < 0 || index >= dates.length) {
                     return const SizedBox.shrink();
                   }
+                  final date = dates[index];
                   return SideTitleWidget(
                     axisSide: meta.axisSide,
                     child: Text(
-                      labels.formatCompactDate(dates[index]),
+                      '${date.month}/${date.day}',
+                      maxLines: 1,
+                      softWrap: false,
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
                   );
