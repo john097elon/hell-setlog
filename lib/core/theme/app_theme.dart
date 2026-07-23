@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 ///
 /// 중립색은 순수 회색 대신 브랜드(레드) 쪽으로 아주 살짝 치우쳐 "선택된" 느낌을 준다.
 abstract final class AppColors {
-  // ── Primitive: 트루블랙 계열 중립(볼트 라임 대비 극대화) ──
-  static const _n0 = Color(0xFF0A0A0B); // 가장 어두운 배경(트루블랙)
-  static const _n1 = Color(0xFF141416); // 살짝 올라온 표면
-  static const _n2 = Color(0xFF1A1A1D); // 카드
-  static const _n3 = Color(0xFF2A2A2E); // 경계/구분선
-  static const _n4 = Color(0xFF3A3A40); // 강한 경계
+  // ── Primitive: Linear식 쿨 니어블랙 중립 ──
+  static const _n0 = Color(0xFF08090C); // 가장 어두운 배경
+  static const _n1 = Color(0xFF101116); // 살짝 올라온 표면
+  static const _n2 = Color(0xFF16171D); // 카드
+  static const _n3 = Color(0xFF23242C); // 경계/구분선(저대비)
+  static const _n4 = Color(0xFF33353F); // 강한 경계
 
-  // ── Primitive: 볼트 라임 액센트 램프 ──
-  static const _lime = Color(0xFFC6FF00);
-  static const _limeBright = Color(0xFFD7FF4D);
-  static const _limeDim = Color(0xFFA6D900);
+  // ── Primitive: Linear 인디고 액센트 램프 ──
+  static const _indigo = Color(0xFF6E79E8);
+  static const _indigoBright = Color(0xFF9AA2F2);
+  static const _indigoDim = Color(0xFF5561D6);
 
   // ── Primitive: 시맨틱 상태색(액센트와 분리) ──
-  static const _green = Color(0xFF34D399); // 성공/PR/증가(라임과 구분되는 틸)
-  static const _amber = Color(0xFFFFB340); // 경고/주의
+  static const _green = Color(0xFF3FB950); // 성공/PR/증가
+  static const _amber = Color(0xFFE3B341); // 경고/주의
 
   // ── Semantic (화면에서 이 이름들을 쓴다) ──
   /// 앱 최하단 배경.
@@ -36,17 +36,17 @@ abstract final class AppColors {
   /// 강조 경계선.
   static const borderStrong = _n4;
 
-  /// 주요 브랜드/액센트 색(볼트 라임).
-  static const brand = _lime;
+  /// 주요 브랜드/액센트 색(Linear 인디고).
+  static const brand = _indigo;
 
   /// 밝은 브랜드(호버/보조 강조).
-  static const brandLight = _limeBright;
+  static const brandLight = _indigoBright;
 
   /// 눌린/진한 브랜드.
-  static const brandDim = _limeDim;
+  static const brandDim = _indigoDim;
 
-  /// 액센트 위에 얹는 전경색(라임은 밝아서 검정 텍스트).
-  static const onBrand = Color(0xFF0A0A0B);
+  /// 액센트 위에 얹는 전경색(인디고는 어두워서 흰색 텍스트).
+  static const onBrand = Color(0xFFFFFFFF);
 
   /// 본문 주 텍스트.
   static const text = Color(0xFFF2F4F7);
