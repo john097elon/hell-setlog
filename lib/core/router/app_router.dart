@@ -8,11 +8,24 @@ import 'package:heal_setlog/features/party/presentation/party_page.dart';
 import 'package:heal_setlog/features/party/presentation/party_room_page.dart';
 import 'package:heal_setlog/features/app_shell/presentation/workout_tab_page.dart';
 import 'package:heal_setlog/features/routine/presentation/routine_editor_page.dart';
+import 'package:heal_setlog/features/routine/presentation/routine_detail_page.dart';
 import 'package:heal_setlog/features/routine/presentation/routine_list_page.dart';
+import 'package:heal_setlog/core/config/app_env.dart';
+import 'package:heal_setlog/core/supabase/supabase_init.dart';
 
 /// 애플리케이션 목업의 새 라우터 인스턴스를 생성한다.
 GoRouter createAppRouter() => GoRouter(
   initialLocation: '/login',
+  redirect: (context, state) {
+    if (!isSupabaseConfigured) return null;
+    final signedIn = supabaseClientOrNull?.auth.currentSession != null;
+    final isAuthRoute =
+        state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
+    if (!signedIn && !isAuthRoute) return '/login';
+    if (signedIn && isAuthRoute) return '/home';
+    return null;
+  },
   routes: <RouteBase>[
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(
@@ -34,6 +47,11 @@ GoRouter createAppRouter() => GoRouter(
         GoRoute(
           path: '/routines',
           builder: (context, state) => const RoutineListPage(),
+        ),
+        GoRoute(
+          path: '/routines/detail/:id',
+          builder: (context, state) =>
+              RoutineDetailPage(routineId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/routines/edit/:id',

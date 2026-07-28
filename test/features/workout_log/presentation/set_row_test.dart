@@ -53,6 +53,36 @@ void main() {
     expect(find.text('deleted'), findsOneWidget);
     expect(find.text('undo'), findsOneWidget);
   });
+
+  testWidgets('draft set calls callbacks when weight and reps are typed', (
+    tester,
+  ) async {
+    double? weight;
+    int? reps;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SetRow(
+            index: 0,
+            weight: 60,
+            reps: 10,
+            onWeightChanged: (value) => weight = value,
+            onRepsChanged: (value) => reps = value,
+            onComplete: _noop,
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byKey(const Key('set-weight-input')), '62.5');
+    await tester.enterText(find.byKey(const Key('set-reps-input')), '12');
+
+    expect(weight, 62.5);
+    expect(reps, 12);
+  });
 }
 
 void _noop() {}

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 
@@ -9,6 +11,7 @@ import '../../../domain/entities/workout_session.dart';
 import '../../../domain/repositories/workout_repository.dart';
 import 'rest_timer_controller.dart';
 import 'workout_providers.dart';
+import '../../../data/repositories/supabase_sync_repository.dart';
 
 part 'workout_session_controller.g.dart';
 
@@ -27,8 +30,14 @@ class WorkoutSessionController {
   Future<Result<WorkoutSession, Failure>> startSession() =>
       _repository.startSession();
 
-  Future<Result<WorkoutSession, Failure>> endSession(String sessionId) =>
-      _repository.endSession(sessionId);
+  Future<Result<WorkoutSession, Failure>> endSession(String sessionId) async {
+    final ended = await _repository.endSession(sessionId);
+    ended.when(
+      ok: (_) => unawaited(_ref.read(syncRepositoryProvider).pushAll()),
+      err: (_) {},
+    );
+    return ended;
+  }
 
   Future<Result<WorkoutSet, Failure>> completeDraft({
     required String sessionId,
