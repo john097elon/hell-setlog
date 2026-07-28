@@ -1,0 +1,242 @@
+<title>HealSetLog · 소셜 홈 (Apple 화이트)</title>
+<style>
+  :root{
+    --bg:#f5f5f7; --surface:#ffffff; --line:#e8e8ed; --hair:#f0f0f3;
+    --ink:#1d1d1f; --sub:#6e6e73; --faint:#a1a1a6;
+    --accent:#0071e3; --pr:#ff9f0a; --live:#ff2d55; --up:#34c759;
+    --r:22px;
+    --sf:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Malgun Gothic",sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#e3e3e8;font-family:var(--sf);
+    display:flex;gap:30px;flex-wrap:wrap;justify-content:center;align-items:flex-start;
+    padding:34px 16px;color:var(--ink);-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(120% 90% at 50% 0%,#eef0f4,#dcdce2);}
+  .col{display:flex;flex-direction:column;gap:11px;align-items:center;}
+  .col h4{color:#8a8a90;font-size:12px;font-weight:590;letter-spacing:.2px;}
+
+  .phone{width:344px;height:736px;background:var(--bg);border-radius:44px;
+    border:1px solid #d0d0d6;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 30px 80px -24px rgba(60,60,70,.5),0 4px 14px -6px rgba(0,0,0,.2);}
+  .status{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+    font-size:11px;font-weight:640;color:#1d1d1f;flex-shrink:0;}
+  .app{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg);}
+  .app::-webkit-scrollbar{display:none;}
+
+  .top{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 6px;}
+  .logo{font-size:21px;font-weight:730;letter-spacing:-.6px;}
+  .top-ic{display:flex;gap:16px;color:#1d1d1f;font-size:18px;}
+  .dot{position:relative;}
+  .dot::after{content:"";position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;
+    background:var(--live);border:2px solid var(--bg);}
+
+  .switch{display:flex;gap:8px;padding:6px 18px 12px;position:sticky;top:0;z-index:5;
+    background:linear-gradient(var(--bg) 78%,rgba(245,245,247,0));}
+  .sw{flex:1;text-align:center;padding:9px 0;font-size:14px;font-weight:600;color:var(--sub);
+    background:transparent;border-radius:12px;letter-spacing:-.2px;}
+  .sw.on{color:var(--ink);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04);}
+
+  .party-strip{margin:0 16px 14px;background:var(--surface);border:.5px solid rgba(0,0,0,.05);
+    border-radius:18px;padding:13px 15px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 2px 10px -4px rgba(0,0,0,.08);}
+  .party-strip .pi{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);
+    display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .party-strip .pt{flex:1;}
+  .party-strip .pn{font-size:14px;font-weight:680;letter-spacing:-.3px;}
+  .party-strip .pm{font-size:11.5px;color:var(--sub);margin-top:2px;}
+  .party-strip .prog{width:44px;text-align:right;}
+  .party-strip .prog b{font-size:15px;font-weight:730;color:var(--accent);letter-spacing:-.4px;}
+  .party-strip .prog span{display:block;font-size:9px;color:var(--faint);font-weight:600;margin-top:1px;}
+
+  .filters{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto;}
+  .filters::-webkit-scrollbar{display:none;}
+  .fchip{flex-shrink:0;background:var(--surface);border:.5px solid rgba(0,0,0,.06);border-radius:100px;
+    padding:8px 14px;font-size:12.5px;font-weight:590;color:var(--ink);display:flex;align-items:center;gap:5px;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .fchip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .fchip .car{font-size:9px;opacity:.6;}
+
+  /* ---- card ---- */
+  .post{background:var(--surface);border-radius:var(--r);margin:0 12px 14px;overflow:hidden;
+    border:.5px solid rgba(0,0,0,.05);box-shadow:0 4px 20px -8px rgba(30,30,40,.14);}
+  .p-head{display:flex;align-items:center;gap:11px;padding:13px 15px 11px;}
+  .p-ava{width:38px;height:38px;border-radius:50%;background:#eef0f3;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+  .p-ava.ring{padding:2px;background:linear-gradient(135deg,var(--live),var(--pr));}
+  .p-ava.ring i{width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;}
+  .p-name{font-size:14px;font-weight:640;letter-spacing:-.3px;}
+  .lv{display:inline-block;margin-left:6px;background:#eef1ff;color:#3355e0;font-size:9.5px;
+    font-weight:730;padding:2px 6px;border-radius:6px;vertical-align:1.5px;}
+  .p-sub{font-size:11.5px;color:var(--faint);margin-top:1px;font-weight:500;}
+  .p-follow{margin-left:auto;color:var(--accent);font-size:13px;font-weight:640;}
+  .p-more{margin-left:auto;color:var(--faint);font-size:18px;}
+
+  .media{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#e7e2dc,#d6d9de);}
+  .media.vid{aspect-ratio:9/12;background:linear-gradient(160deg,#dfe4ec,#cdd3dc);}
+  .media .bgemoji{font-size:100px;opacity:.4;}
+  .play{position:absolute;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.28);
+    backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 16px rgba(0,0,0,.15);}
+  .play::after{content:"";border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px;}
+  .m-tl{position:absolute;top:12px;left:12px;display:flex;gap:6px;}
+  .m-tr{position:absolute;top:12px;right:12px;display:flex;gap:6px;}
+  .m-live{background:var(--live);color:#fff;font-size:10px;font-weight:730;padding:4px 9px;border-radius:100px;letter-spacing:.3px;}
+  .m-dur{background:rgba(0,0,0,.4);backdrop-filter:blur(4px);color:#fff;font-size:10px;font-weight:640;padding:4px 8px;border-radius:100px;}
+  .m-loc{background:rgba(255,255,255,.75);backdrop-filter:blur(6px);color:#1d1d1f;font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:100px;}
+  .m-cnt{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);color:#fff;font-size:10px;font-weight:640;padding:3px 9px;border-radius:100px;}
+
+  .p-actions{display:flex;align-items:center;gap:18px;padding:12px 16px 8px;color:var(--ink);}
+  .p-actions .a{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:590;color:var(--ink);}
+  .p-actions .a.liked{color:var(--live);}
+  .p-actions svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;}
+  .p-actions .a.liked svg{fill:var(--live);}
+  .p-actions .save{margin-left:auto;color:var(--ink);}
+
+  /* workout summary strip */
+  .wstrip{margin:0 16px;background:var(--bg);border-radius:14px;padding:11px 14px;
+    display:flex;align-items:center;gap:16px;}
+  .wstrip .ws{display:flex;flex-direction:column;gap:2px;}
+  .wstrip .ws .k{font-size:10px;color:var(--faint);font-weight:600;letter-spacing:.1px;}
+  .wstrip .ws .v{font-size:16px;font-weight:730;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .wstrip .ws .v small{font-size:11px;font-weight:600;color:var(--sub);}
+  .wstrip .div{width:.5px;height:26px;background:rgba(0,0,0,.09);}
+  .wstrip .prtag{margin-left:auto;background:#fff5e6;color:#c77700;font-size:11px;font-weight:730;
+    padding:6px 10px;border-radius:9px;border:.5px solid rgba(255,159,10,.25);}
+  .wstrip .xp{margin-left:auto;color:var(--up);font-size:12px;font-weight:730;}
+
+  .p-cap{font-size:13px;color:#3a3a3c;padding:11px 16px 3px;line-height:1.5;letter-spacing:-.2px;}
+  .p-cap b{font-weight:640;color:var(--ink);}
+  .p-cap .xpin{color:var(--up);font-weight:730;}
+  .p-cmt{font-size:12px;color:var(--faint);padding:2px 16px 14px;font-weight:500;}
+
+  .nav{height:64px;background:rgba(255,255,255,.82);backdrop-filter:blur(20px) saturate(1.5);
+    border-top:.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-around;padding:0 8px;flex-shrink:0;}
+  .nav .n{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:9.5px;font-weight:560;}
+  .nav .n.on{color:var(--accent);}
+  .nav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;}
+  .nav .pl{width:48px;height:34px;background:var(--accent);border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 16px -4px rgba(0,113,227,.5);}
+  .nav .pl svg{width:23px;height:23px;stroke-width:2.4;}
+  .note{font-size:11.5px;color:#8a8a90;max-width:720px;text-align:center;line-height:1.7;font-weight:500;}
+</style>
+
+<div class="col">
+  <h4>① 내 파티 피드</h4>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>􀙇 􀖀 􀛨</span></div>
+    <div class="top"><div class="logo">HealSetLog</div><div class="top-ic"><span>􀊫</span><span class="dot">􀋚</span></div></div>
+    <div class="switch"><div class="sw on">내 파티</div><div class="sw">공개</div></div>
+    <div class="app">
+      <div class="party-strip"><div class="pi">⚡</div><div class="pt"><div class="pn">번개 레이더스</div><div class="pm">3/4명 운동 완료 · 오늘 +720 XP</div></div><div class="prog"><b>75%</b><span>미션</span></div></div>
+
+      <div class="post">
+        <div class="p-head"><div class="p-ava ring"><i>💪</i></div><div><div class="p-name">준혁<span class="lv">LV.31</span></div><div class="p-sub">방금 · 가슴</div></div><div class="p-more">􀍠</div></div>
+        <div class="media vid"><div class="bgemoji">🏋️</div><div class="play"></div>
+          <div class="m-tl"><span class="m-live">● LIVE</span></div><div class="m-tr"><span class="m-dur">0:18</span></div>
+        </div>
+        <div class="p-actions">
+          <span class="a liked"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg>128</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>14</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+          <span class="a save"><svg viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+        <div class="wstrip">
+          <div class="ws"><span class="k">볼륨</span><span class="v">6,240<small> kg</small></span></div>
+          <div class="div"></div>
+          <div class="ws"><span class="k">시간</span><span class="v">52<small>분</small></span></div>
+          <div class="prtag">🏆 인클라인 PR</div>
+        </div>
+        <div class="p-cap"><b>준혁</b> 오늘 벤치 80 찍음 🔥 <span class="xpin">+240 XP</span></div>
+        <div class="p-cmt">댓글 9개 모두 보기</div>
+      </div>
+
+      <div class="post">
+        <div class="p-head"><div class="p-ava">🏋️</div><div><div class="p-name">지민<span class="lv">LV.22</span></div><div class="p-sub">12분 전 · 하체</div></div><div class="p-more">􀍠</div></div>
+        <div class="media"><div class="bgemoji">🦵</div><div class="m-cnt">1/3</div></div>
+        <div class="p-actions">
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg>84</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>7</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+          <span class="a save"><svg viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+        <div class="wstrip">
+          <div class="ws"><span class="k">스쿼트</span><span class="v">100<small> kg×3</small></span></div>
+          <div class="prtag">🏆 스쿼트 PR</div>
+        </div>
+        <div class="p-cap"><b>지민</b> 하체day 계단이 무섭다 😵</div>
+        <div class="p-cmt" style="padding-bottom:14px;">댓글 3개 모두 보기</div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="n on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>홈</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg>탐색</div>
+      <div class="n"><div class="pl"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M15.5 20c0-2.4 1.4-3.8 3.5-3.8"/></svg>파티</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>프로필</div>
+    </div>
+  </div>
+</div>
+
+<div class="col">
+  <h4>② 공개 — 지역·종목 필터</h4>
+  <div class="phone">
+    <div class="status"><span>9:41</span><span>􀙇 􀖀 􀛨</span></div>
+    <div class="top"><div class="logo">HealSetLog</div><div class="top-ic"><span>􀊫</span><span class="dot">􀋚</span></div></div>
+    <div class="switch"><div class="sw">내 파티</div><div class="sw on">공개</div></div>
+    <div class="app">
+      <div class="filters">
+        <div class="fchip on">􀋡 강남구 <span class="car">􀆈</span></div>
+        <div class="fchip">종목 <span class="car">􀆈</span></div>
+        <div class="fchip">가슴</div>
+        <div class="fchip">등</div>
+        <div class="fchip">하체</div>
+      </div>
+
+      <div class="post">
+        <div class="p-head"><div class="p-ava">🔥</div><div><div class="p-name">헬창왕<span class="lv">LV.58</span></div><div class="p-sub">방금 · 가슴</div></div><span class="p-follow">팔로우</span></div>
+        <div class="media vid"><div class="bgemoji">💪</div><div class="play"></div>
+          <div class="m-tl"><span class="m-loc">􀋡 강남</span></div><div class="m-tr"><span class="m-dur">0:32</span></div>
+        </div>
+        <div class="p-actions">
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg>842</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>73</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+          <span class="a save"><svg viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+        <div class="wstrip">
+          <div class="ws"><span class="k">벤치</span><span class="v">120<small> kg×3</small></span></div>
+          <div class="div"></div>
+          <div class="ws"><span class="k">볼륨</span><span class="v">9,800<small> kg</small></span></div>
+          <div class="prtag">🏆 벤치 PR</div>
+        </div>
+        <div class="p-cap"><b>헬창왕</b> 강남 3대 500 모임 구합니다 💪</div>
+        <div class="p-cmt">댓글 41개 모두 보기</div>
+      </div>
+
+      <div class="post">
+        <div class="p-head"><div class="p-ava">👟</div><div><div class="p-name">수아<span class="lv">LV.27</span></div><div class="p-sub">8분 전 · 가슴</div></div><span class="p-follow">팔로우</span></div>
+        <div class="media"><div class="bgemoji">🔥</div><div class="m-tl"><span class="m-loc">􀋡 서초</span></div><div class="m-cnt">1/4</div></div>
+        <div class="p-actions">
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/></svg>219</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>21</span>
+          <span class="a"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+          <span class="a save"><svg viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        </div>
+        <div class="wstrip">
+          <div class="ws"><span class="k">체스트프레스</span><span class="v">50<small> kg×12</small></span></div>
+          <span class="xp">+180 XP</span>
+        </div>
+        <div class="p-cap"><b>수아</b> 가슴 파티원 모집 중 ~</div>
+        <div class="p-cmt" style="padding-bottom:14px;">댓글 12개 모두 보기</div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="n on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>홈</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg>탐색</div>
+      <div class="n"><div class="pl"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M15.5 20c0-2.4 1.4-3.8 3.5-3.8"/></svg>파티</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>프로필</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">Apple 화이트 — 밝은 배경(#F5F5F7), 카드형 포스트, 힘 뺀 하이라라키, 소프트 섀도우, SF 톤 타이포. 미디어 히어로 → 액션 → 운동 요약 → 캡션 구조 동일. 상단 세그먼트 스위처.</div>

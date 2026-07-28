@@ -1,95 +1,49 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heal_setlog/core/error/failure.dart';
-import 'package:heal_setlog/core/error/result.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
-import 'package:heal_setlog/domain/entities/routine.dart';
-import 'package:heal_setlog/domain/entities/workout_session.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/features/home/presentation/home_page.dart';
-import 'package:heal_setlog/features/routine/application/routine_providers.dart';
-import 'package:heal_setlog/features/stats/application/stats_providers.dart';
-import 'package:heal_setlog/features/workout_log/application/workout_providers.dart';
-import 'package:heal_setlog/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('renders weekly summary and workout CTA', (tester) async {
-    await _pumpHome(
-      tester,
-      weeklyVolume: Ok(<DateTime, double>{DateTime(2026, 1, 1): 1200}),
-    );
+  testWidgets('내 파티 피드가 기본으로 보인다', (tester) async {
+    await _pumpHome(tester);
 
-    expect(find.text('1200 kg'), findsOneWidget);
-    expect(find.text('운동 시작하기'), findsOneWidget);
+    expect(find.text('번개 레이더스'), findsOneWidget);
+    expect(find.text('준혁'), findsOneWidget);
   });
 
-  testWidgets('shows an indicator while data is loading', (tester) async {
-    final pending = Completer<Result<Map<DateTime, double>, Failure>>();
-    await _pumpHome(tester, weeklyVolumeFuture: pending.future);
+  testWidgets('공개 탭으로 전환하면 공개 게시물과 팔로우가 보인다', (tester) async {
+    await _pumpHome(tester);
 
-    expect(find.byIcon(Icons.hourglass_top_rounded), findsWidgets);
+    await tester.tap(find.text('공개'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('헬창왕'), findsOneWidget);
+    expect(find.text('팔로우'), findsWidgets);
+    expect(find.text('번개 레이더스'), findsNothing);
   });
 
-  testWidgets('renders routines from routinesProvider', (tester) async {
-    await _pumpHome(
-      tester,
-      routines: Ok(<Routine>[_routine('푸시 데이'), _routine('하체 데이')]),
-    );
+  testWidgets('공개 피드에서 종목 칩으로 필터링한다', (tester) async {
+    await _pumpHome(tester);
+    await tester.tap(find.text('공개'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('푸시 데이'), findsOneWidget);
-    expect(find.text('하체 데이'), findsOneWidget);
+    // 가슴 게시물 존재 → '등' 필터 선택 시 사라진다.
+    expect(find.text('헬창왕'), findsOneWidget);
+    await tester.tap(find.text('등'));
+    await tester.pumpAndSettle();
+    expect(find.text('헬창왕'), findsNothing);
   });
 }
 
-Future<void> _pumpHome(
-  WidgetTester tester, {
-  Result<Map<DateTime, double>, Failure>? weeklyVolume,
-  Future<Result<Map<DateTime, double>, Failure>>? weeklyVolumeFuture,
-  Result<List<Routine>, Failure>? routines,
-}) async {
+Future<void> _pumpHome(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: <Override>[
-        weeklyVolumeProvider().overrideWith(
-          (_) =>
-              weeklyVolumeFuture ??
-              Future.value(weeklyVolume ?? const Ok(<DateTime, double>{})),
-        ),
-        activeSessionProvider.overrideWith(
-          (_) async => Ok(
-            WorkoutSession(
-              id: 'complete',
-              userId: 'user',
-              startedAt: DateTime(2026),
-              endedAt: DateTime(2026),
-              updatedAt: DateTime(2026),
-            ),
-          ),
-        ),
-        routinesProvider.overrideWith(
-          (_) async => routines ?? const Ok(<Routine>[]),
-        ),
-      ],
       child: MaterialApp(
-        theme: buildAppTheme(),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
+        theme: themeFor(AppThemeId.appleWhite),
         home: const HomePage(),
       ),
     ),
   );
-  await tester.pump();
-  if (weeklyVolumeFuture == null) {
-    await tester.pumpAndSettle();
-  }
+  await tester.pumpAndSettle();
 }
-
-Routine _routine(String name) => Routine(
-  id: name,
-  name: name,
-  ownerId: 'user',
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);
