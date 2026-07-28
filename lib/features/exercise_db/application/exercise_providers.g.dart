@@ -43,7 +43,7 @@ final exerciseRepositoryProvider = FutureProvider<ExerciseRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ExerciseRepositoryRef = FutureProviderRef<ExerciseRepository>;
-String _$exerciseSearchHash() => r'b52f3db0df75cf786c0c6a03fe2e0e9ec6943673';
+String _$exerciseByIdHash() => r'ac4401f95677ade76a986682dee73ec63c46a743';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -65,6 +65,141 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// Loads the full exercise metadata used outside the exercise picker.
+///
+/// Copied from [exerciseById].
+@ProviderFor(exerciseById)
+const exerciseByIdProvider = ExerciseByIdFamily();
+
+/// Loads the full exercise metadata used outside the exercise picker.
+///
+/// Copied from [exerciseById].
+class ExerciseByIdFamily extends Family<AsyncValue<Result<Exercise, Failure>>> {
+  /// Loads the full exercise metadata used outside the exercise picker.
+  ///
+  /// Copied from [exerciseById].
+  const ExerciseByIdFamily();
+
+  /// Loads the full exercise metadata used outside the exercise picker.
+  ///
+  /// Copied from [exerciseById].
+  ExerciseByIdProvider call(String id) {
+    return ExerciseByIdProvider(id);
+  }
+
+  @override
+  ExerciseByIdProvider getProviderOverride(
+    covariant ExerciseByIdProvider provider,
+  ) {
+    return call(provider.id);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'exerciseByIdProvider';
+}
+
+/// Loads the full exercise metadata used outside the exercise picker.
+///
+/// Copied from [exerciseById].
+class ExerciseByIdProvider
+    extends AutoDisposeFutureProvider<Result<Exercise, Failure>> {
+  /// Loads the full exercise metadata used outside the exercise picker.
+  ///
+  /// Copied from [exerciseById].
+  ExerciseByIdProvider(String id)
+    : this._internal(
+        (ref) => exerciseById(ref as ExerciseByIdRef, id),
+        from: exerciseByIdProvider,
+        name: r'exerciseByIdProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$exerciseByIdHash,
+        dependencies: ExerciseByIdFamily._dependencies,
+        allTransitiveDependencies:
+            ExerciseByIdFamily._allTransitiveDependencies,
+        id: id,
+      );
+
+  ExerciseByIdProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.id,
+  }) : super.internal();
+
+  final String id;
+
+  @override
+  Override overrideWith(
+    FutureOr<Result<Exercise, Failure>> Function(ExerciseByIdRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ExerciseByIdProvider._internal(
+        (ref) => create(ref as ExerciseByIdRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        id: id,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Result<Exercise, Failure>> createElement() {
+    return _ExerciseByIdProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExerciseByIdProvider && other.id == id;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, id.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ExerciseByIdRef
+    on AutoDisposeFutureProviderRef<Result<Exercise, Failure>> {
+  /// The parameter `id` of this provider.
+  String get id;
+}
+
+class _ExerciseByIdProviderElement
+    extends AutoDisposeFutureProviderElement<Result<Exercise, Failure>>
+    with ExerciseByIdRef {
+  _ExerciseByIdProviderElement(super.provider);
+
+  @override
+  String get id => (origin as ExerciseByIdProvider).id;
+}
+
+String _$exerciseSearchHash() => r'b52f3db0df75cf786c0c6a03fe2e0e9ec6943673';
 
 abstract class _$ExerciseSearch
     extends BuildlessAutoDisposeAsyncNotifier<Result<List<Exercise>, Failure>> {

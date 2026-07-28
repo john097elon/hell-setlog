@@ -43,3 +43,13 @@ class ExerciseSearch extends _$ExerciseSearch {
     );
   }
 }
+
+/// Loads the full exercise metadata used outside the exercise picker.
+@riverpod
+Future<Result<Exercise, Failure>> exerciseById(
+  ExerciseByIdRef ref,
+  String id,
+) async {
+  final repository = await ref.watch(exerciseRepositoryProvider.future);
+  return repository.getById(id);
+}

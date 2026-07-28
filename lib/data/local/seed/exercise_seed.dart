@@ -3,6 +3,7 @@ import '../../../domain/entities/exercise.dart';
 const List<Exercise> exerciseSeed = [
   Exercise(
     id: '00000000-0000-4000-8000-000000000001',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000001.png',
     name: 'Bench Press',
     nameKo: '벤치 프레스',
     muscleGroup: MuscleGroup.chest,
@@ -10,6 +11,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000002',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000002.png',
     name: 'Incline Bench Press',
     nameKo: '인클라인 벤치 프레스',
     muscleGroup: MuscleGroup.chest,
@@ -17,6 +19,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000003',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000003.png',
     name: 'Dumbbell Press',
     nameKo: '덤벨 프레스',
     muscleGroup: MuscleGroup.chest,
@@ -24,6 +27,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000004',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000004.png',
     name: 'Chest Fly',
     nameKo: '체스트 플라이',
     muscleGroup: MuscleGroup.chest,
@@ -31,6 +35,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000005',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000005.png',
     name: 'Cable Crossover',
     nameKo: '케이블 크로스오버',
     muscleGroup: MuscleGroup.chest,
@@ -38,6 +43,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000006',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000006.png',
     name: 'Push Up',
     nameKo: '푸시업',
     muscleGroup: MuscleGroup.chest,
@@ -45,6 +51,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000007',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000007.png',
     name: 'Decline Bench Press',
     nameKo: '디클라인 벤치 프레스',
     muscleGroup: MuscleGroup.chest,
@@ -52,6 +59,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000008',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000008.png',
     name: 'Pec Deck',
     nameKo: '펙덱 플라이',
     muscleGroup: MuscleGroup.chest,
@@ -59,6 +67,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000009',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000009.png',
     name: 'Pull Up',
     nameKo: '풀업',
     muscleGroup: MuscleGroup.back,
@@ -66,6 +75,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000010',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000010.png',
     name: 'Barbell Row',
     nameKo: '바벨 로우',
     muscleGroup: MuscleGroup.back,
@@ -73,6 +83,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000011',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000011.png',
     name: 'Lat Pulldown',
     nameKo: '랫 풀다운',
     muscleGroup: MuscleGroup.back,
@@ -80,6 +91,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000012',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000012.png',
     name: 'Seated Cable Row',
     nameKo: '시티드 케이블 로우',
     muscleGroup: MuscleGroup.back,
@@ -87,6 +99,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000013',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000013.png',
     name: 'One Arm Dumbbell Row',
     nameKo: '원암 덤벨 로우',
     muscleGroup: MuscleGroup.back,
@@ -94,6 +107,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000014',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000014.png',
     name: 'T Bar Row',
     nameKo: '티바 로우',
     muscleGroup: MuscleGroup.back,
@@ -101,6 +115,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000015',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000015.png',
     name: 'Straight Arm Pulldown',
     nameKo: '스트레이트 암 풀다운',
     muscleGroup: MuscleGroup.back,
@@ -108,6 +123,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000016',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000016.png',
     name: 'Back Extension',
     nameKo: '백 익스텐션',
     muscleGroup: MuscleGroup.back,
@@ -115,6 +131,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000017',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000017.png',
     name: 'Overhead Press',
     nameKo: '오버헤드 프레스',
     muscleGroup: MuscleGroup.shoulders,
@@ -122,6 +139,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000018',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000018.png',
     name: 'Dumbbell Shoulder Press',
     nameKo: '덤벨 숄더 프레스',
     muscleGroup: MuscleGroup.shoulders,
@@ -129,6 +147,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000019',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000019.png',
     name: 'Lateral Raise',
     nameKo: '레터럴 레이즈',
     muscleGroup: MuscleGroup.shoulders,
@@ -136,6 +155,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000020',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000020.png',
     name: 'Front Raise',
     nameKo: '프론트 레이즈',
     muscleGroup: MuscleGroup.shoulders,
@@ -143,6 +163,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000021',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000021.png',
     name: 'Face Pull',
     nameKo: '페이스 풀',
     muscleGroup: MuscleGroup.shoulders,
@@ -150,6 +171,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000022',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000022.png',
     name: 'Reverse Pec Deck',
     nameKo: '리버스 펙덱',
     muscleGroup: MuscleGroup.shoulders,
@@ -157,6 +179,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000023',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000023.png',
     name: 'Arnold Press',
     nameKo: '아놀드 프레스',
     muscleGroup: MuscleGroup.shoulders,
@@ -164,6 +187,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000024',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000024.png',
     name: 'Upright Row',
     nameKo: '업라이트 로우',
     muscleGroup: MuscleGroup.shoulders,
@@ -171,6 +195,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000025',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000025.png',
     name: 'Back Squat',
     nameKo: '백 스쿼트',
     muscleGroup: MuscleGroup.legs,
@@ -178,6 +203,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000026',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000026.png',
     name: 'Front Squat',
     nameKo: '프론트 스쿼트',
     muscleGroup: MuscleGroup.legs,
@@ -185,6 +211,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000027',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000027.png',
     name: 'Leg Press',
     nameKo: '레그 프레스',
     muscleGroup: MuscleGroup.legs,
@@ -192,6 +219,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000028',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000028.png',
     name: 'Romanian Deadlift',
     nameKo: '루마니안 데드리프트',
     muscleGroup: MuscleGroup.legs,
@@ -199,6 +227,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000029',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000029.png',
     name: 'Leg Curl',
     nameKo: '레그 컬',
     muscleGroup: MuscleGroup.legs,
@@ -206,6 +235,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000030',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000030.png',
     name: 'Leg Extension',
     nameKo: '레그 익스텐션',
     muscleGroup: MuscleGroup.legs,
@@ -213,6 +243,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000031',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000031.png',
     name: 'Walking Lunge',
     nameKo: '워킹 런지',
     muscleGroup: MuscleGroup.legs,
@@ -220,6 +251,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000032',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000032.png',
     name: 'Calf Raise',
     nameKo: '카프 레이즈',
     muscleGroup: MuscleGroup.legs,
@@ -227,6 +259,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000033',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000033.png',
     name: 'Barbell Curl',
     nameKo: '바벨 컬',
     muscleGroup: MuscleGroup.arms,
@@ -234,6 +267,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000034',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000034.png',
     name: 'Dumbbell Curl',
     nameKo: '덤벨 컬',
     muscleGroup: MuscleGroup.arms,
@@ -241,6 +275,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000035',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000035.png',
     name: 'Hammer Curl',
     nameKo: '해머 컬',
     muscleGroup: MuscleGroup.arms,
@@ -248,6 +283,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000036',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000036.png',
     name: 'Triceps Pushdown',
     nameKo: '트라이셉스 푸시다운',
     muscleGroup: MuscleGroup.arms,
@@ -255,6 +291,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000037',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000037.png',
     name: 'Skull Crusher',
     nameKo: '스컬 크러셔',
     muscleGroup: MuscleGroup.arms,
@@ -262,6 +299,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000038',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000038.png',
     name: 'Dips',
     nameKo: '딥스',
     muscleGroup: MuscleGroup.arms,
@@ -269,6 +307,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000039',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000039.png',
     name: 'Cable Curl',
     nameKo: '케이블 컬',
     muscleGroup: MuscleGroup.arms,
@@ -276,6 +315,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000040',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000040.png',
     name: 'Crunch',
     nameKo: '크런치',
     muscleGroup: MuscleGroup.core,
@@ -283,6 +323,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000041',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000041.png',
     name: 'Plank',
     nameKo: '플랭크',
     muscleGroup: MuscleGroup.core,
@@ -290,6 +331,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000042',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000042.png',
     name: 'Hanging Leg Raise',
     nameKo: '행잉 레그 레이즈',
     muscleGroup: MuscleGroup.core,
@@ -297,6 +339,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000043',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000043.png',
     name: 'Cable Crunch',
     nameKo: '케이블 크런치',
     muscleGroup: MuscleGroup.core,
@@ -304,6 +347,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000044',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000044.png',
     name: 'Ab Wheel Rollout',
     nameKo: '앱 휠 롤아웃',
     muscleGroup: MuscleGroup.core,
@@ -311,6 +355,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000045',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000045.png',
     name: 'Russian Twist',
     nameKo: '러시안 트위스트',
     muscleGroup: MuscleGroup.core,
@@ -318,6 +363,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000046',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000046.png',
     name: 'Dead Bug',
     nameKo: '데드 버그',
     muscleGroup: MuscleGroup.core,
@@ -325,6 +371,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000047',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000047.png',
     name: 'Deadlift',
     nameKo: '데드리프트',
     muscleGroup: MuscleGroup.fullBody,
@@ -332,6 +379,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000048',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000048.png',
     name: 'Clean and Jerk',
     nameKo: '클린 앤 저크',
     muscleGroup: MuscleGroup.fullBody,
@@ -339,6 +387,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000049',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000049.png',
     name: 'Kettlebell Swing',
     nameKo: '케틀벨 스윙',
     muscleGroup: MuscleGroup.fullBody,
@@ -346,6 +395,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000050',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000050.png',
     name: 'Burpee',
     nameKo: '버피',
     muscleGroup: MuscleGroup.fullBody,
@@ -353,6 +403,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000051',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000051.png',
     name: 'Thruster',
     nameKo: '쓰러스터',
     muscleGroup: MuscleGroup.fullBody,
@@ -360,6 +411,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000052',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000052.png',
     name: 'Turkish Get Up',
     nameKo: '터키시 겟업',
     muscleGroup: MuscleGroup.fullBody,
@@ -367,6 +419,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000053',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000053.png',
     name: 'Battle Rope',
     nameKo: '배틀 로프',
     muscleGroup: MuscleGroup.fullBody,
@@ -374,6 +427,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000054',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000054.png',
     name: 'Farmer Carry',
     nameKo: '파머스 캐리',
     muscleGroup: MuscleGroup.other,
@@ -381,6 +435,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000055',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000055.png',
     name: 'Jump Rope',
     nameKo: '줄넘기',
     muscleGroup: MuscleGroup.other,
@@ -388,6 +443,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000056',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000056.png',
     name: 'Treadmill Run',
     nameKo: '트레드밀 달리기',
     muscleGroup: MuscleGroup.other,
@@ -395,6 +451,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000057',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000057.png',
     name: 'Stationary Bike',
     nameKo: '실내 자전거',
     muscleGroup: MuscleGroup.other,
@@ -402,6 +459,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000058',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000058.png',
     name: 'Rowing Machine',
     nameKo: '로잉 머신',
     muscleGroup: MuscleGroup.other,
@@ -409,6 +467,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000059',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000059.png',
     name: 'Band Pull Apart',
     nameKo: '밴드 풀어파트',
     muscleGroup: MuscleGroup.other,
@@ -416,6 +475,7 @@ const List<Exercise> exerciseSeed = [
   ),
   Exercise(
     id: '00000000-0000-4000-8000-000000000060',
+    thumbnailUrl: 'assets/exercise/00000000-0000-4000-8000-000000000060.png',
     name: 'Mobility Stretch',
     nameKo: '모빌리티 스트레칭',
     muscleGroup: MuscleGroup.other,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/exercise.dart';
 import '../../../exercise_db/application/exercise_providers.dart';
+import '../../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 
 Future<void> showExercisePickerSheet(
   BuildContext context,
@@ -53,8 +54,13 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return ListTile(
+                        leading: ExerciseThumbnail(
+                          equipment: item.equipment,
+                          thumbnailUrl: item.thumbnailUrl,
+                          size: 48,
+                        ),
                         title: Text(item.nameKo),
-                        subtitle: Text(item.name),
+                        subtitle: Text(equipmentLabelKo(item.equipment)),
                         onTap: () {
                           Navigator.pop(context);
                           widget.onSelected(item);
