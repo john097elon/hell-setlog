@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/router/app_router.dart';
+import 'package:heal_setlog/core/supabase/supabase_init.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/features/settings/application/theme_controller.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
 
 /// 헬셋로그 애플리케이션을 시작한다.
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await initSupabase();
+  } catch (_) {}
   runApp(const ProviderScope(child: HealSetLogApp()));
 }
 

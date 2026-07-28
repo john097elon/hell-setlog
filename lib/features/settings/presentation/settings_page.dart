@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:heal_setlog/core/config/app_env.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
@@ -10,6 +12,7 @@ import 'package:heal_setlog/features/settings/presentation/models/settings_view_
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_toggle.dart';
+import 'package:heal_setlog/features/auth/application/auth_service.dart';
 
 /// In-memory settings and profile mock shown from the profile tab.
 class SettingsPage extends ConsumerWidget {
@@ -22,6 +25,9 @@ class SettingsPage extends ConsumerWidget {
     final controller = ref.read(settingsControllerProvider.notifier);
     final selectedTheme = ref.watch(themeControllerProvider);
     final themeController = ref.read(themeControllerProvider.notifier);
+    final authService = ref.read(authServiceProvider);
+    final isSignedIn =
+        isSupabaseConfigured && authService.currentUserId != null;
     return Scaffold(
       appBar: AppBar(title: Text(copy.settingsTitle)),
       body: ListView(
@@ -148,11 +154,14 @@ class SettingsPage extends ConsumerWidget {
                     _showMockSheet(context, copy.settingsPrivacyPolicy),
               ),
               SettingRow(title: copy.settingsVersion, subtitle: 'v0.1.0'),
-              SettingRow(
-                title: copy.settingsLogout,
-                onTap: () =>
-                    _showSnackBar(context, copy.settingsLogoutMockMessage),
-              ),
+              if (isSignedIn)
+                SettingRow(
+                  title: copy.settingsLogout,
+                  onTap: () async {
+                    await authService.signOut();
+                    if (context.mounted) context.go('/login');
+                  },
+                ),
             ],
           ),
         ],

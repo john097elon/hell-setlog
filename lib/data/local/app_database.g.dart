@@ -84,6 +84,62 @@ class $ExercisesTable extends Exercises
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -93,6 +149,11 @@ class $ExercisesTable extends Exercises
     equipment,
     isCustom,
     thumbnailUrl,
+    userId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    syncStatus,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -161,6 +222,36 @@ class $ExercisesTable extends Exercises
         ),
       );
     }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
     return context;
   }
 
@@ -198,6 +289,26 @@ class $ExercisesTable extends Exercises
         DriftSqlType.string,
         data['${effectivePrefix}thumbnail_url'],
       ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sync_status'],
+      )!,
     );
   }
 
@@ -215,6 +326,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final int equipment;
   final bool isCustom;
   final String? thumbnailUrl;
+  final String? userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final int syncStatus;
   const Exercise({
     required this.id,
     required this.name,
@@ -223,6 +339,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     required this.equipment,
     required this.isCustom,
     this.thumbnailUrl,
+    this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.syncStatus,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -236,6 +357,15 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     if (!nullToAbsent || thumbnailUrl != null) {
       map['thumbnail_url'] = Variable<String>(thumbnailUrl);
     }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['sync_status'] = Variable<int>(syncStatus);
     return map;
   }
 
@@ -250,6 +380,15 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       thumbnailUrl: thumbnailUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(thumbnailUrl),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      syncStatus: Value(syncStatus),
     );
   }
 
@@ -266,6 +405,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       equipment: serializer.fromJson<int>(json['equipment']),
       isCustom: serializer.fromJson<bool>(json['isCustom']),
       thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
     );
   }
   @override
@@ -279,6 +423,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'equipment': serializer.toJson<int>(equipment),
       'isCustom': serializer.toJson<bool>(isCustom),
       'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'userId': serializer.toJson<String?>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'syncStatus': serializer.toJson<int>(syncStatus),
     };
   }
 
@@ -290,6 +439,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     int? equipment,
     bool? isCustom,
     Value<String?> thumbnailUrl = const Value.absent(),
+    Value<String?> userId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    int? syncStatus,
   }) => Exercise(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -298,6 +452,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     equipment: equipment ?? this.equipment,
     isCustom: isCustom ?? this.isCustom,
     thumbnailUrl: thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+    userId: userId.present ? userId.value : this.userId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    syncStatus: syncStatus ?? this.syncStatus,
   );
   Exercise copyWithCompanion(ExercisesCompanion data) {
     return Exercise(
@@ -312,6 +471,13 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       thumbnailUrl: data.thumbnailUrl.present
           ? data.thumbnailUrl.value
           : this.thumbnailUrl,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
     );
   }
 
@@ -324,7 +490,12 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('muscleGroup: $muscleGroup, ')
           ..write('equipment: $equipment, ')
           ..write('isCustom: $isCustom, ')
-          ..write('thumbnailUrl: $thumbnailUrl')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
@@ -338,6 +509,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     equipment,
     isCustom,
     thumbnailUrl,
+    userId,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    syncStatus,
   );
   @override
   bool operator ==(Object other) =>
@@ -349,7 +525,12 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.muscleGroup == this.muscleGroup &&
           other.equipment == this.equipment &&
           other.isCustom == this.isCustom &&
-          other.thumbnailUrl == this.thumbnailUrl);
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.syncStatus == this.syncStatus);
 }
 
 class ExercisesCompanion extends UpdateCompanion<Exercise> {
@@ -360,6 +541,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<int> equipment;
   final Value<bool> isCustom;
   final Value<String?> thumbnailUrl;
+  final Value<String?> userId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> syncStatus;
   final Value<int> rowid;
   const ExercisesCompanion({
     this.id = const Value.absent(),
@@ -369,6 +555,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.equipment = const Value.absent(),
     this.isCustom = const Value.absent(),
     this.thumbnailUrl = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExercisesCompanion.insert({
@@ -379,6 +570,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     required int equipment,
     this.isCustom = const Value.absent(),
     this.thumbnailUrl = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -393,6 +589,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<int>? equipment,
     Expression<bool>? isCustom,
     Expression<String>? thumbnailUrl,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? syncStatus,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -403,6 +604,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (equipment != null) 'equipment': equipment,
       if (isCustom != null) 'is_custom': isCustom,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -415,6 +621,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Value<int>? equipment,
     Value<bool>? isCustom,
     Value<String?>? thumbnailUrl,
+    Value<String?>? userId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? syncStatus,
     Value<int>? rowid,
   }) {
     return ExercisesCompanion(
@@ -425,6 +636,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       equipment: equipment ?? this.equipment,
       isCustom: isCustom ?? this.isCustom,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -453,6 +669,21 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (thumbnailUrl.present) {
       map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
     }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<int>(syncStatus.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -469,6 +700,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('equipment: $equipment, ')
           ..write('isCustom: $isCustom, ')
           ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3777,6 +4013,11 @@ typedef $$ExercisesTableCreateCompanionBuilder =
       required int equipment,
       Value<bool> isCustom,
       Value<String?> thumbnailUrl,
+      Value<String?> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> syncStatus,
       Value<int> rowid,
     });
 typedef $$ExercisesTableUpdateCompanionBuilder =
@@ -3788,6 +4029,11 @@ typedef $$ExercisesTableUpdateCompanionBuilder =
       Value<int> equipment,
       Value<bool> isCustom,
       Value<String?> thumbnailUrl,
+      Value<String?> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> syncStatus,
       Value<int> rowid,
     });
 
@@ -3832,6 +4078,31 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<String> get thumbnailUrl => $composableBuilder(
     column: $table.thumbnailUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3879,6 +4150,31 @@ class $$ExercisesTableOrderingComposer
     column: $table.thumbnailUrl,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ExercisesTableAnnotationComposer
@@ -3912,6 +4208,23 @@ class $$ExercisesTableAnnotationComposer
 
   GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
     column: $table.thumbnailUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
     builder: (column) => column,
   );
 }
@@ -3951,6 +4264,11 @@ class $$ExercisesTableTableManager
                 Value<int> equipment = const Value.absent(),
                 Value<bool> isCustom = const Value.absent(),
                 Value<String?> thumbnailUrl = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion(
                 id: id,
@@ -3960,6 +4278,11 @@ class $$ExercisesTableTableManager
                 equipment: equipment,
                 isCustom: isCustom,
                 thumbnailUrl: thumbnailUrl,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3971,6 +4294,11 @@ class $$ExercisesTableTableManager
                 required int equipment,
                 Value<bool> isCustom = const Value.absent(),
                 Value<String?> thumbnailUrl = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion.insert(
                 id: id,
@@ -3980,6 +4308,11 @@ class $$ExercisesTableTableManager
                 equipment: equipment,
                 isCustom: isCustom,
                 thumbnailUrl: thumbnailUrl,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

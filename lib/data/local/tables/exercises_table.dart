@@ -8,6 +8,11 @@ class Exercises extends Table {
   IntColumn get equipment => integer()();
   BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
   TextColumn get thumbnailUrl => text().nullable()();
+  TextColumn get userId => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  IntColumn get syncStatus => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
