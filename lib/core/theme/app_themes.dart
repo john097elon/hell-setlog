@@ -184,9 +184,7 @@ ThemeData _assemble({
     backgroundColor: t.surface,
     surfaceTintColor: Colors.transparent,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(AppRadius.lg),
-      ),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
     ),
   ),
   navigationBarTheme: NavigationBarThemeData(
@@ -198,10 +196,44 @@ ThemeData _assemble({
       textTheme.labelSmall?.copyWith(letterSpacing: 0.3),
     ),
   ),
+  // 탭/구분선/행: 화면마다 제각각이던 기본값을 토큰으로 통일한다.
+  tabBarTheme: TabBarThemeData(
+    labelColor: t.text,
+    unselectedLabelColor: t.mutedText,
+    labelStyle: textTheme.titleMedium,
+    unselectedLabelStyle: textTheme.titleMedium,
+    indicatorColor: t.brand,
+    indicatorSize: TabBarIndicatorSize.tab,
+    dividerColor: t.border,
+    overlayColor: WidgetStatePropertyAll(t.text.withValues(alpha: 0.04)),
+  ),
+  dividerTheme: DividerThemeData(color: t.border, space: 1, thickness: 1),
+  listTileTheme: ListTileThemeData(
+    iconColor: t.mutedText,
+    textColor: t.text,
+    titleTextStyle: textTheme.titleMedium,
+    subtitleTextStyle: textTheme.bodyMedium,
+    minVerticalPadding: 12,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(cardRadius * 0.6),
+    ),
+  ),
+  chipTheme: ChipThemeData(
+    backgroundColor: t.surface,
+    side: BorderSide(color: t.border),
+    labelStyle: textTheme.labelSmall?.copyWith(color: t.text),
+    shape: const StadiumBorder(),
+  ),
+  progressIndicatorTheme: ProgressIndicatorThemeData(
+    color: t.brand,
+    linearTrackColor: t.border,
+    circularTrackColor: t.border,
+  ),
 );
 
 // ── Apple 화이트: 라이트·소프트·여백·부드러운 그림자·경량 타이포·큰 모서리 ──
 ThemeData _appleWhite() {
+  // 블랙 섞은 애플: 화이트 베이스 + 잉크블랙 브랜드(CTA/선택). 컬러 pop 배제.
   const t = AppTokens(
     bg: Color(0xFFF5F5F7),
     surface: Color(0xFFFFFFFF),
@@ -210,13 +242,15 @@ ThemeData _appleWhite() {
     borderStrong: Color(0xFFC9C9CF),
     text: Color(0xFF1D1D1F),
     mutedText: Color(0xFF6E6E73),
-    faintText: Color(0xFFA1A1A6),
-    brand: Color(0xFF0071E3),
-    brandLight: Color(0xFF3D9BFF),
-    brandDim: Color(0xFF0060C0),
+    // WCAG AA(4.5:1) 충족값. 이전 #A1A1A6은 흰 배경에서 2.57로 미달이었다.
+    faintText: Color(0xFF767679),
+    brand: Color(0xFF1D1D1F),
+    brandLight: Color(0xFF3A3A3C),
+    brandDim: Color(0xFF000000),
     onBrand: Color(0xFFFFFFFF),
-    success: Color(0xFF34C759),
-    warning: Color(0xFFFF9500),
+    success: Color(0xFF1E7A34),
+    warning: Color(0xFFA85C00),
+    like: Color(0xFFD70036),
   );
   final scheme =
       ColorScheme.fromSeed(
@@ -258,13 +292,14 @@ ThemeData _nikeBlack() {
     borderStrong: Color(0xFF3A3A3A),
     text: Color(0xFFFFFFFF),
     mutedText: Color(0xFFA1A1A1),
-    faintText: Color(0xFF666666),
+    faintText: Color(0xFF7C7C7C),
     brand: Color(0xFFD7FF1E),
     brandLight: Color(0xFFE4FF66),
     brandDim: Color(0xFFB4D900),
     onBrand: Color(0xFF000000),
     success: Color(0xFF00E676),
     warning: Color(0xFFFFAB00),
+    like: Color(0xFFFF375F),
   );
   final scheme =
       ColorScheme.fromSeed(

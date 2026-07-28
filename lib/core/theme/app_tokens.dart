@@ -20,6 +20,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.onBrand,
     required this.success,
     required this.warning,
+    required this.like,
   });
 
   final Color bg;
@@ -37,6 +38,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final Color success;
   final Color warning;
 
+  /// 좋아요/라이브 등 강조 액션 색.
+  final Color like;
+
   @override
   AppTokens copyWith({
     Color? bg,
@@ -53,6 +57,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? onBrand,
     Color? success,
     Color? warning,
+    Color? like,
   }) => AppTokens(
     bg: bg ?? this.bg,
     surface: surface ?? this.surface,
@@ -68,6 +73,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     onBrand: onBrand ?? this.onBrand,
     success: success ?? this.success,
     warning: warning ?? this.warning,
+    like: like ?? this.like,
   );
 
   @override
@@ -88,6 +94,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       onBrand: Color.lerp(onBrand, other.onBrand, t)!,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      like: Color.lerp(like, other.like, t)!,
     );
   }
 }
@@ -111,5 +118,6 @@ extension AppTokensContext on BuildContext {
         onBrand: Color(0xFF000000),
         success: Color(0xFF00E676),
         warning: Color(0xFFFFAB00),
+        like: Color(0xFFFF2D55),
       );
 }

@@ -117,13 +117,13 @@ TextTheme _buildTextTheme() {
       letterSpacing: -0.2,
       color: c,
     ),
-    titleMedium: TextStyle(
-      fontSize: 15,
-      fontWeight: FontWeight.w600,
-      color: c,
-    ),
+    titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c),
     bodyLarge: TextStyle(fontSize: 15, height: 1.4, color: c),
-    bodyMedium: TextStyle(fontSize: 13.5, height: 1.4, color: AppColors.mutedText),
+    bodyMedium: TextStyle(
+      fontSize: 13.5,
+      height: 1.4,
+      color: AppColors.mutedText,
+    ),
     labelLarge: TextStyle(
       fontSize: 13,
       fontWeight: FontWeight.w700,
@@ -235,9 +235,7 @@ ThemeData buildAppTheme() {
               ? AppColors.brandLight
               : AppColors.mutedText,
         ),
-        side: const WidgetStatePropertyAll(
-          BorderSide(color: AppColors.border),
-        ),
+        side: const WidgetStatePropertyAll(BorderSide(color: AppColors.border)),
       ),
     ),
     snackBarTheme: const SnackBarThemeData(
