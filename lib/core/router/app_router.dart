@@ -12,6 +12,7 @@ import 'package:heal_setlog/features/routine/presentation/routine_editor_page.da
 import 'package:heal_setlog/features/routine/presentation/routine_detail_page.dart';
 import 'package:heal_setlog/features/routine/presentation/routine_list_page.dart';
 import 'package:heal_setlog/features/onboarding/presentation/onboarding_page.dart';
+import 'package:heal_setlog/features/notifications/presentation/notifications_page.dart';
 import 'package:heal_setlog/features/search/presentation/search_page.dart';
 import 'package:heal_setlog/core/config/app_env.dart';
 import 'package:heal_setlog/core/supabase/supabase_init.dart';
@@ -47,6 +48,10 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
           OnboardingPage(onDone: () => context.go('/login')),
     ),
     GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsPage(),
+    ),
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsPage(),

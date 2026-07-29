@@ -163,8 +163,9 @@ class SupabasePostRepository implements PostRepository {
   }) async {
     final client = _client;
     final userId = client?.auth.currentUser?.id;
-    if (client == null || userId == null)
+    if (client == null || userId == null) {
       return const Err(DatabaseFailure('로그인이 필요합니다'));
+    }
     try {
       final row = await client
           .from(table)
@@ -187,8 +188,9 @@ class SupabasePostRepository implements PostRepository {
   Future<Result<bool, Failure>> isFollowing(String userId) async {
     final client = _client;
     final me = client?.auth.currentUser?.id;
-    if (client == null || me == null)
+    if (client == null || me == null) {
       return const Err(DatabaseFailure('로그인이 필요합니다'));
+    }
     try {
       return Ok(
         await client
@@ -240,8 +242,9 @@ class SupabasePostRepository implements PostRepository {
   ) async {
     final client = _client;
     final userId = client?.auth.currentUser?.id;
-    if (client == null || userId == null)
+    if (client == null || userId == null) {
       return const Err(DatabaseFailure('로그인이 필요합니다'));
+    }
     try {
       final r = Map<String, Object?>.from(
         await client

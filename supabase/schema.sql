@@ -166,3 +166,23 @@ drop policy if exists "party read" on parties; drop policy if exists "party writ
 create policy "party read" on parties for select to authenticated using (is_public or public.is_party_member(id)); create policy "party write" on parties for all to authenticated using (auth.uid()=owner_id) with check(auth.uid()=owner_id);
 create policy "member read" on party_members for select to authenticated using (public.is_party_member(party_id)); create policy "member write" on party_members for insert to authenticated with check(auth.uid()=user_id); create policy "member leave" on party_members for delete to authenticated using(auth.uid()=user_id);
 create policy "message read" on party_messages for select to authenticated using(public.is_party_member(party_id)); create policy "message write" on party_messages for insert to authenticated with check(public.is_party_member(party_id) and auth.uid()=user_id);
+
+-- 알림
+create table if not exists notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  kind text not null,
+  actor_id uuid references auth.users(id) on delete cascade,
+  post_id uuid references posts(id) on delete cascade,
+  party_id uuid,
+  body text,
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+alter table notifications enable row level security;
+drop policy if exists "notifications own read" on notifications;
+create policy "notifications own read" on notifications for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "notifications own update" on notifications;
+create policy "notifications own update" on notifications for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "notifications insert" on notifications;
+create policy "notifications insert" on notifications for insert to authenticated with check (true);

@@ -10,6 +10,7 @@ import 'package:heal_setlog/features/feed/presentation/models/post_feed_mapper.d
 import 'package:heal_setlog/features/feed/presentation/models/sample_feed.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_controls.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.dart';
+import 'package:heal_setlog/features/notifications/application/notification_providers.dart';
 import 'package:heal_setlog/features/party/application/party_providers.dart';
 
 /// Social home. Party data stays mocked until party persistence is available.
@@ -186,12 +187,13 @@ class _FeedList extends StatelessWidget {
   );
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends ConsumerWidget {
   const _TopBar();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
+    final unread = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 8, 2),
       child: Row(
@@ -218,13 +220,26 @@ class _TopBar extends StatelessWidget {
           ),
           IconButton(
             tooltip: '알림',
-            onPressed: () => ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('알림은 준비 중입니다.'))),
-            icon: Icon(
-              Icons.notifications_none_rounded,
-              color: t.text,
-              size: 24,
+            onPressed: () => context.push('/notifications'),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                Icon(Icons.notifications_none_rounded, color: t.text, size: 24),
+                if (unread > 0)
+                  Positioned(
+                    top: -1,
+                    right: -1,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: t.like,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: t.bg, width: 1.5),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
