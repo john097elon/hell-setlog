@@ -141,3 +141,28 @@ create policy "follows own write" on follows for all to authenticated using (aut
 
 -- Create the `post-media` Storage bucket in the Supabase dashboard with public read,
 -- or insert it into storage.buckets and add owner-only upload/update/delete policies.
+
+alter table profiles add column if not exists avatar_url text;
+alter table profiles add column if not exists bio text;
+
+-- Profile avatars use the existing public-read `post-media` bucket at
+-- `<userId>/avatar/<uuid>.<ext>` and therefore use the existing owner write policy.
+create table if not exists post_comments (id uuid primary key default gen_random_uuid(), post_id uuid not null references posts(id) on delete cascade, user_id uuid not null references auth.users(id) on delete cascade, body text not null, created_at timestamptz not null default now());
+create table if not exists post_saves (post_id uuid not null references posts(id) on delete cascade, user_id uuid not null references auth.users(id) on delete cascade, created_at timestamptz not null default now(), primary key (post_id, user_id));
+alter table post_comments enable row level security;
+alter table post_saves enable row level security;
+drop policy if exists "comments authenticated read" on post_comments;
+drop policy if exists "comments own write" on post_comments;
+drop policy if exists "saves own rows" on post_saves;
+create policy "comments authenticated read" on post_comments for select to authenticated using (true);
+create policy "comments own write" on post_comments for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "saves own rows" on post_saves for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create table if not exists parties (id uuid primary key default gen_random_uuid(), owner_id uuid not null references auth.users(id) on delete cascade, name text not null, description text, region text, focus text, max_members int not null default 8, is_public boolean not null default true, join_code text unique, created_at timestamptz not null default now());
+create table if not exists party_members (party_id uuid not null references parties(id) on delete cascade,user_id uuid not null references auth.users(id) on delete cascade,role text not null default 'member',joined_at timestamptz not null default now(),primary key(party_id,user_id));
+create table if not exists party_messages (id uuid primary key default gen_random_uuid(),party_id uuid not null references parties(id) on delete cascade,user_id uuid not null references auth.users(id) on delete cascade,body text not null,created_at timestamptz not null default now());
+create or replace function public.is_party_member(p uuid) returns boolean language sql security definer stable set search_path = public as $$ select exists(select 1 from public.party_members where party_id=p and user_id=auth.uid()) $$;
+alter table parties enable row level security; alter table party_members enable row level security; alter table party_messages enable row level security;
+drop policy if exists "party read" on parties; drop policy if exists "party write" on parties; drop policy if exists "member read" on party_members; drop policy if exists "member write" on party_members; drop policy if exists "message read" on party_messages; drop policy if exists "message write" on party_messages;
+create policy "party read" on parties for select to authenticated using (is_public or public.is_party_member(id)); create policy "party write" on parties for all to authenticated using (auth.uid()=owner_id) with check(auth.uid()=owner_id);
+create policy "member read" on party_members for select to authenticated using (public.is_party_member(party_id)); create policy "member write" on party_members for insert to authenticated with check(auth.uid()=user_id); create policy "member leave" on party_members for delete to authenticated using(auth.uid()=user_id);
+create policy "message read" on party_messages for select to authenticated using(public.is_party_member(party_id)); create policy "message write" on party_messages for insert to authenticated with check(public.is_party_member(party_id) and auth.uid()=user_id);

@@ -1,0 +1,292 @@
+[
+  {
+    "name": "초보자 전신 루틴 A",
+    "description": "초보자를 위한 가슴, 등, 하체 기본 전신 루틴입니다.",
+    "level": "beginner",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000025",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000001",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000011",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000018",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000040",
+        "targetSets": 3,
+        "targetReps": 15,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "초보자 전신 루틴 B",
+    "description": "데드리프트와 머신을 활용한 전신 루틴입니다.",
+    "level": "beginner",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000028",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000003",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000012",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000019",
+        "targetSets": 3,
+        "targetReps": 15,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000041",
+        "targetSets": 3,
+        "targetReps": 60,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "상체 집중 분할 루틴",
+    "description": "가슴, 등, 어깨, 팔을 균형 있게 다루는 상체 루틴입니다.",
+    "level": "intermediate",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000001",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000010",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000017",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000004",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000033",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000036",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "하체 집중 분할 루틴",
+    "description": "대퇴사두, 햄스트링, 둔근을 종합 발달시키는 하체 루틴입니다.",
+    "level": "intermediate",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000025",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000027",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000029",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000030",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000031",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "3분할 - 가슴 및 삼두",
+    "description": "밀기 동작 중심의 가슴 및 삼두 타격 루틴입니다.",
+    "level": "intermediate",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000001",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000002",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000004",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000036",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000038",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "3분할 - 등 및 이두",
+    "description": "당기기 동작 중심의 등 및 이두 강화 루틴입니다.",
+    "level": "intermediate",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000009",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000010",
+        "targetSets": 4,
+        "targetReps": 8,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000011",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000033",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000034",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "홈트레이닝 맨몸 전신 루틴",
+    "description": "기구 없이 자체 체중으로 전신을 단련하는 홈트 루틴입니다.",
+    "level": "beginner",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000006",
+        "targetSets": 4,
+        "targetReps": 15,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000050",
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000040",
+        "targetSets": 3,
+        "targetReps": 20,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000041",
+        "targetSets": 3,
+        "targetReps": 60,
+        "targetWeight": 0
+      }
+    ]
+  },
+  {
+    "name": "심폐 및 유산소 강화 루틴",
+    "description": "유산소 기구를 활용해 체지방 감소와 심폐력을 높이는 루틴입니다.",
+    "level": "beginner",
+    "items": [
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000056",
+        "targetSets": 1,
+        "targetReps": 20,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000058",
+        "targetSets": 1,
+        "targetReps": 15,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000057",
+        "targetSets": 1,
+        "targetReps": 20,
+        "targetWeight": 0
+      },
+      {
+        "exerciseId": "00000000-0000-4000-8000-000000000050",
+        "targetSets": 3,
+        "targetReps": 10,
+        "targetWeight": 0
+      }
+    ]
+  }
+]

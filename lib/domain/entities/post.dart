@@ -18,6 +18,11 @@ class Post {
     this.prLabel,
     this.xp,
     this.authorName,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.likedByMe = false,
+    this.savedByMe = false,
+    this.authorAvatarUrl,
   });
 
   final String id;
@@ -34,4 +39,9 @@ class Post {
   final int? xp;
   final DateTime createdAt;
   final String? authorName;
+  final int likeCount;
+  final int commentCount;
+  final bool likedByMe;
+  final bool savedByMe;
+  final String? authorAvatarUrl;
 }

@@ -45,6 +45,11 @@ flutter:
   assets:
     - assets/character/
     - assets/exercise/
+    - assets/help_faq.json
+    - assets/routine_presets.json
+    - assets/party_presets.json
+    - assets/onboarding.json
+    - assets/exercise_guide.json
 
 flutter_launcher_icons:
   android: true

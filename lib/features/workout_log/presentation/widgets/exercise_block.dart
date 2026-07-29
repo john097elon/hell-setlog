@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../domain/entities/exercise.dart';
+import '../../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 import 'set_table_header.dart';
 
 class ExerciseBlock extends StatelessWidget {
   const ExerciseBlock({
     required this.name,
+    required this.exerciseId,
+    required this.equipment,
+    this.thumbnailUrl,
     required this.setRows,
     required this.onAddSet,
     super.key,
   });
 
   final String name;
+  final String exerciseId;
+  final Equipment equipment;
+  final String? thumbnailUrl;
   final List<Widget> setRows;
   final VoidCallback onAddSet;
 
@@ -24,7 +32,22 @@ class ExerciseBlock extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Text(name, style: Theme.of(context).textTheme.titleMedium),
+            child: Row(
+              children: <Widget>[
+                ExerciseThumbnail(
+                  equipment: equipment,
+                  thumbnailUrl: thumbnailUrl,
+                  size: 36,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SetTableHeader(),
           ...setRows,

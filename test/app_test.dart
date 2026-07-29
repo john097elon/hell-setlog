@@ -5,12 +5,12 @@ import 'package:heal_setlog/core/router/app_router.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/features/app_shell/presentation/workout_tab_page.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
-import 'package:heal_setlog/main.dart' as app;
+import 'package:heal_setlog/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('renders the app inside a Riverpod scope', (tester) async {
-    app.main();
-    await tester.pump();
+    await _pumpApp(tester);
 
     expect(find.byType(ProviderScope), findsOneWidget);
     expect(find.byType(MaterialApp), findsOneWidget);
@@ -18,8 +18,7 @@ void main() {
   });
 
   testWidgets('opens the home shell after mock login', (tester) async {
-    app.main();
-    await tester.pump();
+    await _pumpApp(tester);
     await _login(tester);
 
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -27,8 +26,7 @@ void main() {
   });
 
   testWidgets('opens the party tab with the three-tab mock', (tester) async {
-    app.main();
-    await tester.pump();
+    await _pumpApp(tester);
     await _login(tester);
 
     await tester.tap(find.byIcon(Icons.groups_outlined));
@@ -69,6 +67,14 @@ void main() {
     await tester.pump();
     expect(find.byType(SegmentedButton<int>), findsOneWidget);
   });
+}
+
+Future<void> _pumpApp(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues(<String, Object>{
+    'onboarding_done': true,
+  });
+  await tester.pumpWidget(const ProviderScope(child: HealSetLogApp()));
+  await tester.pump();
 }
 
 Future<void> _login(WidgetTester tester) async {

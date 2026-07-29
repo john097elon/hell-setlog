@@ -39,6 +39,8 @@ class StatsDao extends DatabaseAccessor<AppDatabase> with _$StatsDaoMixin {
     workoutSets,
   )..where((set) => set.sessionId.equals(sessionId))).get();
 
+  Future<List<WorkoutSet>> allSets() => select(workoutSets).get();
+
   Future<List<Exercise>> exercisesForIds(Iterable<String> exerciseIds) {
     final ids = exerciseIds.toList();
     if (ids.isEmpty) return Future.value(const []);

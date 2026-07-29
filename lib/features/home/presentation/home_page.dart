@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/core/widgets/app_states.dart';
 import 'package:heal_setlog/features/compose/presentation/capture_flow.dart';
@@ -9,6 +10,7 @@ import 'package:heal_setlog/features/feed/presentation/models/post_feed_mapper.d
 import 'package:heal_setlog/features/feed/presentation/models/sample_feed.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_controls.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.dart';
+import 'package:heal_setlog/features/party/application/party_providers.dart';
 
 /// Social home. Party data stays mocked until party persistence is available.
 class HomePage extends ConsumerStatefulWidget {
@@ -38,10 +40,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             Expanded(
               child: _scope == FeedScope.party
-                  ? const _FeedList(
-                      posts: kPartyFeed,
-                      header: PartyStrip(party: kSampleParty),
-                    )
+                  ? const _PartyFeed()
                   : _PublicFeed(
                       filters: _filters,
                       onPartSelected: (part) => setState(
@@ -56,6 +55,62 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ),
     );
+  }
+}
+
+/// 내가 속한 첫 파티의 기록을 보여준다. 파티가 없으면 참여를 안내한다.
+class _PartyFeed extends ConsumerWidget {
+  const _PartyFeed();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final parties = ref.watch(myPartiesProvider);
+    final party = parties.valueOrNull?.firstOrNull;
+    if (parties.isLoading) return const AppLoading();
+    if (party == null) {
+      return const _FeedList(
+        posts: kPartyFeed,
+        header: PartyStrip(party: kSampleParty),
+      );
+    }
+    return ref
+        .watch(partyFeedProvider(party.id))
+        .when(
+          loading: () => const AppLoading(),
+          error: (_, _) => const _FeedList(
+            posts: kPartyFeed,
+            header: PartyStrip(party: kSampleParty),
+          ),
+          data: (posts) {
+            final header = PartyStrip(
+              party: PartySummary(
+                name: party.name,
+                doneCount: posts.length,
+                totalCount: party.memberCount,
+                todayXp: 0,
+                missionPercent: 0,
+              ),
+            );
+            if (posts.isEmpty) {
+              return Column(
+                children: <Widget>[
+                  header,
+                  const Expanded(
+                    child: AppEmptyState(
+                      icon: Icons.groups_outlined,
+                      title: '아직 파티원의 기록이 없습니다',
+                      message: '첫 기록을 남겨 파티원들에게 알려보세요.',
+                    ),
+                  ),
+                ],
+              );
+            }
+            return _FeedList(
+              posts: posts.map(feedPostFromPost).toList(growable: false),
+              header: header,
+            );
+          },
+        );
   }
 }
 
@@ -153,7 +208,7 @@ class _TopBar extends StatelessWidget {
           const Spacer(),
           IconButton(
             tooltip: '검색',
-            onPressed: () {},
+            onPressed: () => context.push('/search'),
             icon: Icon(Icons.search_rounded, color: t.text, size: 24),
           ),
           IconButton(
@@ -163,40 +218,17 @@ class _TopBar extends StatelessWidget {
           ),
           IconButton(
             tooltip: '알림',
-            onPressed: () {},
-            icon: _BellWithDot(color: t.text),
+            onPressed: () => ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('알림은 준비 중입니다.'))),
+            icon: Icon(
+              Icons.notifications_none_rounded,
+              color: t.text,
+              size: 24,
+            ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BellWithDot extends StatelessWidget {
-  const _BellWithDot({required this.color});
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: <Widget>[
-        Icon(Icons.notifications_none_rounded, color: color, size: 24),
-        Positioned(
-          top: -1,
-          right: -1,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: t.like,
-              shape: BoxShape.circle,
-              border: Border.all(color: t.bg, width: 1.5),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

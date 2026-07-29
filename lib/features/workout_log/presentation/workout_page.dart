@@ -12,6 +12,7 @@ import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
 import '../../routine/application/routine_providers.dart';
 import '../../stats/application/stats_providers.dart';
+import '../../exercise_db/application/exercise_providers.dart';
 import '../application/exercise_name_provider.dart';
 import '../application/rest_timer_controller.dart';
 import '../application/workout_providers.dart';
@@ -35,6 +36,7 @@ class WorkoutPage extends ConsumerStatefulWidget {
 
 class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   final Map<String, String> _selectedExerciseNames = <String, String>{};
+  final Map<String, Exercise> _selectedExercises = <String, Exercise>{};
   final Map<String, int> _extraDrafts = <String, int>{};
   final Map<String, _SetDraft> _drafts = <String, _SetDraft>{};
 
@@ -177,11 +179,20 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
             _selectedExerciseNames[entry.key] ??
             ref.watch(exerciseNameProvider(entry.key)).valueOrNull;
         if (name == null) return const SizedBox.shrink();
+        final selected = _selectedExercises[entry.key];
+        final metadata = ref
+            .watch(exerciseByIdProvider(entry.key))
+            .valueOrNull
+            ?.when(ok: (value) => value, err: (_) => null);
+        final exercise = selected ?? metadata;
         return Padding(
           padding: const EdgeInsets.only(top: 12),
           child: ExerciseBlock(
             key: Key('exercise-block-${entry.key}'),
             name: name,
+            exerciseId: entry.key,
+            equipment: exercise?.equipment ?? Equipment.other,
+            thumbnailUrl: exercise?.thumbnailUrl,
             setRows: _rowsFor(session, entry.key, entry.value),
             onAddSet: () => setState(() {
               _extraDrafts.update(
@@ -241,6 +252,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   void _pickExercise(List<WorkoutSet> sets) =>
       showExercisePickerSheet(context, (Exercise exercise) {
         _selectedExerciseNames[exercise.id] = exercise.nameKo;
+        _selectedExercises[exercise.id] = exercise;
         final prefill = prefillForExercise(sets, exercise.id);
         _drafts['${exercise.id}-0'] = _SetDraft(prefill.weight, prefill.reps);
         // 종목 추가 시 기록할 첫 세트 한 줄을 보여준다.

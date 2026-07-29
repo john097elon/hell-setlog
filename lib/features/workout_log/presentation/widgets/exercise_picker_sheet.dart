@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../domain/entities/exercise.dart';
 import '../../../exercise_db/application/exercise_providers.dart';
+import '../../../exercise_db/presentation/exercise_detail_page.dart';
 import '../../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 
 Future<void> showExercisePickerSheet(
@@ -61,6 +62,20 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                         ),
                         title: Text(item.nameKo),
                         subtitle: Text(equipmentLabelKo(item.equipment)),
+                        trailing: Semantics(
+                          button: true,
+                          label: '${item.nameKo} 정보',
+                          child: IconButton(
+                            tooltip: '${item.nameKo} 정보',
+                            icon: const Icon(Icons.info_outline),
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    ExerciseDetailPage(exerciseId: item.id),
+                              ),
+                            ),
+                          ),
+                        ),
                         onTap: () {
                           Navigator.pop(context);
                           widget.onSelected(item);

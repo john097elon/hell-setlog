@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/post.dart';
+import '../../domain/entities/post_comment.dart';
 import '../../domain/repositories/post_repository.dart';
 
 /// Supabase-backed public post repository. It is safe to use in local mode.
@@ -143,6 +144,124 @@ class SupabasePostRepository implements PostRepository {
       return const Ok(null);
     } on Exception catch (error) {
       return Err(DatabaseFailure('좋아요를 변경하지 못했습니다: $error'));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> toggleSave(String postId) =>
+      _toggle('post_saves', 'post_id', postId);
+
+  @override
+  Future<Result<void, Failure>> toggleFollow(String userId) =>
+      _toggle('follows', 'following_id', userId, ownerKey: 'follower_id');
+
+  Future<Result<void, Failure>> _toggle(
+    String table,
+    String key,
+    String value, {
+    String ownerKey = 'user_id',
+  }) async {
+    final client = _client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null)
+      return const Err(DatabaseFailure('로그인이 필요합니다'));
+    try {
+      final row = await client
+          .from(table)
+          .select(key)
+          .eq(key, value)
+          .eq(ownerKey, userId)
+          .maybeSingle();
+      if (row == null) {
+        await client.from(table).insert({key: value, ownerKey: userId});
+      } else {
+        await client.from(table).delete().eq(key, value).eq(ownerKey, userId);
+      }
+      return const Ok(null);
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
+    }
+  }
+
+  @override
+  Future<Result<bool, Failure>> isFollowing(String userId) async {
+    final client = _client;
+    final me = client?.auth.currentUser?.id;
+    if (client == null || me == null)
+      return const Err(DatabaseFailure('로그인이 필요합니다'));
+    try {
+      return Ok(
+        await client
+                .from('follows')
+                .select('following_id')
+                .eq('follower_id', me)
+                .eq('following_id', userId)
+                .maybeSingle() !=
+            null,
+      );
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
+    }
+  }
+
+  @override
+  Future<Result<List<PostComment>, Failure>> fetchComments(
+    String postId,
+  ) async {
+    final client = _client;
+    if (client == null) return const Ok(<PostComment>[]);
+    try {
+      final rows = await client
+          .from('post_comments')
+          .select()
+          .eq('post_id', postId)
+          .order('created_at');
+      return Ok(
+        (rows as List).map((r) {
+          final m = Map<String, Object?>.from(r as Map);
+          return PostComment(
+            id: m['id'] as String,
+            postId: postId,
+            userId: m['user_id'] as String,
+            body: m['body'] as String,
+            createdAt: DateTime.parse(m['created_at'] as String),
+          );
+        }).toList(),
+      );
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
+    }
+  }
+
+  @override
+  Future<Result<PostComment, Failure>> addComment(
+    String postId,
+    String body,
+  ) async {
+    final client = _client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null)
+      return const Err(DatabaseFailure('로그인이 필요합니다'));
+    try {
+      final r = Map<String, Object?>.from(
+        await client
+                .from('post_comments')
+                .insert({'post_id': postId, 'user_id': userId, 'body': body})
+                .select()
+                .single()
+            as Map,
+      );
+      return Ok(
+        PostComment(
+          id: r['id'] as String,
+          postId: postId,
+          userId: userId,
+          body: body,
+          createdAt: DateTime.parse(r['created_at'] as String),
+        ),
+      );
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
     }
   }
 

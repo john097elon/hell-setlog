@@ -7,6 +7,7 @@ import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/post.dart';
+import 'package:heal_setlog/domain/entities/post_comment.dart';
 import 'package:heal_setlog/domain/repositories/post_repository.dart';
 import 'package:heal_setlog/features/auth/application/auth_service.dart';
 import 'package:heal_setlog/features/compose/presentation/capture_flow.dart';
@@ -99,4 +100,35 @@ class _SuccessPostRepository implements PostRepository {
   @override
   Future<Result<void, Failure>> toggleLike(String postId) async =>
       const Ok(null);
+
+  @override
+  Future<Result<void, Failure>> toggleSave(String postId) async =>
+      const Ok(null);
+
+  @override
+  Future<Result<List<PostComment>, Failure>> fetchComments(
+    String postId,
+  ) async => const Ok(<PostComment>[]);
+
+  @override
+  Future<Result<PostComment, Failure>> addComment(
+    String postId,
+    String body,
+  ) async => Ok(
+    PostComment(
+      id: 'comment-1',
+      postId: postId,
+      userId: 'user-1',
+      body: body,
+      createdAt: DateTime.now(),
+    ),
+  );
+
+  @override
+  Future<Result<void, Failure>> toggleFollow(String userId) async =>
+      const Ok(null);
+
+  @override
+  Future<Result<bool, Failure>> isFollowing(String userId) async =>
+      const Ok(false);
 }
