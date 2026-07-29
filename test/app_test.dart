@@ -32,7 +32,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.groups_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('RANDOM MATCH'), findsOneWidget);
+    expect(find.text('내 파티'), findsWidgets);
     expect(find.text('탐색'), findsOneWidget);
     expect(find.text('채팅'), findsOneWidget);
   });
