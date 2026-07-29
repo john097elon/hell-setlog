@@ -57,7 +57,10 @@ void main() {
       ),
     );
     await ok(repo.deleteRoutine(r.id));
-    expect((await ok(repo.getRoutines())).map((e) => e.id), isNot(contains(r.id)));
+    expect(
+      (await ok(repo.getRoutines())).map((e) => e.id),
+      isNot(contains(r.id)),
+    );
     expect(await ok(repo.getItems(r.id)), isEmpty);
   });
 

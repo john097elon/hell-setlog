@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
+import 'package:heal_setlog/core/widgets/app_states.dart';
 import 'package:heal_setlog/features/compose/presentation/capture_flow.dart';
+import 'package:heal_setlog/features/feed/application/post_providers.dart';
 import 'package:heal_setlog/features/feed/presentation/models/feed_post.dart';
+import 'package:heal_setlog/features/feed/presentation/models/post_feed_mapper.dart';
 import 'package:heal_setlog/features/feed/presentation/models/sample_feed.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_controls.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.dart';
 
-/// 소셜 홈. 내 파티 피드(기본) ↔ 지역·종목 필터 공개 피드.
+/// Social home. Party data stays mocked until party persistence is available.
 class HomePage extends ConsumerStatefulWidget {
-  /// 홈 화면을 생성한다.
   const HomePage({super.key});
 
   @override
@@ -23,7 +25,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final posts = _visiblePosts();
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
@@ -33,49 +34,101 @@ class _HomePageState extends ConsumerState<HomePage> {
             const _TopBar(),
             FeedSwitcher(
               scope: _scope,
-              onChanged: (s) => setState(() => _scope = s),
+              onChanged: (scope) => setState(() => _scope = scope),
             ),
             Expanded(
-              // 피드는 길어질 수 있어 지연 빌드(ListView.builder). 0번은 헤더 슬롯.
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 2, bottom: 24),
-                itemCount: posts.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _scope == FeedScope.party
-                        ? const PartyStrip(party: kSampleParty)
-                        : PublicFilters(
-                            filters: _filters,
-                            onPartySelected: (p) => setState(
-                              () => _filters = _filters.copyWith(
-                                bodyPart: p,
-                                clearPart: p == null,
-                              ),
-                            ),
-                          );
-                  }
-                  final post = posts[index - 1];
-                  return FeedPostCard(
-                    key: ValueKey<String>(
-                      '${post.author.name}-${post.timeLabel}',
+              child: _scope == FeedScope.party
+                  ? const _FeedList(
+                      posts: kPartyFeed,
+                      header: PartyStrip(party: kSampleParty),
+                    )
+                  : _PublicFeed(
+                      filters: _filters,
+                      onPartSelected: (part) => setState(
+                        () => _filters = _filters.copyWith(
+                          bodyPart: part,
+                          clearPart: part == null,
+                        ),
+                      ),
                     ),
-                    post: post,
-                  );
-                },
-              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  List<FeedPost> _visiblePosts() {
-    if (_scope == FeedScope.party) return kPartyFeed;
-    final part = _filters.bodyPart;
-    if (part == null) return kPublicFeed;
-    return kPublicFeed.where((p) => p.bodyPart == part).toList(growable: false);
+class _PublicFeed extends ConsumerWidget {
+  const _PublicFeed({required this.filters, required this.onPartSelected});
+  final FeedFilters filters;
+  final ValueChanged<String?> onPartSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final header = PublicFilters(
+      filters: filters,
+      onPartySelected: onPartSelected,
+    );
+    return ref
+        .watch(publicFeedProvider(filters.bodyPart))
+        .when(
+          loading: () => Column(
+            children: <Widget>[
+              header,
+              const Expanded(child: AppLoading()),
+            ],
+          ),
+          data: (posts) {
+            final feedPosts = posts
+                .map(feedPostFromPost)
+                .toList(growable: false);
+            if (feedPosts.isEmpty) {
+              return Column(
+                children: <Widget>[
+                  header,
+                  const Expanded(
+                    child: AppEmptyState(
+                      icon: Icons.photo_outlined,
+                      title: '게시물이 없습니다',
+                      message: '첫 게시물을 남겨보세요.',
+                    ),
+                  ),
+                ],
+              );
+            }
+            return _FeedList(posts: feedPosts, header: header);
+          },
+          error: (_, _) => _FeedList(
+            posts: _fallbackPosts(filters.bodyPart),
+            header: header,
+          ),
+        );
   }
+
+  List<FeedPost> _fallbackPosts(String? bodyPart) => kPublicFeed
+      .where((post) => bodyPart == null || post.bodyPart == bodyPart)
+      .toList(growable: false);
+}
+
+class _FeedList extends StatelessWidget {
+  const _FeedList({required this.posts, required this.header});
+  final List<FeedPost> posts;
+  final Widget header;
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+    padding: const EdgeInsets.only(top: 2, bottom: 24),
+    itemCount: posts.length + 1,
+    itemBuilder: (context, index) {
+      if (index == 0) return header;
+      final post = posts[index - 1];
+      return FeedPostCard(
+        key: ValueKey<String>('${post.author.name}-${post.timeLabel}'),
+        post: post,
+      );
+    },
+  );
 }
 
 class _TopBar extends StatelessWidget {
@@ -121,7 +174,6 @@ class _TopBar extends StatelessWidget {
 
 class _BellWithDot extends StatelessWidget {
   const _BellWithDot({required this.color});
-
   final Color color;
 
   @override

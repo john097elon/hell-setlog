@@ -75,10 +75,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
               ),
             )
           else
-            FilledButton(
-              onPressed: _save,
-              child: Text(context.l10n.save),
-            ),
+            FilledButton(onPressed: _save, child: Text(context.l10n.save)),
         ],
       ),
     );
@@ -87,34 +84,33 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    final result = await ref.read(routineEditorControllerProvider).saveRoutine(
-      routineId: _routineId,
-      name: name,
-    );
+    final result = await ref
+        .read(routineEditorControllerProvider)
+        .saveRoutine(routineId: _routineId, name: name);
     if (!mounted) return;
     result.when(
       ok: (routine) {
         setState(() => _routineId = routine.id);
         context.go('/routines/edit/${routine.id}');
       },
-      err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      ),
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
   }
 
-  void _pickExercise(String routineId) => showExercisePickerSheet(
-    context,
-    (Exercise exercise) async {
-      await ref.read(routineEditorControllerProvider).addItem(
-        routineId: routineId,
-        exerciseId: exercise.id,
-        targetSets: 3,
-        targetReps: 10,
-        targetWeight: 0,
-      );
-    },
-  );
+  void _pickExercise(String routineId) =>
+      showExercisePickerSheet(context, (Exercise exercise) async {
+        await ref
+            .read(routineEditorControllerProvider)
+            .addItem(
+              routineId: routineId,
+              exerciseId: exercise.id,
+              targetSets: 3,
+              targetReps: 10,
+              targetWeight: 0,
+            );
+      });
 }
 
 class _RoutineItemEditor extends ConsumerWidget {
@@ -135,11 +131,27 @@ class _RoutineItemEditor extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: <Widget>[
-              _NumberField(value: item.targetSets, label: context.l10n.setItem(item.targetSets), onChanged: (value) => _update(ref, item.copyWith(targetSets: value))),
-              _NumberField(value: item.targetReps, label: context.l10n.completeSet, onChanged: (value) => _update(ref, item.copyWith(targetReps: value))),
-              _NumberField(value: item.targetWeight, label: context.l10n.sampleSetDetails, onChanged: (value) => _update(ref, item.copyWith(targetWeight: value.toDouble()))),
+              _NumberField(
+                value: item.targetSets,
+                label: context.l10n.setItem(item.targetSets),
+                onChanged: (value) =>
+                    _update(ref, item.copyWith(targetSets: value)),
+              ),
+              _NumberField(
+                value: item.targetReps,
+                label: context.l10n.completeSet,
+                onChanged: (value) =>
+                    _update(ref, item.copyWith(targetReps: value)),
+              ),
+              _NumberField(
+                value: item.targetWeight,
+                label: context.l10n.sampleSetDetails,
+                onChanged: (value) =>
+                    _update(ref, item.copyWith(targetWeight: value.toDouble())),
+              ),
               IconButton(
-                onPressed: () => ref.read(routineEditorControllerProvider).removeItem(item),
+                onPressed: () =>
+                    ref.read(routineEditorControllerProvider).removeItem(item),
                 icon: const Icon(Icons.delete_outline),
               ),
             ],
@@ -154,7 +166,11 @@ class _RoutineItemEditor extends ConsumerWidget {
 }
 
 class _NumberField extends StatelessWidget {
-  const _NumberField({required this.value, required this.label, required this.onChanged});
+  const _NumberField({
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
   final num value;
   final String label;
   final ValueChanged<int> onChanged;

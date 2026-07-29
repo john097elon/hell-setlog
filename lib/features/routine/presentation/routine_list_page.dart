@@ -26,14 +26,17 @@ class RoutineListPage extends ConsumerWidget {
         error: (_, _) => const SizedBox.shrink(),
         data: (result) => result.when(
           ok: (items) => items.isEmpty
-              ? _EmptyRoutines(onCreate: () => context.push('/routines/edit/new'))
+              ? _EmptyRoutines(
+                  onCreate: () => context.push('/routines/edit/new'),
+                )
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: items.length,
                   itemBuilder: (context, index) => _RoutineTile(
                     routine: items[index],
                     onStart: () => _start(context, ref, items[index]),
-                    onEdit: () => context.push('/routines/edit/${items[index].id}'),
+                    onEdit: () =>
+                        context.push('/routines/edit/${items[index].id}'),
                     onDelete: () => _delete(context, ref, items[index]),
                   ),
                 ),
@@ -43,8 +46,14 @@ class RoutineListPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _start(BuildContext context, WidgetRef ref, Routine routine) async {
-    final result = await ref.read(startFromRoutineControllerProvider).start(routine.id);
+  Future<void> _start(
+    BuildContext context,
+    WidgetRef ref,
+    Routine routine,
+  ) async {
+    final result = await ref
+        .read(startFromRoutineControllerProvider)
+        .start(routine.id);
     if (!context.mounted) return;
     result.when(
       ok: (outcome) async {
@@ -69,24 +78,28 @@ class RoutineListPage extends ConsumerWidget {
         }
         context.go('/workout');
       },
-      err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      ),
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
   }
 
-  Future<void> _delete(BuildContext context, WidgetRef ref, Routine routine) async {
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    Routine routine,
+  ) async {
     final result = await ref
         .read(routineEditorControllerProvider)
         .deleteRoutine(routine.id);
     if (!context.mounted) return;
     result.when(
-      ok: (_) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.setDeleted)),
-      ),
-      err: (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message)),
-      ),
+      ok: (_) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.setDeleted))),
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
   }
 }
@@ -102,12 +115,21 @@ class _EmptyRoutines extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(Icons.format_list_bulleted_rounded,
-              size: 48, color: Theme.of(context).colorScheme.primary),
+          Icon(
+            Icons.format_list_bulleted_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           const SizedBox(height: 16),
-          Text(context.l10n.record, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            context.l10n.record,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
-          Text(context.l10n.todayWorkoutDescription, textAlign: TextAlign.center),
+          Text(
+            context.l10n.todayWorkoutDescription,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: onCreate,
@@ -142,9 +164,15 @@ class _RoutineTile extends StatelessWidget {
       trailing: Wrap(
         spacing: 4,
         children: <Widget>[
-          IconButton(onPressed: onStart, icon: const Icon(Icons.play_arrow_rounded)),
+          IconButton(
+            onPressed: onStart,
+            icon: const Icon(Icons.play_arrow_rounded),
+          ),
           IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined)),
-          IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline)),
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline),
+          ),
         ],
       ),
     ),

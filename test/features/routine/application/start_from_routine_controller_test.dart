@@ -10,50 +10,57 @@ import 'package:heal_setlog/features/routine/application/start_from_routine_cont
 import 'package:mocktail/mocktail.dart';
 
 class _MockRoutineRepository extends Mock implements RoutineRepository {}
+
 class _MockWorkoutRepository extends Mock implements WorkoutRepository {}
 
 void main() {
-  test('starts once and adds one draft for every planned routine set', () async {
-    final routines = _MockRoutineRepository();
-    final workouts = _MockWorkoutRepository();
-    when(() => workouts.getActiveSession()).thenAnswer(
-      (_) async => const Err(NotFoundFailure()),
-    );
-    when(() => routines.getItems('routine')).thenAnswer(
-      (_) async => Ok(<RoutineItem>[
-        _item('one', targetSets: 3),
-        _item('two', targetSets: 2),
-      ]),
-    );
-    when(() => workouts.startSession(routineId: 'routine')).thenAnswer(
-      (_) async => Ok(_session()),
-    );
-    when(
-      () => workouts.addSet(
-        sessionId: any(named: 'sessionId'),
-        exerciseId: any(named: 'exerciseId'),
-        weight: any(named: 'weight'),
-        reps: any(named: 'reps'),
-        rpe: any(named: 'rpe'),
-        isWarmup: any(named: 'isWarmup'),
-        restSeconds: any(named: 'restSeconds'),
-      ),
-    ).thenAnswer((_) async => Ok(_set()));
+  test(
+    'starts once and adds one draft for every planned routine set',
+    () async {
+      final routines = _MockRoutineRepository();
+      final workouts = _MockWorkoutRepository();
+      when(
+        () => workouts.getActiveSession(),
+      ).thenAnswer((_) async => const Err(NotFoundFailure()));
+      when(() => routines.getItems('routine')).thenAnswer(
+        (_) async => Ok(<RoutineItem>[
+          _item('one', targetSets: 3),
+          _item('two', targetSets: 2),
+        ]),
+      );
+      when(
+        () => workouts.startSession(routineId: 'routine'),
+      ).thenAnswer((_) async => Ok(_session()));
+      when(
+        () => workouts.addSet(
+          sessionId: any(named: 'sessionId'),
+          exerciseId: any(named: 'exerciseId'),
+          weight: any(named: 'weight'),
+          reps: any(named: 'reps'),
+          rpe: any(named: 'rpe'),
+          isWarmup: any(named: 'isWarmup'),
+          restSeconds: any(named: 'restSeconds'),
+        ),
+      ).thenAnswer((_) async => Ok(_set()));
 
-    final result = await StartFromRoutineController(routines, workouts).start('routine');
+      final result = await StartFromRoutineController(
+        routines,
+        workouts,
+      ).start('routine');
 
-    expect(result.isOk, isTrue);
-    verify(() => workouts.startSession(routineId: 'routine')).called(1);
-    verify(
-      () => workouts.addSet(
-        sessionId: 'session',
-        exerciseId: any(named: 'exerciseId'),
-        weight: any(named: 'weight'),
-        reps: any(named: 'reps'),
-        isWarmup: any(named: 'isWarmup'),
-      ),
-    ).called(5);
-  });
+      expect(result.isOk, isTrue);
+      verify(() => workouts.startSession(routineId: 'routine')).called(1);
+      verify(
+        () => workouts.addSet(
+          sessionId: 'session',
+          exerciseId: any(named: 'exerciseId'),
+          weight: any(named: 'weight'),
+          reps: any(named: 'reps'),
+          isWarmup: any(named: 'isWarmup'),
+        ),
+      ).called(5);
+    },
+  );
 }
 
 RoutineItem _item(String id, {required int targetSets}) => RoutineItem(

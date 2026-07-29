@@ -33,13 +33,14 @@ class StartFromRoutineController {
   final RoutineRepository _routineRepository;
   final WorkoutRepository _workoutRepository;
 
-  Future<Result<StartFromRoutineOutcome, Failure>> start(String routineId) async {
+  Future<Result<StartFromRoutineOutcome, Failure>> start(
+    String routineId,
+  ) async {
     final active = await _workoutRepository.getActiveSession();
     if (active.isOk) {
       return active.when(
-        ok: (session) => Ok(
-          StartFromRoutineOutcome(session: session, started: false),
-        ),
+        ok: (session) =>
+            Ok(StartFromRoutineOutcome(session: session, started: false)),
         err: (failure) => Err(failure),
       );
     }
@@ -53,7 +54,9 @@ class StartFromRoutineController {
     final items = await _routineRepository.getItems(routineId);
     return items.when(
       ok: (value) async {
-        final session = await _workoutRepository.startSession(routineId: routineId);
+        final session = await _workoutRepository.startSession(
+          routineId: routineId,
+        );
         return session.when(
           ok: (created) async {
             for (final draft in plannedSetsFromRoutine(value)) {

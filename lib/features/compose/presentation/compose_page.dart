@@ -1,23 +1,28 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
+import '../../auth/application/auth_service.dart';
+import '../../feed/application/post_providers.dart';
 import 'capture_flow.dart';
 
-/// Local-only composer for a captured image or video.
-class ComposePage extends StatefulWidget {
+/// Composer for a captured image or video.
+class ComposePage extends ConsumerStatefulWidget {
   const ComposePage({required this.media, this.onPublished, super.key});
 
   final CapturedMedia media;
   final ValueChanged<String>? onPublished;
 
   @override
-  State<ComposePage> createState() => _ComposePageState();
+  ConsumerState<ComposePage> createState() => _ComposePageState();
 }
 
-class _ComposePageState extends State<ComposePage> {
+class _ComposePageState extends ConsumerState<ComposePage> {
   final _captionController = TextEditingController();
+  bool _isPublishing = false;
 
   @override
   void dispose() {
@@ -25,12 +30,37 @@ class _ComposePageState extends State<ComposePage> {
     super.dispose();
   }
 
-  void _publish() {
-    widget.onPublished?.call(_captionController.text);
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
-    // TODO(P3): upload media and persist the post before confirming publication.
-    messenger.showSnackBar(const SnackBar(content: Text('게시되었습니다')));
+  Future<void> _publish() async {
+    if (_isPublishing) return;
+    if (ref.read(authServiceProvider).currentUserId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다')));
+      context.go('/login');
+      return;
+    }
+    setState(() => _isPublishing = true);
+    final result = await ref
+        .read(postRepositoryProvider)
+        .createPost(
+          media: File(widget.media.file.path),
+          isVideo: widget.media.isVideo,
+          caption: _captionController.text,
+        );
+    if (!mounted) return;
+    result.when(
+      ok: (_) {
+        widget.onPublished?.call(_captionController.text);
+        ref.invalidate(publicFeedProvider);
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(const SnackBar(content: Text('게시되었습니다')));
+        Navigator.pop(context);
+      },
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
+    );
+    if (mounted) setState(() => _isPublishing = false);
   }
 
   @override
@@ -83,8 +113,14 @@ class _ComposePageState extends State<ComposePage> {
               const SizedBox(height: 20),
               FilledButton.icon(
                 key: const Key('publish-post'),
-                onPressed: _publish,
-                icon: const Icon(Icons.publish_outlined),
+                onPressed: _isPublishing ? null : _publish,
+                icon: _isPublishing
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.publish_outlined),
                 label: const Text('게시'),
               ),
             ],
@@ -97,7 +133,6 @@ class _ComposePageState extends State<ComposePage> {
 
 class _MediaPreview extends StatelessWidget {
   const _MediaPreview({required this.media});
-
   final CapturedMedia media;
 
   @override

@@ -35,10 +35,7 @@ class ExerciseThumbnail extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
       child: hasImage
-          ? Padding(
-              padding: EdgeInsets.all(size * 0.04),
-              child: _image(url, t),
-            )
+          ? Padding(padding: EdgeInsets.all(size * 0.04), child: _image(url, t))
           : _glyph(t),
     );
   }

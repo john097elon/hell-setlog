@@ -67,7 +67,9 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: context.tokens.border,
-                        borderRadius: const BorderRadius.all(Radius.circular(2)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(2),
+                        ),
                       ),
                     ),
                   ),

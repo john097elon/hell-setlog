@@ -20,7 +20,7 @@ String signUpErrorMessage(Object error) {
     }
     if (code == 'over_email_send_rate_limit' ||
         message.contains('rate limit')) {
-      return '요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.';
+      return '확인 메일 발송 한도를 초과했습니다. 1시간 뒤 다시 시도해 주세요.';
     }
     return '회원가입 실패: ${error.message}';
   }

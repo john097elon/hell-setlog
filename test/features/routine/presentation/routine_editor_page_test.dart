@@ -18,9 +18,9 @@ class _MockRoutineRepository extends Mock implements RoutineRepository {}
 void main() {
   testWidgets('adding a picked exercise calls addItem', (tester) async {
     final repository = _MockRoutineRepository();
-    when(() => repository.getItems('routine')).thenAnswer(
-      (_) async => const Ok(<RoutineItem>[]),
-    );
+    when(
+      () => repository.getItems('routine'),
+    ).thenAnswer((_) async => const Ok(<RoutineItem>[]));
     when(
       () => repository.addItem(
         routineId: 'routine',
@@ -35,7 +35,9 @@ void main() {
       ProviderScope(
         overrides: <Override>[
           routineRepositoryProvider.overrideWithValue(repository),
-          exerciseSearchProvider(query: '').overrideWith(_FakeExerciseSearch.new),
+          exerciseSearchProvider(
+            query: '',
+          ).overrideWith(_FakeExerciseSearch.new),
         ],
         child: MaterialApp(
           theme: buildAppTheme(),

@@ -26,12 +26,14 @@ class FeedMedia {
   const FeedMedia({
     required this.kind,
     required this.gradient,
+    this.url,
     this.durationLabel,
     this.count = 1,
   });
 
   final FeedMediaKind kind;
   final List<Color> gradient;
+  final String? url;
 
   /// 영상 길이 표기(`0:18`). 사진이면 null.
   final String? durationLabel;

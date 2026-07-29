@@ -208,7 +208,9 @@ class _Media extends StatelessWidget {
               ),
             ),
             // 사진 자리: 큰 이모지 대신 절제된 아웃라인 글리프.
-            child: isVideo
+            child: (media.url?.isNotEmpty ?? false) && !isVideo
+                ? Image.network(media.url!, fit: BoxFit.cover)
+                : isVideo
                 ? null
                 : Center(
                     child: Icon(

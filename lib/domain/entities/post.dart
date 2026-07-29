@@ -1,0 +1,37 @@
+/// Public workout post persisted in Supabase.
+enum PostMediaKind { photo, video }
+
+/// A public workout post and its optional presentation-only author name.
+class Post {
+  const Post({
+    required this.id,
+    required this.userId,
+    required this.caption,
+    required this.mediaUrl,
+    required this.mediaKind,
+    required this.createdAt,
+    this.bodyPart,
+    this.location,
+    this.sessionId,
+    this.volumeKg,
+    this.durationMin,
+    this.prLabel,
+    this.xp,
+    this.authorName,
+  });
+
+  final String id;
+  final String userId;
+  final String caption;
+  final String mediaUrl;
+  final PostMediaKind mediaKind;
+  final String? bodyPart;
+  final String? location;
+  final String? sessionId;
+  final double? volumeKg;
+  final int? durationMin;
+  final String? prLabel;
+  final int? xp;
+  final DateTime createdAt;
+  final String? authorName;
+}

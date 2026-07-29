@@ -26,9 +26,7 @@ void main() {
 }
 
 Widget _app(Result<List<Routine>, Failure> result) => ProviderScope(
-  overrides: <Override>[
-    routinesProvider.overrideWith((ref) async => result),
-  ],
+  overrides: <Override>[routinesProvider.overrideWith((ref) async => result)],
   child: MaterialApp(
     theme: buildAppTheme(),
     localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -11,8 +11,9 @@ import 'routine_providers.dart';
 part 'routine_editor_controller.g.dart';
 
 @riverpod
-RoutineEditorController routineEditorController(RoutineEditorControllerRef ref) =>
-    RoutineEditorController(ref.watch(routineRepositoryProvider), ref);
+RoutineEditorController routineEditorController(
+  RoutineEditorControllerRef ref,
+) => RoutineEditorController(ref.watch(routineRepositoryProvider), ref);
 
 /// Coordinates routine editing while keeping repository calls out of widgets.
 class RoutineEditorController {

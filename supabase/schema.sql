@@ -95,3 +95,49 @@ create policy "routines own rows" on routines for all using (auth.uid() = user_i
 create policy "routine items own rows" on routine_items for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "sessions own rows" on workout_sessions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "sets own rows" on workout_sets for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create table if not exists posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  caption text,
+  media_url text not null,
+  media_kind text not null check (media_kind in ('photo', 'video')),
+  body_part text,
+  location text,
+  session_id uuid null,
+  volume_kg numeric null,
+  duration_min int null,
+  pr_label text null,
+  xp int null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists post_likes (
+  post_id uuid not null references posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+
+create table if not exists follows (
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  following_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (follower_id, following_id)
+);
+
+alter table posts enable row level security;
+alter table post_likes enable row level security;
+alter table follows enable row level security;
+
+create policy "posts authenticated read" on posts for select to authenticated using (true);
+create policy "posts own insert" on posts for insert to authenticated with check (auth.uid() = user_id);
+create policy "posts own update" on posts for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "posts own delete" on posts for delete to authenticated using (auth.uid() = user_id);
+create policy "post likes authenticated read" on post_likes for select to authenticated using (true);
+create policy "post likes own write" on post_likes for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "follows authenticated read" on follows for select to authenticated using (true);
+create policy "follows own write" on follows for all to authenticated using (auth.uid() = follower_id) with check (auth.uid() = follower_id);
+
+-- Create the `post-media` Storage bucket in the Supabase dashboard with public read,
+-- or insert it into storage.buckets and add owner-only upload/update/delete policies.

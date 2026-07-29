@@ -49,8 +49,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) await migrator.createTable(personalRecords);
       if (from < 5) {
         await migrator.addColumn(exercises, exercises.userId);
-        await customStatement('ALTER TABLE exercises ADD COLUMN created_at INTEGER');
-        await customStatement('ALTER TABLE exercises ADD COLUMN updated_at INTEGER');
+        await customStatement(
+          'ALTER TABLE exercises ADD COLUMN created_at INTEGER',
+        );
+        await customStatement(
+          'ALTER TABLE exercises ADD COLUMN updated_at INTEGER',
+        );
         await migrator.addColumn(exercises, exercises.deletedAt);
         await migrator.addColumn(exercises, exercises.syncStatus);
         await customStatement(
