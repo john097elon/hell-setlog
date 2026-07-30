@@ -5,10 +5,8 @@ import 'package:heal_setlog/core/config/app_env.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
-import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/settings/application/theme_controller.dart';
-import 'package:heal_setlog/features/settings/presentation/models/settings_view_data.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_toggle.dart';
@@ -33,7 +31,6 @@ class SettingsPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         children: <Widget>[
-          _ProfileCard(onEdit: () => _showEditDialog(context)),
           const SizedBox(height: AppSpacing.xl),
           SettingSection(
             title: copy.settingsNotifications,
@@ -169,33 +166,6 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showEditDialog(BuildContext context) {
-    final copy = context.l10n;
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: Text(copy.settingsEditProfile),
-        content: TextFormField(
-          initialValue: SettingsViewData.mock.name,
-          decoration: InputDecoration(labelText: copy.settingsEditName),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(copy.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              _showSnackBar(context, copy.settingsMockMessage);
-            },
-            child: Text(copy.settingsEditSave),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showMockSheet(BuildContext context, String message) =>
       showModalBottomSheet<void>(
         context: context,
@@ -216,61 +186,4 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       );
-
-  void _showSnackBar(BuildContext context, String message) =>
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-}
-
-class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.onEdit});
-
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = context.l10n;
-    final data = SettingsViewData.mock;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Row(
-          children: <Widget>[
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: context.tokens.brand,
-              child: Icon(
-                Icons.person_rounded,
-                color: context.tokens.onBrand,
-                size: 36,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    data.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    copy.settingsLevelXp(data.level, data.experience),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: copy.settingsEditProfile,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -75,10 +75,15 @@ class SupabasePostRepository implements PostRepository {
 
   @override
   Future<Result<Post, Failure>> createPost({
-    required File media,
-    required bool isVideo,
     required String caption,
+    File? media,
+    bool isVideo = false,
     String? bodyPart,
+    String? sessionId,
+    double? volumeKg,
+    int? durationMin,
+    String? prLabel,
+    int? xp,
   }) async {
     final client = _client;
     final userId = client?.auth.currentUser?.id;
@@ -87,13 +92,16 @@ class SupabasePostRepository implements PostRepository {
     }
     if (userId == null) return const Err(DatabaseFailure('로그인이 필요합니다'));
     try {
-      final extension = path.extension(media.path).replaceFirst('.', '');
-      final fileName = '${_uuid.v4()}.${extension.isEmpty ? 'jpg' : extension}';
-      final storagePath = '$userId/$fileName';
-      await client.storage.from('post-media').upload(storagePath, media);
-      final mediaUrl = client.storage
-          .from('post-media')
-          .getPublicUrl(storagePath);
+      // 미디어 없이도 기록만 공유할 수 있어야 한다.
+      var mediaUrl = '';
+      if (media != null) {
+        final extension = path.extension(media.path).replaceFirst('.', '');
+        final fileName =
+            '${_uuid.v4()}.${extension.isEmpty ? 'jpg' : extension}';
+        final storagePath = '$userId/$fileName';
+        await client.storage.from('post-media').upload(storagePath, media);
+        mediaUrl = client.storage.from('post-media').getPublicUrl(storagePath);
+      }
       final row = Map<String, Object?>.from(
         await client
                 .from('posts')
@@ -103,6 +111,11 @@ class SupabasePostRepository implements PostRepository {
                   'media_url': mediaUrl,
                   'media_kind': isVideo ? 'video' : 'photo',
                   'body_part': bodyPart,
+                  'session_id': sessionId,
+                  'volume_kg': volumeKg,
+                  'duration_min': durationMin,
+                  'pr_label': prLabel,
+                  'xp': xp,
                 })
                 .select()
                 .single()

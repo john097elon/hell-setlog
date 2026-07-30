@@ -67,7 +67,7 @@ class _PartyFeed extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final parties = ref.watch(myPartiesProvider);
     final party = parties.valueOrNull?.firstOrNull;
-    if (parties.isLoading) return const AppLoading();
+    if (parties.isLoading) return const FeedListSkeleton();
     if (party == null) {
       return const _FeedList(
         posts: kPartyFeed,
@@ -77,7 +77,7 @@ class _PartyFeed extends ConsumerWidget {
     return ref
         .watch(partyFeedProvider(party.id))
         .when(
-          loading: () => const AppLoading(),
+          loading: () => const FeedListSkeleton(),
           error: (_, _) => const _FeedList(
             posts: kPartyFeed,
             header: PartyStrip(party: kSampleParty),
@@ -132,7 +132,7 @@ class _PublicFeed extends ConsumerWidget {
           loading: () => Column(
             children: <Widget>[
               header,
-              const Expanded(child: AppLoading()),
+              const Expanded(child: FeedListSkeleton()),
             ],
           ),
           data: (posts) {

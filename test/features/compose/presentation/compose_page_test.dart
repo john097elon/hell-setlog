@@ -78,10 +78,15 @@ class _SuccessPostRepository implements PostRepository {
   const _SuccessPostRepository();
   @override
   Future<Result<Post, Failure>> createPost({
-    required File media,
-    required bool isVideo,
     required String caption,
+    File? media,
+    bool isVideo = false,
     String? bodyPart,
+    String? sessionId,
+    double? volumeKg,
+    int? durationMin,
+    String? prLabel,
+    int? xp,
   }) async => Ok(
     Post(
       id: 'post-1',

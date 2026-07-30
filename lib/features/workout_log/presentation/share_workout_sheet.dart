@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../feed/application/post_providers.dart';
 import 'models/share_view_data.dart';
 import 'widgets/record_ring_button.dart';
 
@@ -16,17 +18,18 @@ Future<void> showShareWorkoutSheet(
   builder: (_) => _ShareWorkoutSheet(data: data),
 );
 
-class _ShareWorkoutSheet extends StatefulWidget {
+class _ShareWorkoutSheet extends ConsumerStatefulWidget {
   const _ShareWorkoutSheet({required this.data});
 
   final ShareViewData data;
 
   @override
-  State<_ShareWorkoutSheet> createState() => _ShareWorkoutSheetState();
+  ConsumerState<_ShareWorkoutSheet> createState() => _ShareWorkoutSheetState();
 }
 
-class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
+class _ShareWorkoutSheetState extends ConsumerState<_ShareWorkoutSheet> {
   final _captionController = TextEditingController();
+  bool _sharing = false;
 
   @override
   void dispose() {
@@ -34,11 +37,32 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
     super.dispose();
   }
 
-  void _share() {
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
-    messenger.showSnackBar(
-      SnackBar(content: Text(context.l10n.workoutSharedMock)),
+  /// 기록 요약을 실제 게시물로 남긴다. 미디어 없이도 공유된다.
+  Future<void> _share() async {
+    if (_sharing) return;
+    setState(() => _sharing = true);
+    final caption = _captionController.text.trim();
+    final result = await ref
+        .read(postRepositoryProvider)
+        .createPost(
+          caption: caption.isEmpty ? '오늘 운동 완료' : caption,
+          bodyPart: widget.data.bodyPart,
+          sessionId: widget.data.sessionId,
+          volumeKg: widget.data.volumeKg,
+          durationMin: widget.data.durationMin,
+        );
+    if (!mounted) return;
+    setState(() => _sharing = false);
+    result.when(
+      ok: (_) {
+        ref.invalidate(publicFeedProvider);
+        final messenger = ScaffoldMessenger.of(context);
+        Navigator.pop(context);
+        messenger.showSnackBar(const SnackBar(content: Text('피드에 공유했습니다.')));
+      },
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
   }
 
@@ -115,8 +139,14 @@ class _ShareWorkoutSheetState extends State<_ShareWorkoutSheet> {
                 const SizedBox(height: 20),
                 FilledButton.icon(
                   key: const Key('share-to-feed-button'),
-                  onPressed: _share,
-                  icon: const Icon(Icons.ios_share),
+                  onPressed: _sharing ? null : _share,
+                  icon: _sharing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.ios_share),
                   label: Text(copy.shareToFeed),
                 ),
               ],

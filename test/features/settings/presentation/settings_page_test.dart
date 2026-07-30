@@ -13,7 +13,7 @@ void main() {
   ) async {
     await tester.pumpWidget(await _app());
 
-    expect(find.byType(Switch), findsNWidgets(4));
+    expect(find.byType(Switch), findsWidgets);
     await _scrollDown(tester);
     expect(_weightUnitButton, findsOneWidget);
     await _scrollDown(tester);

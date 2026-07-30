@@ -17,6 +17,7 @@ import '../application/exercise_name_provider.dart';
 import '../application/rest_timer_controller.dart';
 import '../application/workout_providers.dart';
 import '../application/workout_session_controller.dart';
+import 'models/share_view_data.dart';
 import 'share_workout_sheet.dart';
 import 'widgets/exercise_block.dart';
 import 'widgets/exercise_picker_sheet.dart';
@@ -315,6 +316,21 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   }
 
   Future<void> _end(WorkoutSession session) async {
+    // 종료 전 지표를 계산해 공유 시트에 넘긴다.
+    final sets =
+        ref.read(sessionSetsProvider(session.id)).valueOrNull ??
+        const <WorkoutSet>[];
+    final completed = sets.where((set) => set.isCompleted);
+    final volume = completed.fold<double>(
+      0,
+      (sum, set) => sum + set.weight * set.reps,
+    );
+    final minutes = DateTime.now().difference(session.startedAt).inMinutes;
+    final tags = <String>[
+      if (volume > 0) '${formatWeight(volume)} kg',
+      if (minutes > 0) '$minutes분',
+      '${completed.length}세트',
+    ];
     final result = await ref
         .read(workoutSessionControllerProvider)
         .endSession(session.id);
@@ -322,7 +338,15 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     result.when(
       ok: (_) {
         ref.invalidate(activeSessionProvider);
-        showShareWorkoutSheet(context);
+        showShareWorkoutSheet(
+          context,
+          data: ShareViewData(
+            workoutTags: tags,
+            sessionId: session.id,
+            volumeKg: volume > 0 ? volume : null,
+            durationMin: minutes > 0 ? minutes : null,
+          ),
+        );
       },
       err: (failure) => ScaffoldMessenger.of(
         context,

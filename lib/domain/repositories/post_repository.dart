@@ -13,10 +13,15 @@ abstract class PostRepository {
   });
 
   Future<Result<Post, Failure>> createPost({
-    required File media,
-    required bool isVideo,
     required String caption,
+    File? media,
+    bool isVideo = false,
     String? bodyPart,
+    String? sessionId,
+    double? volumeKg,
+    int? durationMin,
+    String? prLabel,
+    int? xp,
   });
 
   Future<Result<void, Failure>> toggleLike(String postId);
