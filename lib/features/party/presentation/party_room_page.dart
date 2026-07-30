@@ -9,6 +9,7 @@ import '../../../domain/entities/party.dart';
 import '../../../domain/entities/party_member.dart';
 import '../../../domain/entities/post.dart';
 import '../application/party_providers.dart';
+import 'widgets/party_chat_panel.dart';
 
 /// 파티 한 곳의 구성원과 활동을 보여준다.
 class PartyRoomPage extends ConsumerWidget {
@@ -28,7 +29,23 @@ class PartyRoomPage extends ConsumerWidget {
         .firstOrNull;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: Text(party?.name ?? '파티')),
+      appBar: AppBar(
+        title: Text(party?.name ?? '파티'),
+        actions: <Widget>[
+          IconButton(
+            tooltip: '채팅 열기',
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => FractionallySizedBox(
+                heightFactor: 0.85,
+                child: PartyChatPanel(initialPartyId: partyId),
+              ),
+            ),
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: <Widget>[

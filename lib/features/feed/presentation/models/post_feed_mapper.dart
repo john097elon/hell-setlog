@@ -4,7 +4,10 @@ import 'package:heal_setlog/domain/entities/post.dart';
 import 'feed_post.dart';
 
 /// Converts persisted posts to the existing feed-card view model.
-FeedPost feedPostFromPost(Post post) => FeedPost(
+FeedPost feedPostFromPost(Post post, {String? currentUserId}) => FeedPost(
+  postId: post.id,
+  authorId: post.userId,
+  isMine: currentUserId != null && currentUserId == post.userId,
   author: FeedAuthor(name: post.authorName ?? '회원', level: 1),
   timeLabel: _timeLabel(post.createdAt),
   bodyPart: post.bodyPart ?? '운동',
@@ -26,8 +29,10 @@ FeedPost feedPostFromPost(Post post) => FeedPost(
     prLabel: post.prLabel,
     xp: post.xp,
   ),
-  likes: 0,
-  comments: 0,
+  likes: post.likeCount,
+  comments: post.commentCount,
+  likedByMe: post.likedByMe,
+  savedByMe: post.savedByMe,
   caption: post.caption,
 );
 

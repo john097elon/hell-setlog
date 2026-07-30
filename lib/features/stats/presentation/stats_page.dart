@@ -27,7 +27,7 @@ class StatsPage extends ConsumerWidget {
               : _StatsContent(volumes: volumes),
           err: (_) => const _StatsError(),
         ),
-        loading: () => const AppLoading(),
+        loading: () => const _StatsSkeleton(),
         error: (_, _) => const _StatsError(),
       ),
     );
@@ -92,14 +92,37 @@ class _StatsContent extends ConsumerWidget {
             err: (_) => const _StatsError(compact: true),
           ),
           loading: () => const Padding(
-            padding: EdgeInsets.all(AppSpacing.xl),
-            child: AppLoading(),
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: AppSkeleton(height: 140, radius: 16),
           ),
           error: (_, _) => const _StatsError(compact: true),
         ),
       ],
     );
   }
+}
+
+/// 통계 첫 로딩 동안 실제 카드 크기를 미리 차지한다.
+class _StatsSkeleton extends StatelessWidget {
+  const _StatsSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(AppSpacing.xl),
+    children: const <Widget>[
+      AppSkeleton(height: 18, width: 120),
+      SizedBox(height: AppSpacing.md),
+      AppSkeleton(height: 78, radius: 16),
+      SizedBox(height: AppSpacing.xxl),
+      AppSkeleton(height: 18, width: 140),
+      SizedBox(height: AppSpacing.md),
+      AppSkeleton(height: 200, radius: 16),
+      SizedBox(height: AppSpacing.xxl),
+      AppSkeleton(height: 18, width: 110),
+      SizedBox(height: AppSpacing.md),
+      AppSkeleton(height: 140, radius: 16),
+    ],
+  );
 }
 
 class _EmptyStats extends StatelessWidget {

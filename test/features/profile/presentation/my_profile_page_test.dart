@@ -99,4 +99,7 @@ class _Repository implements ProfileRepository {
   @override
   Future<Result<String, Failure>> uploadAvatar(File image) async =>
       const Ok('');
+  @override
+  Future<Result<({int followers, int following}), Failure>>
+  fetchFollowCounts() async => const Ok((followers: 0, following: 0));
 }

@@ -66,6 +66,11 @@ class FeedPost {
     required this.caption,
     this.location,
     this.showFollow = false,
+    this.postId,
+    this.authorId,
+    this.likedByMe = false,
+    this.savedByMe = false,
+    this.isMine = false,
   });
 
   final FeedAuthor author;
@@ -82,6 +87,13 @@ class FeedPost {
 
   /// 공개 피드에서 팔로우 버튼 노출.
   final bool showFollow;
+
+  /// 서버에 저장된 게시물 식별자. 샘플 데이터면 null이라 액션이 비활성된다.
+  final String? postId;
+  final String? authorId;
+  final bool likedByMe;
+  final bool savedByMe;
+  final bool isMine;
 }
 
 /// 내 파티 요약 스트립 데이터.

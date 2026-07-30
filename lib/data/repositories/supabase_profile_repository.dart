@@ -148,6 +148,24 @@ class SupabaseProfileRepository implements ProfileRepository {
     }
   }
 
+  @override
+  Future<Result<({int followers, int following}), Failure>>
+  fetchFollowCounts() async {
+    final client = _client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null)
+      return const Err(DatabaseFailure('로그인이 필요합니다'));
+    try {
+      final rows = await Future.wait<List>(<Future<List>>[
+        client.from('follows').select('follower_id').eq('following_id', userId),
+        client.from('follows').select('following_id').eq('follower_id', userId),
+      ]);
+      return Ok((followers: rows[0].length, following: rows[1].length));
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
+    }
+  }
+
   static UserProfile _profile(Map<String, Object?> row) => UserProfile(
     userId: row['user_id'] as String,
     nickname: row['nickname'] as String? ?? '회원',

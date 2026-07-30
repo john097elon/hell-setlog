@@ -30,4 +30,7 @@ abstract class PostRepository {
   Future<Result<PostComment, Failure>> addComment(String postId, String body);
   Future<Result<void, Failure>> toggleFollow(String userId);
   Future<Result<bool, Failure>> isFollowing(String userId);
+  Future<Result<void, Failure>> deletePost(String postId);
+  Future<Result<void, Failure>> reportPost(String postId, String reason);
+  Future<Result<void, Failure>> blockUser(String userId);
 }

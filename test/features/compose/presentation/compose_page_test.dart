@@ -136,4 +136,18 @@ class _SuccessPostRepository implements PostRepository {
   @override
   Future<Result<bool, Failure>> isFollowing(String userId) async =>
       const Ok(false);
+
+  @override
+  Future<Result<void, Failure>> deletePost(String postId) async =>
+      const Ok(null);
+
+  @override
+  Future<Result<void, Failure>> reportPost(
+    String postId,
+    String reason,
+  ) async => const Ok(null);
+
+  @override
+  Future<Result<void, Failure>> blockUser(String userId) async =>
+      const Ok(null);
 }

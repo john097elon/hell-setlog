@@ -10,6 +10,7 @@ import 'package:heal_setlog/features/feed/presentation/models/post_feed_mapper.d
 import 'package:heal_setlog/features/feed/presentation/models/sample_feed.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_controls.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.dart';
+import 'package:heal_setlog/core/supabase/supabase_init.dart';
 import 'package:heal_setlog/features/notifications/application/notification_providers.dart';
 import 'package:heal_setlog/features/party/application/party_providers.dart';
 
@@ -107,7 +108,18 @@ class _PartyFeed extends ConsumerWidget {
               );
             }
             return _FeedList(
-              posts: posts.map(feedPostFromPost).toList(growable: false),
+              posts: posts
+                  .map(
+                    (post) => feedPostFromPost(
+                      post,
+                      currentUserId: ref
+                          .watch(supabaseClientProvider)
+                          ?.auth
+                          .currentUser
+                          ?.id,
+                    ),
+                  )
+                  .toList(growable: false),
               header: header,
             );
           },
@@ -136,8 +148,9 @@ class _PublicFeed extends ConsumerWidget {
             ],
           ),
           data: (posts) {
+            final me = ref.watch(supabaseClientProvider)?.auth.currentUser?.id;
             final feedPosts = posts
-                .map(feedPostFromPost)
+                .map((post) => feedPostFromPost(post, currentUserId: me))
                 .toList(growable: false);
             if (feedPosts.isEmpty) {
               return Column(

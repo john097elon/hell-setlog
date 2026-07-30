@@ -1,15 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 
+import '../../application/post_providers.dart';
+import '../comment_sheet.dart';
 import '../models/feed_post.dart';
+import 'post_actions_sheet.dart';
 
 /// 인스타/스레드형 피드 카드. 미디어(영상·사진)를 히어로로 두고
 /// 그 아래 액션 → 운동 요약 → 캡션 순으로 쌓는다.
-class FeedPostCard extends StatelessWidget {
+class FeedPostCard extends ConsumerStatefulWidget {
   const FeedPostCard({required this.post, super.key});
 
   final FeedPost post;
+
+  @override
+  ConsumerState<FeedPostCard> createState() => _FeedPostCardState();
+}
+
+class _FeedPostCardState extends ConsumerState<FeedPostCard> {
+  bool? _liked;
+  bool? _saved;
+  int? _likes;
+
+  FeedPost get post => widget.post;
+  bool get _isLiked => _liked ?? post.likedByMe;
+  bool get _isSaved => _saved ?? post.savedByMe;
+  int get _likeCount => _likes ?? post.likes;
+
+  /// 서버 응답을 기다리지 않고 먼저 반영한 뒤, 실패하면 되돌린다.
+  Future<void> _toggleLike() async {
+    final id = post.postId;
+    if (id == null) return;
+    final next = !_isLiked;
+    setState(() {
+      _liked = next;
+      _likes = _likeCount + (next ? 1 : -1);
+    });
+    final result = await ref.read(postRepositoryProvider).toggleLike(id);
+    if (!mounted) return;
+    result.when(
+      ok: (_) {},
+      err: (failure) {
+        setState(() {
+          _liked = !next;
+          _likes = _likeCount + (next ? -1 : 1);
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      },
+    );
+  }
+
+  Future<void> _toggleSave() async {
+    final id = post.postId;
+    if (id == null) return;
+    final next = !_isSaved;
+    setState(() => _saved = next);
+    final result = await ref.read(postRepositoryProvider).toggleSave(id);
+    if (!mounted) return;
+    result.when(
+      ok: (_) {},
+      err: (failure) {
+        setState(() => _saved = !next);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      },
+    );
+  }
+
+  Future<void> _share() async {
+    await Clipboard.setData(ClipboardData(text: post.caption));
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('내용을 복사했습니다.')));
+  }
+
+  void _openComments() {
+    final id = post.postId;
+    if (id == null) return;
+    showCommentSheet(context, postId: id);
+  }
+
+  void _openMore() {
+    final id = post.postId;
+    final authorId = post.authorId;
+    if (id == null || authorId == null) return;
+    showPostActionsSheet(
+      context,
+      ref,
+      postId: id,
+      authorId: authorId,
+      isMine: post.isMine,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +121,23 @@ class FeedPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _Header(post: post),
+          _Header(post: post, onMore: _openMore),
           _Media(
             media: post.media,
             location: post.location,
             isLive: post.author.isLive,
           ),
           const SizedBox(height: 4),
-          _Actions(likes: post.likes, comments: post.comments),
+          _Actions(
+            likes: _likeCount,
+            comments: post.comments,
+            liked: _isLiked,
+            saved: _isSaved,
+            onLike: _toggleLike,
+            onComment: _openComments,
+            onShare: _share,
+            onSave: _toggleSave,
+          ),
           _SummaryStrip(summary: post.summary),
           _Caption(post: post),
         ],
@@ -49,9 +147,10 @@ class FeedPostCard extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.post});
+  const _Header({required this.post, required this.onMore});
 
   final FeedPost post;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +203,15 @@ class _Header extends StatelessWidget {
               ),
             )
           else
-            Icon(Icons.more_horiz_rounded, color: t.faintText, size: 22),
+            IconButton(
+              tooltip: '더보기',
+              onPressed: onMore,
+              icon: Icon(
+                Icons.more_horiz_rounded,
+                color: t.faintText,
+                size: 22,
+              ),
+            ),
         ],
       ),
     );
@@ -337,10 +444,25 @@ class _Pill extends StatelessWidget {
 }
 
 class _Actions extends StatelessWidget {
-  const _Actions({required this.likes, required this.comments});
+  const _Actions({
+    required this.likes,
+    required this.comments,
+    required this.liked,
+    required this.saved,
+    required this.onLike,
+    required this.onComment,
+    required this.onShare,
+    required this.onSave,
+  });
 
   final int likes;
   final int comments;
+  final bool liked;
+  final bool saved;
+  final VoidCallback onLike;
+  final VoidCallback onComment;
+  final VoidCallback onShare;
+  final VoidCallback onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -350,27 +472,35 @@ class _Actions extends StatelessWidget {
       child: Row(
         children: <Widget>[
           _ActionItem(
-            icon: Icons.favorite_rounded,
+            icon: liked
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
             label: formatInt(likes),
-            color: t.like,
-            semanticLabel: '좋아요 ${formatInt(likes)}개',
+            color: liked ? t.like : t.text,
+            semanticLabel: liked ? '좋아요 취소' : '좋아요',
+            onTap: onLike,
           ),
           _ActionItem(
             icon: Icons.mode_comment_outlined,
             label: formatInt(comments),
             color: t.text,
             semanticLabel: '댓글 ${formatInt(comments)}개',
+            onTap: onComment,
           ),
           _ActionItem(
             icon: Icons.send_outlined,
             color: t.text,
             semanticLabel: '공유',
+            onTap: onShare,
           ),
           const Spacer(),
           _ActionItem(
-            icon: Icons.bookmark_border_rounded,
+            icon: saved
+                ? Icons.bookmark_rounded
+                : Icons.bookmark_border_rounded,
             color: t.text,
-            semanticLabel: '저장',
+            semanticLabel: saved ? '저장 취소' : '저장',
+            onTap: onSave,
           ),
         ],
       ),
@@ -384,12 +514,14 @@ class _ActionItem extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.semanticLabel,
+    required this.onTap,
     this.label,
   });
 
   final IconData icon;
   final Color color;
   final String semanticLabel;
+  final VoidCallback onTap;
   final String? label;
 
   @override
@@ -399,7 +531,7 @@ class _ActionItem extends StatelessWidget {
       button: true,
       label: semanticLabel,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           constraints: const BoxConstraints(minWidth: 44, minHeight: 44),

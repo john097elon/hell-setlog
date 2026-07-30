@@ -186,3 +186,25 @@ drop policy if exists "notifications own update" on notifications;
 create policy "notifications own update" on notifications for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "notifications insert" on notifications;
 create policy "notifications insert" on notifications for insert to authenticated with check (true);
+
+create table if not exists post_reports (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references posts(id) on delete cascade,
+  reporter_id uuid not null references auth.users(id) on delete cascade,
+  reason text not null,
+  created_at timestamptz not null default now()
+);
+create table if not exists user_blocks (
+  blocker_id uuid not null references auth.users(id) on delete cascade,
+  blocked_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker_id, blocked_id)
+);
+alter table post_reports enable row level security;
+alter table user_blocks enable row level security;
+drop policy if exists "post reports own select" on post_reports;
+drop policy if exists "post reports own insert" on post_reports;
+drop policy if exists "user blocks own rows" on user_blocks;
+create policy "post reports own select" on post_reports for select to authenticated using (auth.uid() = reporter_id);
+create policy "post reports own insert" on post_reports for insert to authenticated with check (auth.uid() = reporter_id);
+create policy "user blocks own rows" on user_blocks for all to authenticated using (auth.uid() = blocker_id) with check (auth.uid() = blocker_id);

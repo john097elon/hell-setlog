@@ -11,6 +11,7 @@ import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.d
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_toggle.dart';
 import 'package:heal_setlog/features/auth/application/auth_service.dart';
+import 'package:heal_setlog/features/help/presentation/help_page.dart';
 
 /// In-memory settings and profile mock shown from the profile tab.
 class SettingsPage extends ConsumerWidget {
@@ -144,6 +145,12 @@ class SettingsPage extends ConsumerWidget {
               SettingRow(
                 title: copy.settingsSupport,
                 onTap: () => _showMockSheet(context, copy.settingsSupport),
+              ),
+              SettingRow(
+                title: '도움말',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const HelpPage()),
+                ),
               ),
               SettingRow(
                 title: copy.settingsPrivacyPolicy,

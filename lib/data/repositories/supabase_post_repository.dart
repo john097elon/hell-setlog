@@ -27,6 +27,10 @@ class SupabasePostRepository implements PostRepository {
       return const Err(DatabaseFailure('Supabase가 구성되지 않았습니다'));
     }
     try {
+      final userId = client.auth.currentUser?.id;
+      final blockedIds = userId == null
+          ? <String>{}
+          : await _blockedIds(client, userId);
       final rows = bodyPart == null
           ? await client
                 .from('posts')
@@ -41,6 +45,7 @@ class SupabasePostRepository implements PostRepository {
                 .limit(limit);
       final posts = (rows as List)
           .map((row) => _post(Map<String, Object?>.from(row as Map)))
+          .where((post) => !blockedIds.contains(post.userId))
           .toList(growable: false);
       final names = await _authorNames(
         client,
@@ -220,6 +225,77 @@ class SupabasePostRepository implements PostRepository {
   }
 
   @override
+  Future<Result<void, Failure>> deletePost(String postId) async {
+    final client = _client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      return const Err(DatabaseFailure('로그인이 필요합니다.'));
+    }
+    try {
+      final post = await client
+          .from('posts')
+          .select('id')
+          .eq('id', postId)
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (post == null) {
+        return const Err(NotFoundFailure('삭제할 수 없는 게시물입니다.'));
+      }
+      await client
+          .from('posts')
+          .delete()
+          .eq('id', postId)
+          .eq('user_id', userId);
+      return const Ok(null);
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('게시물을 삭제하지 못했습니다. $error'));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> reportPost(String postId, String reason) async {
+    final client = _client;
+    final userId = client?.auth.currentUser?.id;
+    if (client == null || userId == null) {
+      return const Err(DatabaseFailure('로그인이 필요합니다.'));
+    }
+    if (reason.trim().isEmpty) {
+      return const Err(DatabaseFailure('신고 사유를 선택해 주세요.'));
+    }
+    try {
+      await client.from('post_reports').insert({
+        'post_id': postId,
+        'reporter_id': userId,
+        'reason': reason.trim(),
+      });
+      return const Ok(null);
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('신고를 접수하지 못했습니다. $error'));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> blockUser(String userId) async {
+    final client = _client;
+    final blockerId = client?.auth.currentUser?.id;
+    if (client == null || blockerId == null) {
+      return const Err(DatabaseFailure('로그인이 필요합니다.'));
+    }
+    if (blockerId == userId) {
+      return const Err(DatabaseFailure('본인은 차단할 수 없습니다.'));
+    }
+    try {
+      await client.from('user_blocks').upsert({
+        'blocker_id': blockerId,
+        'blocked_id': userId,
+      });
+      return const Ok(null);
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('사용자를 차단하지 못했습니다. $error'));
+    }
+  }
+
+  @override
   Future<Result<List<PostComment>, Failure>> fetchComments(
     String postId,
   ) async {
@@ -297,6 +373,19 @@ class SupabasePostRepository implements PostRepository {
             ((row['nickname'] as String?)?.trim().isNotEmpty ?? false)
             ? row['nickname'] as String
             : '회원',
+    };
+  }
+
+  static Future<Set<String>> _blockedIds(
+    SupabaseClient client,
+    String userId,
+  ) async {
+    final rows = await client
+        .from('user_blocks')
+        .select('blocked_id')
+        .eq('blocker_id', userId);
+    return {
+      for (final row in rows as List) (row as Map)['blocked_id'] as String,
     };
   }
 
