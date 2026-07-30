@@ -316,16 +316,14 @@ class _Media extends StatelessWidget {
             ),
             // 사진 자리: 큰 이모지 대신 절제된 아웃라인 글리프.
             child: (media.url?.isNotEmpty ?? false) && !isVideo
-                ? Image.network(media.url!, fit: BoxFit.cover)
+                ? Image.network(
+                    media.url!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const _MediaFallback(),
+                  )
                 : isVideo
                 ? null
-                : Center(
-                    child: Icon(
-                      Icons.photo_camera_outlined,
-                      size: 34,
-                      color: Colors.black.withValues(alpha: 0.16),
-                    ),
-                  ),
+                : const _MediaFallback(),
           ),
           if (isVideo) const Center(child: _PlayButton()),
           if (isLive)
@@ -374,6 +372,20 @@ class _Media extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 이미지가 없거나 불러오지 못했을 때의 자리 표시다.
+class _MediaFallback extends StatelessWidget {
+  const _MediaFallback();
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Icon(
+      Icons.photo_camera_outlined,
+      size: 34,
+      color: Colors.black.withValues(alpha: 0.16),
+    ),
+  );
 }
 
 class _PlayButton extends StatelessWidget {

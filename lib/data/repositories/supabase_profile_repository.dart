@@ -153,8 +153,9 @@ class SupabaseProfileRepository implements ProfileRepository {
   fetchFollowCounts() async {
     final client = _client;
     final userId = client?.auth.currentUser?.id;
-    if (client == null || userId == null)
+    if (client == null || userId == null) {
       return const Err(DatabaseFailure('로그인이 필요합니다'));
+    }
     try {
       final rows = await Future.wait<List>(<Future<List>>[
         client.from('follows').select('follower_id').eq('following_id', userId),

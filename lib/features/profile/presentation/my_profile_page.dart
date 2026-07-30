@@ -322,15 +322,82 @@ class _Stat extends StatelessWidget {
   );
 }
 
+/// 그리드 한 칸. 사진은 이미지로, 영상과 기록 전용 글은 대체 표시로 보여준다.
 class _PostThumbnail extends StatelessWidget {
   const _PostThumbnail({required this.post});
+
   final Post post;
+
+  bool get _isVideo => post.mediaKind == PostMediaKind.video;
+  bool get _hasMedia => post.mediaUrl.isNotEmpty;
+
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(8),
-    child: post.mediaUrl.isEmpty
-        ? ColoredBox(color: context.tokens.bg)
-        : Image.network(post.mediaUrl, fit: BoxFit.cover),
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: t.bg,
+          border: Border.all(color: t.border),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            if (_hasMedia && !_isVideo)
+              Image.network(
+                post.mediaUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _fallback(t),
+              )
+            else
+              _fallback(t),
+            if (_isVideo)
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.play_circle_fill_rounded,
+                    size: 18,
+                    color: t.text.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 미디어를 못 그릴 때도 무엇을 올린 글인지 알 수 있게 요약을 보여준다.
+  Widget _fallback(AppTokens t) => Padding(
+    padding: const EdgeInsets.all(6),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Icon(
+          _isVideo ? Icons.videocam_outlined : Icons.article_outlined,
+          size: 20,
+          color: t.faintText,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          post.volumeKg != null
+              ? '${post.volumeKg!.round()} kg'
+              : (post.caption.isEmpty ? '기록' : post.caption),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            color: t.mutedText,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
