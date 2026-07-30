@@ -33,8 +33,9 @@ int? rowInt(Map<String, Object?> row, String key) {
   final value = row[key];
   if (value is int) return value;
   if (value is num) return value.round();
-  if (value is String)
+  if (value is String) {
     return int.tryParse(value) ?? double.tryParse(value)?.round();
+  }
   return null;
 }
 
