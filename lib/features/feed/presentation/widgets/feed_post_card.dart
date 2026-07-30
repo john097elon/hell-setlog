@@ -168,13 +168,18 @@ class _Header extends StatelessWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Text(
-                      author.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                        color: t.text,
+                    // 닉네임이 길어도 레벨 칩을 밀어내지 않도록 줄인다.
+                    Flexible(
+                      child: Text(
+                        author.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                          color: t.text,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -480,21 +485,21 @@ class _Actions extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 4, 10, 2),
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 2),
       child: Row(
         children: <Widget>[
           _ActionItem(
             icon: liked
                 ? Icons.favorite_rounded
                 : Icons.favorite_border_rounded,
-            label: formatInt(likes),
+            label: formatCompactNumber(likes),
             color: liked ? t.like : t.text,
             semanticLabel: liked ? '좋아요 취소' : '좋아요',
             onTap: onLike,
           ),
           _ActionItem(
             icon: Icons.mode_comment_outlined,
-            label: formatInt(comments),
+            label: formatCompactNumber(comments),
             color: t.text,
             semanticLabel: '댓글 ${formatInt(comments)}개',
             onTap: onComment,
@@ -547,7 +552,7 @@ class _ActionItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           alignment: Alignment.center,
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -557,6 +562,8 @@ class _ActionItem extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   label!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -597,7 +604,7 @@ class _SummaryStrip extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 14),
                 color: t.borderStrong.withValues(alpha: 0.4),
               ),
-            _Metric(metric: summary.metrics[i]),
+            Flexible(child: _Metric(metric: summary.metrics[i])),
           ],
           const Spacer(),
           if (summary.prLabel != null)
@@ -631,6 +638,8 @@ class _Metric extends StatelessWidget {
       children: <Widget>[
         Text(
           metric.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -640,6 +649,8 @@ class _Metric extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           metric.value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -673,12 +684,16 @@ class _PrTag extends StatelessWidget {
         children: <Widget>[
           Icon(Icons.workspace_premium_rounded, size: 13, color: t.warning),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: t.warning,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: t.warning,
+              ),
             ),
           ),
         ],

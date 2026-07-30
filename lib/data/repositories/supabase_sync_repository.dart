@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../remote/row_parse.dart';
 import '../../core/supabase/supabase_init.dart';
 import '../../domain/repositories/sync_repository.dart';
 import '../local/app_database.dart' as local;
@@ -322,11 +323,11 @@ class SupabaseSyncRepository implements SyncRepository {
   static double _double(Map<String, Object?> row, String key) =>
       (row[key] as num).toDouble();
   static double? _nullableDouble(Map<String, Object?> row, String key) =>
-      (row[key] as num?)?.toDouble();
+      rowDouble(row, key);
   static DateTime _rowTime(
     Map<String, Object?> row, [
     String key = 'updated_at',
-  ]) => DateTime.parse(row[key] as String);
+  ]) => rowDate(row, key);
   static DateTime? _nullableTime(Map<String, Object?> row, String key) =>
       row[key] == null ? null : DateTime.parse(row[key] as String);
   static String _time(DateTime value) => value.toUtc().toIso8601String();

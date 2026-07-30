@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/post.dart';
@@ -315,7 +316,7 @@ class SupabasePostRepository implements PostRepository {
             postId: postId,
             userId: m['user_id'] as String,
             body: m['body'] as String,
-            createdAt: DateTime.parse(m['created_at'] as String),
+            createdAt: rowDate(m, 'created_at'),
           );
         }).toList(),
       );
@@ -349,7 +350,7 @@ class SupabasePostRepository implements PostRepository {
           postId: postId,
           userId: userId,
           body: body,
-          createdAt: DateTime.parse(r['created_at'] as String),
+          createdAt: rowDate(r, 'created_at'),
         ),
       );
     } on Exception catch (e) {
@@ -390,20 +391,20 @@ class SupabasePostRepository implements PostRepository {
   }
 
   static Post _post(Map<String, Object?> row) => Post(
-    id: row['id'] as String,
-    userId: row['user_id'] as String,
-    caption: row['caption'] as String? ?? '',
-    mediaUrl: row['media_url'] as String,
+    id: rowString(row, 'id'),
+    userId: rowString(row, 'user_id'),
+    caption: rowString(row, 'caption'),
+    mediaUrl: rowString(row, 'media_url'),
     mediaKind: row['media_kind'] == 'video'
         ? PostMediaKind.video
         : PostMediaKind.photo,
-    bodyPart: row['body_part'] as String?,
-    location: row['location'] as String?,
-    sessionId: row['session_id'] as String?,
-    volumeKg: (row['volume_kg'] as num?)?.toDouble(),
-    durationMin: (row['duration_min'] as num?)?.toInt(),
-    prLabel: row['pr_label'] as String?,
-    xp: (row['xp'] as num?)?.toInt(),
-    createdAt: DateTime.parse(row['created_at'] as String),
+    bodyPart: rowStringOrNull(row, 'body_part'),
+    location: rowStringOrNull(row, 'location'),
+    sessionId: rowStringOrNull(row, 'session_id'),
+    volumeKg: rowDouble(row, 'volume_kg'),
+    durationMin: rowInt(row, 'duration_min'),
+    prLabel: rowStringOrNull(row, 'pr_label'),
+    xp: rowInt(row, 'xp'),
+    createdAt: rowDate(row, 'created_at'),
   );
 }

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/party.dart';
@@ -168,15 +169,19 @@ class SupabasePartyRepository implements PartyRepository {
           .select('user_id,role,joined_at,profiles(nickname,avatar_url)')
           .eq('party_id', partyId);
       return Ok(
-        (rows as List).map((r) {
-          final m = r as Map;
-          final p = m['profiles'] as Map?;
+        rowList(rows).map((m) {
+          // 조인 결과는 객체 또는 배열로 올 수 있어 둘 다 처리한다.
+          final profile = rowNested(m, 'profiles');
           return PartyMember(
-            userId: m['user_id'] as String,
-            nickname: p?['nickname'] as String? ?? '회원',
-            avatarUrl: p?['avatar_url'] as String?,
-            role: m['role'] as String,
-            joinedAt: DateTime.parse(m['joined_at'] as String),
+            userId: rowString(m, 'user_id'),
+            nickname: profile == null
+                ? '회원'
+                : rowString(profile, 'nickname', fallback: '회원'),
+            avatarUrl: profile == null
+                ? null
+                : rowStringOrNull(profile, 'avatar_url'),
+            role: rowString(m, 'role', fallback: 'member'),
+            joinedAt: rowDate(m, 'joined_at'),
           );
         }).toList(),
       );
@@ -270,32 +275,32 @@ class SupabasePartyRepository implements PartyRepository {
       .padLeft(6, '0')
       .substring(0, 6);
   static Party _party(Map<String, Object?> r) => Party(
-    id: r['id'] as String,
-    ownerId: r['owner_id'] as String,
-    name: r['name'] as String,
+    id: rowString(r, 'id'),
+    ownerId: rowString(r, 'owner_id'),
+    name: rowString(r, 'name'),
     maxMembers: (r['max_members'] as num).toInt(),
     isPublic: r['is_public'] as bool,
-    createdAt: DateTime.parse(r['created_at'] as String),
+    createdAt: rowDate(r, 'created_at'),
     description: r['description'] as String?,
     region: r['region'] as String?,
     focus: r['focus'] as String?,
     joinCode: r['join_code'] as String?,
   );
   static PartyMessage _message(Map<String, Object?> r) => PartyMessage(
-    id: r['id'] as String,
-    partyId: r['party_id'] as String,
-    userId: r['user_id'] as String,
+    id: rowString(r, 'id'),
+    partyId: rowString(r, 'party_id'),
+    userId: rowString(r, 'user_id'),
     body: r['body'] as String,
-    createdAt: DateTime.parse(r['created_at'] as String),
+    createdAt: rowDate(r, 'created_at'),
   );
   static Post _post(Map<String, Object?> r) => Post(
-    id: r['id'] as String,
-    userId: r['user_id'] as String,
+    id: rowString(r, 'id'),
+    userId: rowString(r, 'user_id'),
     caption: r['caption'] as String? ?? '',
     mediaUrl: r['media_url'] as String,
     mediaKind: r['media_kind'] == 'video'
         ? PostMediaKind.video
         : PostMediaKind.photo,
-    createdAt: DateTime.parse(r['created_at'] as String),
+    createdAt: rowDate(r, 'created_at'),
   );
 }

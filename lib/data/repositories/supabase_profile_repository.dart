@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/post.dart';
@@ -172,24 +173,24 @@ class SupabaseProfileRepository implements ProfileRepository {
     nickname: row['nickname'] as String? ?? '회원',
     avatarUrl: row['avatar_url'] as String?,
     bio: row['bio'] as String?,
-    createdAt: DateTime.parse(row['created_at'] as String),
+    createdAt: rowDate(row, 'created_at'),
   );
 
   static Post _post(Map<String, Object?> row) => Post(
     id: row['id'] as String,
     userId: row['user_id'] as String,
     caption: row['caption'] as String? ?? '',
-    mediaUrl: row['media_url'] as String,
+    mediaUrl: rowString(row, 'media_url'),
     mediaKind: row['media_kind'] == 'video'
         ? PostMediaKind.video
         : PostMediaKind.photo,
     bodyPart: row['body_part'] as String?,
     location: row['location'] as String?,
     sessionId: row['session_id'] as String?,
-    volumeKg: (row['volume_kg'] as num?)?.toDouble(),
-    durationMin: (row['duration_min'] as num?)?.toInt(),
+    volumeKg: rowDouble(row, 'volume_kg'),
+    durationMin: rowInt(row, 'duration_min'),
     prLabel: row['pr_label'] as String?,
-    xp: (row['xp'] as num?)?.toInt(),
-    createdAt: DateTime.parse(row['created_at'] as String),
+    xp: rowInt(row, 'xp'),
+    createdAt: rowDate(row, 'created_at'),
   );
 }
