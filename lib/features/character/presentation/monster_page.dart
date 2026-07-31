@@ -9,6 +9,7 @@ import '../../../domain/entities/character_identity.dart';
 import 'character_setup_page.dart';
 import '../application/character_identity_controller.dart';
 import '../application/character_providers.dart';
+import 'evolution_page.dart';
 import 'widgets/growth_view.dart';
 
 /// 기록한 운동에서 자란 캐릭터를 보여준다.
@@ -80,18 +81,49 @@ class _Growth extends ConsumerWidget {
       );
 }
 
-class _GrowthContent extends ConsumerWidget {
+class _GrowthContent extends ConsumerStatefulWidget {
   const _GrowthContent({required this.growth, required this.identity});
 
   final CharacterGrowth growth;
   final CharacterIdentity identity;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_GrowthContent> createState() => _GrowthContentState();
+}
+
+class _GrowthContentState extends ConsumerState<_GrowthContent> {
+  bool _evolutionScheduled = false;
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.tokens;
     final seenLevel = ref.watch(seenCharacterLevelProvider).valueOrNull;
+    final seenStage = ref.watch(seenCharacterEvolutionStageProvider);
+    final hasPendingEvolution = seenStage.when(
+      data: (stage) => widget.growth.evolutionStage > (stage ?? 0),
+      loading: () => false,
+      error: (_, _) => false,
+    );
+    final evolutionStatusLoaded = seenStage.when(
+      data: (_) => true,
+      loading: () => false,
+      error: (_, _) => false,
+    );
+    if (hasPendingEvolution && !_evolutionScheduled) {
+      _evolutionScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await showPendingCharacterEvolution(
+          context,
+          ref,
+          identity: widget.identity,
+          growth: widget.growth,
+        );
+        if (mounted) setState(() => _evolutionScheduled = false);
+      });
+    }
     // 지난번에 본 레벨보다 올랐으면 한 번만 축하한다.
-    final gained = seenLevel == null ? 0 : growth.totalLevel - seenLevel;
+    final gained = seenLevel == null ? 0 : widget.growth.totalLevel - seenLevel;
     return RefreshIndicator(
       onRefresh: () async {
         ref
@@ -101,14 +133,15 @@ class _GrowthContent extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
         children: <Widget>[
-          if (gained > 0)
+          if (evolutionStatusLoaded && !hasPendingEvolution && gained > 0)
             LevelUpBanner(
               gainedLevels: gained,
-              onDismiss: () => markCharacterLevelSeen(ref, growth.totalLevel),
+              onDismiss: () =>
+                  markCharacterLevelSeen(ref, widget.growth.totalLevel),
             ),
-          CharacterHero(growth: growth, identity: identity),
+          CharacterHero(growth: widget.growth, identity: widget.identity),
           const SizedBox(height: AppSpacing.lg),
-          WeeklyGrowthStrip(growth: growth),
+          WeeklyGrowthStrip(growth: widget.growth),
           const SizedBox(height: AppSpacing.xxl),
           Text(
             '부위별 성장',
@@ -120,16 +153,18 @@ class _GrowthContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          for (final muscle in growth.muscles) MuscleGrowthBar(muscle: muscle),
+          for (final muscle in widget.growth.muscles)
+            MuscleGrowthBar(muscle: muscle),
           const SizedBox(height: AppSpacing.sm),
           Text(
             '완료한 세트의 볼륨 100kg마다 1XP를 얻어요. 준비 세트는 빠집니다.\n'
-            '${traitCopy(identity.trait).detail}.',
+            '${traitCopy(widget.identity.trait).detail}.',
             style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
           ),
           const SizedBox(height: AppSpacing.lg),
           OutlinedButton.icon(
-            onPressed: () => openCharacterSetup(context, initial: identity),
+            onPressed: () =>
+                openCharacterSetup(context, initial: widget.identity),
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('캐릭터 바꾸기'),
           ),

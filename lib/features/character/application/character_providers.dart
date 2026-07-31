@@ -10,6 +10,9 @@ import 'character_identity_controller.dart';
 /// 마지막으로 사용자에게 보여 준 합산 레벨. 레벨업 축하를 한 번만 띄운다.
 const String kSeenCharacterLevelKey = 'character_seen_level';
 
+/// 마지막으로 사용자에게 보여 준 진화 단계.
+const String kSeenCharacterEvolutionStageKey = 'character_seen_evolution_stage';
+
 /// 부위별 누적 볼륨. 준비 세트는 통계와 같은 기준으로 제외한다.
 /// 성향에 맞는 반복 구간의 세트는 보너스를 받는다.
 final characterVolumesProvider = FutureProvider<Map<MuscleGroup, double>>(
@@ -42,11 +45,31 @@ final seenCharacterLevelProvider = FutureProvider<int?>((ref) async {
   return prefs.getInt(kSeenCharacterLevelKey);
 });
 
+/// 직전에 확인한 진화 단계. 없으면 null이다.
+final seenCharacterEvolutionStageProvider = FutureProvider<int?>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt(kSeenCharacterEvolutionStageKey);
+});
+
 /// 레벨업 축하를 본 것으로 표시한다.
 Future<void> markCharacterLevelSeen(WidgetRef ref, int level) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setInt(kSeenCharacterLevelKey, level);
   ref.invalidate(seenCharacterLevelProvider);
+}
+
+/// 진화와 그 시점의 레벨을 함께 확인한 것으로 표시한다.
+Future<void> markCharacterEvolutionSeen(
+  WidgetRef ref, {
+  required int stage,
+  required int level,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(kSeenCharacterEvolutionStageKey, stage);
+  await prefs.setInt(kSeenCharacterLevelKey, level);
+  ref
+    ..invalidate(seenCharacterEvolutionStageProvider)
+    ..invalidate(seenCharacterLevelProvider);
 }
 
 Future<Map<MuscleGroup, double>> _volumes(Ref ref, {DateTime? since}) async {

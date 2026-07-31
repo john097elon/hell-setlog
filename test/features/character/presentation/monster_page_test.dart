@@ -76,6 +76,7 @@ Future<void> _pump(
   required Map<MuscleGroup, double> volumes,
   Map<MuscleGroup, double> weekly = const <MuscleGroup, double>{},
   int? seenLevel,
+  int? seenEvolutionStage = 0,
   CharacterIdentity? identity = const CharacterIdentity(
     species: CharacterSpecies.cat,
     trait: CharacterTrait.power,
@@ -90,6 +91,9 @@ Future<void> _pump(
               calculateCharacterGrowth(volumes, weeklyVolumes: weekly),
         ),
         seenCharacterLevelProvider.overrideWith((ref) async => seenLevel),
+        seenCharacterEvolutionStageProvider.overrideWith(
+          (ref) async => seenEvolutionStage,
+        ),
         characterIdentityProvider.overrideWith((ref) async => identity),
       ],
       child: MaterialApp(

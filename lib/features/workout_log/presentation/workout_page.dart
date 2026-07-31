@@ -16,6 +16,7 @@ import '../../party/application/party_providers.dart';
 import '../../routine/application/routine_providers.dart';
 import '../../stats/application/stats_providers.dart';
 import '../../character/application/character_providers.dart';
+import '../../character/presentation/evolution_page.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 import '../application/exercise_name_provider.dart';
 import '../application/rest_timer_controller.dart';
@@ -411,6 +412,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final xp = xpForVolume(volume);
     // 파티 주간 미션은 파티에 남긴 활동으로 계산한다.
     await _recordToParties(session.id, volume, xp);
+    if (!mounted) return;
+    await showPendingCharacterEvolution(context, ref);
     if (!mounted) return;
     showShareWorkoutSheet(
       context,
