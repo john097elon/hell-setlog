@@ -1,40 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/post.dart';
+import '../../../settings/application/settings_controller.dart';
 
 /// 프로필 게시물 그리드. 내 프로필과 다른 사용자 프로필이 함께 쓴다.
-class PostGridSliver extends StatelessWidget {
+class PostGridSliver extends ConsumerWidget {
   const PostGridSliver({required this.posts, required this.onTap, super.key});
 
   final List<Post> posts;
   final void Function(Post post) onTap;
 
   @override
-  Widget build(BuildContext context) => SliverPadding(
-    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-    sliver: SliverGrid(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) =>
-            PostThumbnail(post: posts[index], onTap: () => onTap(posts[index])),
-        childCount: posts.length,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      sliver: SliverGrid(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => PostThumbnail(
+            post: posts[index],
+            weightUnit: weightUnit,
+            onTap: () => onTap(posts[index]),
+          ),
+          childCount: posts.length,
+        ),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+        ),
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-      ),
-    ),
-  );
+    );
+  }
 }
 
 /// 그리드 한 칸. 사진은 이미지로, 영상과 기록 전용 글은 대체 표시로 보여준다.
 class PostThumbnail extends StatelessWidget {
-  const PostThumbnail({required this.post, required this.onTap, super.key});
+  const PostThumbnail({
+    required this.post,
+    required this.onTap,
+    this.weightUnit = WeightUnit.kg,
+    super.key,
+  });
 
   final Post post;
   final VoidCallback onTap;
+  final WeightUnit weightUnit;
 
   bool get _isVideo => post.mediaKind == PostMediaKind.video;
   bool get _hasMedia => post.mediaUrl.isNotEmpty;
@@ -110,7 +126,7 @@ class PostThumbnail extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           post.volumeKg != null
-              ? '${post.volumeKg!.round()} kg'
+              ? formatWeightWithUnit(post.volumeKg!, unit: weightUnit)
               : (post.caption.isEmpty ? '기록' : post.caption),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/formatting/app_format.dart';
 
 class SetTableHeader extends StatelessWidget {
-  const SetTableHeader({super.key});
+  const SetTableHeader({this.weightUnit = WeightUnit.kg, super.key});
+
+  final WeightUnit weightUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,9 @@ class SetTableHeader extends StatelessWidget {
             child: Text(context.l10n.setColumn, style: style),
           ),
           Expanded(
-            child: Center(child: Text(context.l10n.weightKg, style: style)),
+            child: Center(
+              child: Text(weightUnit.name.toUpperCase(), style: style),
+            ),
           ),
           Expanded(
             child: Center(child: Text(context.l10n.reps, style: style)),

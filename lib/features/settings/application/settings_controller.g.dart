@@ -7,14 +7,14 @@ part of 'settings_controller.dart';
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'1a5034c9309cd53bb12d10210fc7bc9b159b89a6';
+    r'0a2d8169e3dfe8e994d952be3d679063cf6b257f';
 
-/// Owns ephemeral settings mock state without persisting user data.
+/// 앱 설정을 즉시 제공하고 SharedPreferences에서 비동기로 복원한다.
 ///
 /// Copied from [SettingsController].
 @ProviderFor(SettingsController)
 final settingsControllerProvider =
-    AutoDisposeNotifierProvider<SettingsController, SettingsState>.internal(
+    NotifierProvider<SettingsController, SettingsState>.internal(
       SettingsController.new,
       name: r'settingsControllerProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -24,6 +24,6 @@ final settingsControllerProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$SettingsController = AutoDisposeNotifier<SettingsState>;
+typedef _$SettingsController = Notifier<SettingsState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

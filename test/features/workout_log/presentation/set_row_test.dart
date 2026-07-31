@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/domain/entities/workout_set.dart';
 import 'package:heal_setlog/features/workout_log/presentation/widgets/set_row.dart';
@@ -82,6 +83,33 @@ void main() {
 
     expect(weight, 62.5);
     expect(reps, 12);
+  });
+
+  testWidgets('lb input is displayed as lb and returned as kg', (tester) async {
+    double? storedKg;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SetRow(
+            index: 0,
+            weight: 60,
+            weightUnit: WeightUnit.lb,
+            reps: 10,
+            onWeightChanged: (value) => storedKg = value,
+            onRepsChanged: (_) {},
+            onComplete: _noop,
+          ),
+        ),
+      ),
+    );
+
+    final input = find.byKey(const Key('set-weight-input'));
+    expect(tester.widget<TextField>(input).controller?.text, '132.3');
+    await tester.enterText(input, '220.5');
+    expect(storedKg, closeTo(weightToKg(220.5, WeightUnit.lb), 0.000001));
   });
 }
 

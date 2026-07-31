@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/config/app_env.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/settings/application/theme_controller.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
-import 'package:heal_setlog/features/settings/presentation/widgets/setting_toggle.dart';
 import 'package:heal_setlog/features/auth/application/auth_service.dart';
 import 'package:heal_setlog/features/auth/application/session_controller.dart';
 import 'package:heal_setlog/features/help/presentation/help_page.dart';
 
-/// In-memory settings and profile mock shown from the profile tab.
+/// 실제로 제공하는 앱 설정과 지원 정보만 보여준다.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -35,48 +35,6 @@ class SettingsPage extends ConsumerWidget {
         children: <Widget>[
           const SizedBox(height: AppSpacing.xl),
           SettingSection(
-            title: copy.settingsNotifications,
-            children: <Widget>[
-              SettingToggle(
-                title: copy.settingsWorkoutReminder,
-                value: state.workoutReminder,
-                onChanged: controller.setWorkoutReminder,
-              ),
-              SettingToggle(
-                title: copy.settingsPartyNotification,
-                value: state.partyNotification,
-                onChanged: controller.setPartyNotification,
-              ),
-              SettingToggle(
-                title: copy.settingsChatNotification,
-                value: state.chatNotification,
-                onChanged: controller.setChatNotification,
-              ),
-              SettingToggle(
-                title: copy.settingsMonsterGrowth,
-                value: state.monsterGrowthNotification,
-                onChanged: controller.setMonsterGrowthNotification,
-              ),
-            ],
-          ),
-          SettingSection(
-            title: copy.settingsPrivacy,
-            children: <Widget>[
-              SettingRow(
-                title: copy.settingsFeedVisibility,
-                subtitle: copy.settingsPublic,
-                onTap: () =>
-                    _showMockSheet(context, copy.settingsFeedVisibility),
-              ),
-              SettingRow(
-                title: copy.settingsWorkoutVisibility,
-                subtitle: copy.settingsPrivate,
-                onTap: () =>
-                    _showMockSheet(context, copy.settingsWorkoutVisibility),
-              ),
-            ],
-          ),
-          SettingSection(
             title: copy.settingsApp,
             children: <Widget>[
               SettingRow(
@@ -94,16 +52,6 @@ class SettingsPage extends ConsumerWidget {
                   onSelectionChanged: (value) =>
                       themeController.select(value.single),
                 ),
-              ),
-              SettingToggle(
-                title: copy.settingsDarkMode,
-                value: state.darkMode,
-                onChanged: controller.setDarkMode,
-              ),
-              SettingRow(
-                title: copy.settingsLanguage,
-                subtitle: copy.settingsKorean,
-                onTap: () => _showMockSheet(context, copy.settingsLanguage),
               ),
               SettingRow(
                 title: copy.settingsWeightUnit,
@@ -126,27 +74,8 @@ class SettingsPage extends ConsumerWidget {
             ],
           ),
           SettingSection(
-            title: copy.settingsSubscription,
-            children: <Widget>[
-              SettingRow(
-                title: copy.settingsProUpgrade,
-                subtitle: copy.settingsProDescription,
-                onTap: () =>
-                    _showMockSheet(context, copy.settingsProMockMessage),
-              ),
-            ],
-          ),
-          SettingSection(
             title: copy.settingsOther,
             children: <Widget>[
-              SettingRow(
-                title: copy.settingsNotices,
-                onTap: () => _showMockSheet(context, copy.settingsNotices),
-              ),
-              SettingRow(
-                title: copy.settingsSupport,
-                onTap: () => _showMockSheet(context, copy.settingsSupport),
-              ),
               SettingRow(
                 title: '도움말',
                 onTap: () => Navigator.of(context).push(
@@ -155,8 +84,7 @@ class SettingsPage extends ConsumerWidget {
               ),
               SettingRow(
                 title: copy.settingsPrivacyPolicy,
-                onTap: () =>
-                    _showMockSheet(context, copy.settingsPrivacyPolicy),
+                subtitle: '출시 전 공개 예정입니다',
               ),
               SettingRow(title: copy.settingsVersion, subtitle: 'v0.1.0'),
               if (isSignedIn)
@@ -183,25 +111,4 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
-
-  void _showMockSheet(BuildContext context, String message) =>
-      showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext sheetContext) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(message),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton(
-                  onPressed: () => Navigator.pop(sheetContext),
-                  child: Text(context.l10n.cancel),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
 }

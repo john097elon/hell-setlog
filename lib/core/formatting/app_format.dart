@@ -1,6 +1,18 @@
 // 숫자/단위 표시 포맷. 화면 전역에서 일관된 표기를 위해 여기만 쓴다.
 import 'package:characters/characters.dart';
 
+const double poundsPerKilogram = 2.20462;
+
+enum WeightUnit { kg, lb }
+
+/// kg로 저장된 값을 선택한 표시 단위로 바꾼다.
+double weightFromKg(double kg, WeightUnit unit) =>
+    unit == WeightUnit.kg ? kg : kg * poundsPerKilogram;
+
+/// 선택한 표시 단위로 입력된 값을 저장 단위인 kg로 바꾼다.
+double weightToKg(double value, WeightUnit unit) =>
+    unit == WeightUnit.kg ? value : value / poundsPerKilogram;
+
 /// 천단위 콤마. `12400` → `"12,400"`.
 String formatInt(num value) {
   final rounded = value.round();
@@ -14,18 +26,24 @@ String formatInt(num value) {
   return negative ? '-$buffer' : buffer.toString();
 }
 
-/// 볼륨(kg). 정수면 소수 생략, 아니면 소수 1자리. `12400` → `"12,400"`.
-String formatWeight(double kg) {
+/// kg로 저장된 무게를 선택 단위로 표시한다. 정수면 소수를 생략한다.
+String formatWeight(double kg, {WeightUnit unit = WeightUnit.kg}) {
+  final value = weightFromKg(kg, unit);
   // 소수 첫째 자리로 먼저 반올림해야 1.96이 '1.10'으로 새지 않는다.
-  final rounded = (kg * 10).round() / 10;
+  final rounded = (value * 10).round() / 10;
   if (rounded == rounded.roundToDouble()) return formatInt(rounded);
   final whole = rounded.truncate();
   final frac = ((rounded - whole).abs() * 10).round();
   return '${formatInt(whole)}.$frac';
 }
 
-/// 볼륨 + 단위. `12400` → `"12,400 kg"`.
-String formatVolumeKg(double kg) => '${formatWeight(kg)} kg';
+/// kg로 저장된 무게와 선택 단위를 함께 표시한다.
+String formatWeightWithUnit(double kg, {WeightUnit unit = WeightUnit.kg}) =>
+    '${formatWeight(kg, unit: unit)} ${unit.name}';
+
+/// 큰 kg 값을 선택 단위로 변환해 축약 표시한다.
+String formatCompactWeight(double kg, {WeightUnit unit = WeightUnit.kg}) =>
+    '${formatCompactNumber(weightFromKg(kg, unit))} ${unit.name}';
 
 /// 큰 볼륨 축약. `12400` → `"12.4K"`, `1200000` → `"1.2M"`. 통계 요약용.
 String formatCompactNumber(num value) {

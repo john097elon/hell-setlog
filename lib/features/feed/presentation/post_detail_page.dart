@@ -9,6 +9,7 @@ import '../../../domain/entities/post.dart';
 import '../../../domain/entities/post_comment.dart';
 import '../../../domain/entities/post_reaction.dart';
 import '../../profile/application/profile_providers.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/post_providers.dart';
 import 'video_player_page.dart';
 
@@ -61,6 +62,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final t = context.tokens;
     final likers = ref.watch(postLikersProvider(_postId));
     final comments = ref.watch(postCommentsProvider(_postId));
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(title: const Text('게시물')),
@@ -73,7 +77,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: <Widget>[
-            _PostSummary(post: widget.post),
+            _PostSummary(post: widget.post, weightUnit: weightUnit),
             _SectionHeader(
               title: '좋아요',
               count: likers.valueOrNull?.length ?? widget.post.likeCount,
@@ -150,9 +154,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
 /// 글 자체(미디어·운동 요약·캡션).
 class _PostSummary extends StatelessWidget {
-  const _PostSummary({required this.post});
+  const _PostSummary({required this.post, required this.weightUnit});
 
   final Post post;
+  final WeightUnit weightUnit;
 
   bool get _isVideo => post.mediaKind == PostMediaKind.video;
 
@@ -160,7 +165,8 @@ class _PostSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final metrics = <String>[
-      if (post.volumeKg != null) '${formatWeight(post.volumeKg!)} kg',
+      if (post.volumeKg != null)
+        formatWeightWithUnit(post.volumeKg!, unit: weightUnit),
       if (post.durationMin != null) '${post.durationMin}분',
       if (post.prLabel != null) post.prLabel!,
     ];

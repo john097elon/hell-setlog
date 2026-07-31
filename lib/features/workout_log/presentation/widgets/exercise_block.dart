@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/formatting/app_format.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 import 'set_table_header.dart';
@@ -13,6 +14,7 @@ class ExerciseBlock extends StatelessWidget {
     this.thumbnailUrl,
     required this.setRows,
     required this.onAddSet,
+    this.weightUnit = WeightUnit.kg,
     super.key,
   });
 
@@ -22,6 +24,7 @@ class ExerciseBlock extends StatelessWidget {
   final String? thumbnailUrl;
   final List<Widget> setRows;
   final VoidCallback onAddSet;
+  final WeightUnit weightUnit;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -49,7 +52,7 @@ class ExerciseBlock extends StatelessWidget {
               ],
             ),
           ),
-          const SetTableHeader(),
+          SetTableHeader(weightUnit: weightUnit),
           ...setRows,
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),

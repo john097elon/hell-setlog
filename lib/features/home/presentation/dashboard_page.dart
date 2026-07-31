@@ -16,6 +16,7 @@ import '../../notifications/application/notification_providers.dart';
 import '../../party/application/party_providers.dart';
 import '../../party/presentation/widgets/party_mission_card.dart';
 import '../../stats/application/stats_providers.dart';
+import '../../settings/application/settings_controller.dart';
 
 /// 홈. 내 캐릭터와 파티 현황을 먼저 보여주고 운동으로 이어준다.
 class DashboardPage extends ConsumerWidget {
@@ -202,6 +203,9 @@ class _WeekSummary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     final volumes = ref
         .watch(weeklyVolumeProvider())
         .valueOrNull
@@ -218,7 +222,7 @@ class _WeekSummary extends ConsumerWidget {
       ),
       child: Row(
         children: <Widget>[
-          _metric(t, '이번 주 볼륨', '${formatCompactNumber(total)} kg'),
+          _metric(t, '이번 주 볼륨', formatCompactWeight(total, unit: weightUnit)),
           Container(
             width: 0.5,
             height: 30,

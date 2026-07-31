@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/workout_set.dart';
@@ -20,6 +21,7 @@ class SetRow extends StatefulWidget {
     required this.onComplete,
     this.set,
     this.onDelete,
+    this.weightUnit = WeightUnit.kg,
     super.key,
   });
 
@@ -31,6 +33,7 @@ class SetRow extends StatefulWidget {
   final VoidCallback? onComplete;
   final WorkoutSet? set;
   final VoidCallback? onDelete;
+  final WeightUnit weightUnit;
 
   @override
   State<SetRow> createState() => _SetRowState();
@@ -44,8 +47,16 @@ class _SetRowState extends State<SetRow> {
   bool get _isDraft => widget.set == null || !widget.set!.isCompleted;
   bool get _isDone => widget.set?.isCompleted == true;
 
-  String get _weightText => widget.weight.toStringAsFixed(
-    widget.weight == widget.weight.roundToDouble() ? 0 : 1,
+  String get _weightText =>
+      formatWeight(widget.weight, unit: widget.weightUnit);
+
+  void _changeWeightBy(double amount) => widget.onWeightChanged(
+    _clampWeight(
+      weightToKg(
+        weightFromKg(widget.weight, widget.weightUnit) + amount,
+        widget.weightUnit,
+      ),
+    ),
   );
 
   @override
@@ -58,7 +69,8 @@ class _SetRowState extends State<SetRow> {
   @override
   void didUpdateWidget(covariant SetRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.weight != widget.weight) {
+    if (oldWidget.weight != widget.weight ||
+        oldWidget.weightUnit != widget.weightUnit) {
       _syncController(_weightController, _weightText);
     }
     if (oldWidget.reps != widget.reps) {
@@ -117,12 +129,8 @@ class _SetRowState extends State<SetRow> {
             child: _isDraft
                 ? _Stepper(
                     style: numberStyle,
-                    onMinus: () => widget.onWeightChanged(
-                      _clampWeight(widget.weight - 2.5),
-                    ),
-                    onPlus: () => widget.onWeightChanged(
-                      _clampWeight(widget.weight + 2.5),
-                    ),
+                    onMinus: () => _changeWeightBy(-2.5),
+                    onPlus: () => _changeWeightBy(2.5),
                     controller: _weightController,
                     inputType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -133,7 +141,9 @@ class _SetRowState extends State<SetRow> {
                     onChanged: (value) {
                       final parsed = double.tryParse(value);
                       if (parsed != null) {
-                        widget.onWeightChanged(_clampWeight(parsed));
+                        widget.onWeightChanged(
+                          _clampWeight(weightToKg(parsed, widget.weightUnit)),
+                        );
                       }
                     },
                     fieldKey: const Key('set-weight-input'),

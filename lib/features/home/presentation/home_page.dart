@@ -12,6 +12,7 @@ import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.da
 import 'package:heal_setlog/core/supabase/supabase_init.dart';
 import 'package:heal_setlog/features/notifications/application/notification_providers.dart';
 import 'package:heal_setlog/features/party/application/party_providers.dart';
+import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 
 /// Social home. Party data stays mocked until party persistence is available.
 class HomePage extends ConsumerStatefulWidget {
@@ -66,6 +67,9 @@ class _PartyFeed extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final parties = ref.watch(myPartiesProvider);
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     final party = parties.valueOrNull?.firstOrNull;
     if (parties.isLoading) return const FeedListSkeleton();
     if (party == null) {
@@ -115,6 +119,7 @@ class _PartyFeed extends ConsumerWidget {
                           ?.auth
                           .currentUser
                           ?.id,
+                      weightUnit: weightUnit,
                     ),
                   )
                   .toList(growable: false),
@@ -132,6 +137,9 @@ class _PublicFeed extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     final header = PublicFilters(
       filters: filters,
       onPartySelected: onPartSelected,
@@ -148,7 +156,13 @@ class _PublicFeed extends ConsumerWidget {
           data: (posts) {
             final me = ref.watch(supabaseClientProvider)?.auth.currentUser?.id;
             final feedPosts = posts
-                .map((post) => feedPostFromPost(post, currentUserId: me))
+                .map(
+                  (post) => feedPostFromPost(
+                    post,
+                    currentUserId: me,
+                    weightUnit: weightUnit,
+                  ),
+                )
                 .toList(growable: false);
             if (feedPosts.isEmpty) {
               return Column(
