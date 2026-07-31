@@ -14,6 +14,9 @@ import '../../character/application/character_identity_controller.dart';
 import '../../character/application/character_providers.dart';
 import '../../character/presentation/monster_page.dart';
 import '../../character/presentation/widgets/growth_view.dart';
+import '../../../domain/entities/post.dart';
+import '../../feed/application/post_providers.dart';
+import '../../feed/presentation/post_detail_page.dart';
 import '../../notifications/application/notification_providers.dart';
 import '../../party/application/party_providers.dart';
 import '../../party/presentation/widgets/party_mission_card.dart';
@@ -31,7 +34,7 @@ class DashboardPage extends ConsumerWidget {
       title: '헬셋로그',
       actions: <Widget>[
         IconButton(
-          tooltip: '피드',
+          tooltip: '피드 전체 보기',
           onPressed: () => context.push('/feed'),
           icon: const Icon(Icons.dynamic_feed_outlined),
         ),
@@ -68,6 +71,14 @@ class DashboardPage extends ConsumerWidget {
                 const _PartySection(),
                 const SizedBox(height: AppSpacing.xl),
                 const _WeekSummary(),
+                const SizedBox(height: AppSpacing.xl),
+                _SectionHeader(
+                  title: '피드',
+                  actionLabel: '전체',
+                  onAction: () => context.push('/feed'),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                const _FeedPreview(),
                 const SizedBox(height: AppSpacing.xl),
                 FilledButton.icon(
                   onPressed: () => context.go('/workout'),
@@ -335,6 +346,105 @@ class _PartyEmpty extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 홈에서 보는 피드 맛보기. 파티 피드를 먼저 보여주고 없으면 공개 피드를 쓴다.
+class _FeedPreview extends ConsumerWidget {
+  const _FeedPreview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final party = ref.watch(myPartiesProvider).valueOrNull?.firstOrNull;
+    final feed = party == null
+        ? ref.watch(publicFeedProvider(null))
+        : ref.watch(partyFeedProvider(party.id));
+    return feed.when(
+      loading: () => const AppMissionSkeleton(),
+      error: (_, _) => const _FeedEmpty(message: '피드를 불러오지 못했습니다'),
+      data: (posts) => posts.isEmpty
+          ? const _FeedEmpty(message: '아직 올라온 기록이 없어요')
+          : AppSection(
+              margin: EdgeInsets.zero,
+              children: <Widget>[
+                for (final post in posts.take(3))
+                  AppRow(
+                    title: post.authorName ?? '회원',
+                    subtitle: post.caption.isEmpty
+                        ? (post.bodyPart ?? '운동 기록')
+                        : post.caption,
+                    leading: _FeedThumb(post: post),
+                    value: post.volumeKg == null
+                        ? null
+                        : '${formatCompactNumber(post.volumeKg!)} kg',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PostDetailPage(post: post),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+}
+
+class _FeedThumb extends StatelessWidget {
+  const _FeedThumb({required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final isVideo = post.mediaKind == PostMediaKind.video;
+    final url = post.mediaUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: SizedBox(
+        width: 26,
+        height: 26,
+        child: url.isEmpty || isVideo
+            ? ColoredBox(
+                color: t.surface,
+                child: Icon(
+                  isVideo ? Icons.videocam_rounded : Icons.article_outlined,
+                  size: 15,
+                  color: t.faintText,
+                ),
+              )
+            : Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => ColoredBox(
+                  color: t.surface,
+                  child: Icon(
+                    Icons.image_outlined,
+                    size: 15,
+                    color: t.faintText,
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _FeedEmpty extends StatelessWidget {
+  const _FeedEmpty({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => AppSection(
+    margin: EdgeInsets.zero,
+    children: <Widget>[
+      AppRow(
+        title: message,
+        subtitle: '기록을 공유하면 여기에 모여요',
+        onTap: () => context.push('/feed'),
+      ),
+    ],
+  );
 }
 
 class _SectionHeader extends StatelessWidget {

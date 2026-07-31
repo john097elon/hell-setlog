@@ -5,10 +5,12 @@ import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/entities/party.dart';
+import 'package:heal_setlog/domain/entities/post.dart';
 import 'package:heal_setlog/domain/entities/party_mission.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 import 'package:heal_setlog/features/character/application/character_identity_controller.dart';
 import 'package:heal_setlog/features/character/application/character_providers.dart';
+import 'package:heal_setlog/features/feed/application/post_providers.dart';
 import 'package:heal_setlog/features/home/presentation/dashboard_page.dart';
 import 'package:heal_setlog/features/notifications/application/notification_providers.dart';
 import 'package:heal_setlog/features/party/application/party_providers.dart';
@@ -23,6 +25,14 @@ void main() {
     expect(find.text('이번 주 파티 미션'), findsOneWidget);
     expect(find.text('3 / 12회'), findsOneWidget);
     expect(find.text('운동 시작하기'), findsOneWidget);
+  });
+
+  testWidgets('홈에서 피드를 바로 볼 수 있다', (tester) async {
+    await _pump(tester);
+
+    // 피드를 하단 탭에서 뺐어도 홈에서 사라지면 안 된다.
+    expect(find.text('피드'), findsOneWidget);
+    expect(find.text('오늘 가슴 끝'), findsOneWidget);
   });
 
   testWidgets('캐릭터가 없으면 만들기부터 안내한다', (tester) async {
@@ -78,6 +88,20 @@ Future<void> _pump(
           ),
         ),
         unreadNotificationCountProvider.overrideWith((ref) async => 0),
+        partyFeedProvider('p1').overrideWith(
+          (ref) async => <Post>[
+            Post(
+              id: 'post-1',
+              userId: 'u1',
+              caption: '오늘 가슴 끝',
+              mediaUrl: '',
+              mediaKind: PostMediaKind.photo,
+              createdAt: DateTime(2026, 7, 30),
+              authorName: '김헬스',
+            ),
+          ],
+        ),
+        publicFeedProvider(null).overrideWith((ref) async => <Post>[]),
       ],
       child: MaterialApp(
         theme: themeFor(AppThemeId.appleWhite),
