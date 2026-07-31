@@ -161,24 +161,24 @@ class _RoutineItemEditor extends ConsumerWidget {
               runSpacing: 8,
               children: <Widget>[
                 _NumberField(
-                  value: item.targetSets,
+                  value: item.targetSets.toDouble(),
                   label: '세트',
                   onChanged: (value) =>
-                      _update(ref, item.copyWith(targetSets: value)),
+                      _update(ref, item.copyWith(targetSets: value.round())),
                 ),
                 _NumberField(
-                  value: item.targetReps,
+                  value: item.targetReps.toDouble(),
                   label: '횟수',
                   onChanged: (value) =>
-                      _update(ref, item.copyWith(targetReps: value)),
+                      _update(ref, item.copyWith(targetReps: value.round())),
                 ),
                 _NumberField(
                   value: item.targetWeight,
                   label: '무게(kg)',
-                  onChanged: (value) => _update(
-                    ref,
-                    item.copyWith(targetWeight: value.toDouble()),
-                  ),
+                  // 2.5kg 같은 값이 잘리지 않도록 무게만 소수를 받는다.
+                  decimal: true,
+                  onChanged: (value) =>
+                      _update(ref, item.copyWith(targetWeight: value)),
                 ),
                 IconButton(
                   onPressed: () => ref
@@ -203,10 +203,12 @@ class _NumberField extends StatefulWidget {
     required this.value,
     required this.label,
     required this.onChanged,
+    this.decimal = false,
   });
-  final num value;
+  final double value;
   final String label;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<double> onChanged;
+  final bool decimal;
 
   @override
   State<_NumberField> createState() => _NumberFieldState();
@@ -214,8 +216,12 @@ class _NumberField extends StatefulWidget {
 
 class _NumberFieldState extends State<_NumberField> {
   late final TextEditingController _controller = TextEditingController(
-    text: '${widget.value.toInt()}',
+    text: _text(widget.value),
   );
+
+  String _text(double value) => widget.decimal && value != value.roundToDouble()
+      ? value.toStringAsFixed(1)
+      : value.round().toString();
 
   @override
   void dispose() {
@@ -225,9 +231,9 @@ class _NumberFieldState extends State<_NumberField> {
 
   // 예전엔 엔터를 눌러야만 반영돼 값이 조용히 사라졌다. 칸을 벗어날 때도 저장한다.
   void _commit() {
-    final parsed = int.tryParse(_controller.text.trim());
+    final parsed = double.tryParse(_controller.text.trim());
     if (parsed == null || parsed < 0) {
-      _controller.text = '${widget.value.toInt()}';
+      _controller.text = _text(widget.value);
       return;
     }
     if (parsed == widget.value) return;
@@ -243,9 +249,11 @@ class _NumberFieldState extends State<_NumberField> {
       },
       child: TextFormField(
         controller: _controller,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.numberWithOptions(decimal: widget.decimal),
         inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly,
+          FilteringTextInputFormatter.allow(
+            widget.decimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
+          ),
         ],
         decoration: InputDecoration(labelText: widget.label),
         onFieldSubmitted: (_) => _commit(),

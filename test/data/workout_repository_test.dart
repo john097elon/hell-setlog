@@ -62,6 +62,29 @@ void main() {
     expect(await repository.watchSets(session.id).first, isEmpty);
   });
 
+  test('시작 버튼을 연타해도 활성 세션은 하나만 생긴다', () async {
+    final first = _session(await repository.startSession());
+    final second = _session(await repository.startSession());
+
+    expect(second.id, first.id);
+  });
+
+  test('동시에 완료해도 세트 인덱스가 겹치지 않는다', () async {
+    final session = _session(await repository.startSession());
+    final results = await Future.wait(<Future<Object>>[
+      for (var i = 0; i < 4; i++)
+        repository.addSet(
+          sessionId: session.id,
+          exerciseId: 'bench',
+          weight: 100,
+          reps: 5,
+        ),
+    ]);
+
+    final indexes = results.map((result) => _set(result).setIndex).toSet();
+    expect(indexes.length, 4);
+  });
+
   test('삭제한 세트를 되살리면 목록에 다시 나타난다', () async {
     final session = _session(await repository.startSession());
     final created = _set(

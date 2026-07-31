@@ -24,6 +24,9 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }) async {
     try {
       final current = await _dao.getActiveSession();
+      // 시작 버튼 연타로 활성 세션이 여러 개 만들어지던 자리. 이미 진행 중이면
+      // 그 세션을 그대로 돌려준다.
+      if (current != null) return Ok(_sessionFromData(current));
       final clock = DateTime.now();
       final nextSecond = current?.startedAt.add(const Duration(seconds: 1));
       final now = nextSecond != null && !clock.isAfter(nextSecond)
@@ -92,20 +95,26 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }) async {
     try {
       final now = DateTime.now();
-      final set = WorkoutSet(
-        id: _uuid.v4(),
+      // 인덱스 조회와 삽입 사이에 다른 요청이 끼면 같은 setIndex가 두 번 생긴다.
+      final set = await _dao.addSetInTransaction(
         sessionId: sessionId,
         exerciseId: exerciseId,
-        setIndex: await _dao.nextSetIndex(sessionId, exerciseId),
-        weight: weight,
-        reps: reps,
-        rpe: rpe,
-        isWarmup: isWarmup,
-        restSeconds: restSeconds,
-        updatedAt: now,
+        build: (index) => _setCompanion(
+          WorkoutSet(
+            id: _uuid.v4(),
+            sessionId: sessionId,
+            exerciseId: exerciseId,
+            setIndex: index,
+            weight: weight,
+            reps: reps,
+            rpe: rpe,
+            isWarmup: isWarmup,
+            restSeconds: restSeconds,
+            updatedAt: now,
+          ),
+        ),
       );
-      await _dao.insertSet(_setCompanion(set));
-      return Ok(set);
+      return Ok(_setFromData(set));
     } on Exception catch (error) {
       return Err(DatabaseFailure(error.toString()));
     }

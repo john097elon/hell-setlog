@@ -19,7 +19,7 @@ class RoutineListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final routines = ref.watch(routinesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.record)),
+      appBar: AppBar(title: Text(context.l10n.routines)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/routines/edit/new'),
         icon: const Icon(Icons.add_rounded),

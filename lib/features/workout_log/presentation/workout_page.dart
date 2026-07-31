@@ -237,7 +237,10 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           reps: draft.reps,
           onWeightChanged: (value) => setState(() => draft.weight = value),
           onRepsChanged: (value) => setState(() => draft.reps = value),
-          onComplete: () => _completeDraft(session, exerciseId, draft),
+          // 저장 중 연타로 같은 세트가 두 번 기록되던 자리.
+          onComplete: draft.isSaving
+              ? null
+              : () => _completeDraft(session, exerciseId, draft),
         ),
       );
     }
@@ -267,6 +270,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     String exerciseId,
     _SetDraft draft,
   ) async {
+    if (draft.isSaving) return;
+    setState(() => draft.isSaving = true);
     final result = await ref
         .read(workoutSessionControllerProvider)
         .completeDraft(
@@ -285,6 +290,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
+    if (mounted) setState(() => draft.isSaving = false);
   }
 
   Future<void> _completeExisting(WorkoutSet set) async {
@@ -300,17 +306,26 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     );
   }
 
-  void _delete(WorkoutSet set) {
-    ref.read(workoutSessionControllerProvider).deleteSet(set.id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.setDeleted),
-        action: SnackBarAction(
-          label: context.l10n.undo,
-          onPressed: () =>
-              ref.read(workoutSessionControllerProvider).restoreSet(set),
+  Future<void> _delete(WorkoutSet set) async {
+    final result = await ref
+        .read(workoutSessionControllerProvider)
+        .deleteSet(set.id);
+    if (!mounted) return;
+    // 삭제가 실패했는데도 성공 메시지와 되돌리기를 보여주던 자리.
+    result.when(
+      ok: (_) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.setDeleted),
+          action: SnackBarAction(
+            label: context.l10n.undo,
+            onPressed: () =>
+                ref.read(workoutSessionControllerProvider).restoreSet(set),
+          ),
         ),
       ),
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
     );
   }
 
@@ -365,6 +380,7 @@ class _SetDraft {
 
   double weight;
   int reps;
+  bool isSaving = false;
 }
 
 /// 빈 세션으로 바로 시작하는 히어로 CTA 카드(잉크블랙).

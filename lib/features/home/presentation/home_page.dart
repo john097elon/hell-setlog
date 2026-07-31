@@ -7,7 +7,6 @@ import 'package:heal_setlog/features/compose/presentation/capture_flow.dart';
 import 'package:heal_setlog/features/feed/application/post_providers.dart';
 import 'package:heal_setlog/features/feed/presentation/models/feed_post.dart';
 import 'package:heal_setlog/features/feed/presentation/models/post_feed_mapper.dart';
-import 'package:heal_setlog/features/feed/presentation/models/sample_feed.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_controls.dart';
 import 'package:heal_setlog/features/feed/presentation/widgets/feed_post_card.dart';
 import 'package:heal_setlog/core/supabase/supabase_init.dart';
@@ -70,19 +69,18 @@ class _PartyFeed extends ConsumerWidget {
     final party = parties.valueOrNull?.firstOrNull;
     if (parties.isLoading) return const FeedListSkeleton();
     if (party == null) {
-      return const _FeedList(
-        posts: kPartyFeed,
-        header: PartyStrip(party: kSampleParty),
+      // 예전엔 샘플 파티와 가짜 게시물을 보여줘 실제 활동처럼 보였다.
+      return const AppEmptyState(
+        icon: Icons.groups_outlined,
+        title: '아직 파티가 없습니다',
+        message: '파티에 참여하면 파티원의 기록이 여기에 모입니다.',
       );
     }
     return ref
         .watch(partyFeedProvider(party.id))
         .when(
           loading: () => const FeedListSkeleton(),
-          error: (_, _) => const _FeedList(
-            posts: kPartyFeed,
-            header: PartyStrip(party: kSampleParty),
-          ),
+          error: (_, _) => const _FeedError(),
           data: (posts) {
             final header = PartyStrip(
               party: PartySummary(
@@ -168,16 +166,26 @@ class _PublicFeed extends ConsumerWidget {
             }
             return _FeedList(posts: feedPosts, header: header);
           },
-          error: (_, _) => _FeedList(
-            posts: _fallbackPosts(filters.bodyPart),
-            header: header,
+          error: (_, _) => Column(
+            children: <Widget>[
+              header,
+              const Expanded(child: _FeedError()),
+            ],
           ),
         );
   }
+}
 
-  List<FeedPost> _fallbackPosts(String? bodyPart) => kPublicFeed
-      .where((post) => bodyPart == null || post.bodyPart == bodyPart)
-      .toList(growable: false);
+/// 조회 실패를 빈 목록이나 샘플로 감추지 않는다.
+class _FeedError extends StatelessWidget {
+  const _FeedError();
+
+  @override
+  Widget build(BuildContext context) => const AppEmptyState(
+    icon: Icons.wifi_off_rounded,
+    title: '피드를 불러오지 못했습니다',
+    message: '연결을 확인한 뒤 아래로 당겨 다시 시도해 주세요.',
+  );
 }
 
 class _FeedList extends StatelessWidget {
@@ -193,7 +201,9 @@ class _FeedList extends StatelessWidget {
       if (index == 0) return header;
       final post = posts[index - 1];
       return FeedPostCard(
-        key: ValueKey<String>('${post.author.name}-${post.timeLabel}'),
+        key: ValueKey<String>(
+          post.postId ?? '${post.author.name}-${post.timeLabel}-$index',
+        ),
         post: post,
       );
     },

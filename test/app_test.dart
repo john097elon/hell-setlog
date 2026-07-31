@@ -29,7 +29,13 @@ void main() {
     await _pumpApp(tester);
     await _login(tester);
 
-    await tester.tap(find.byIcon(Icons.groups_outlined));
+    // 빈 상태 아이콘과 겹치므로 하단 탭의 아이콘만 고른다.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationDestination),
+        matching: find.byIcon(Icons.groups_outlined),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('내 파티'), findsWidgets);

@@ -30,6 +30,19 @@ class WorkoutDao extends DatabaseAccessor<AppDatabase> with _$WorkoutDaoMixin {
     workoutSessions,
   )..where((table) => table.id.equals(session.id.value))).write(session);
 
+  /// 인덱스 계산과 삽입을 한 트랜잭션에서 처리해 같은 setIndex가 두 번 생기지 않게 한다.
+  Future<WorkoutSet> addSetInTransaction({
+    required String sessionId,
+    required String exerciseId,
+    required WorkoutSetsCompanion Function(int index) build,
+  }) => transaction(() async {
+    final companion = build(await nextSetIndex(sessionId, exerciseId));
+    await into(workoutSets).insert(companion);
+    return (select(
+      workoutSets,
+    )..where((table) => table.id.equals(companion.id.value))).getSingle();
+  });
+
   Future<int> nextSetIndex(String sessionId, String exerciseId) async {
     final count = workoutSets.id.count();
     final row =

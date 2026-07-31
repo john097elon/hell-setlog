@@ -16,10 +16,13 @@ class NotificationsPage extends ConsumerStatefulWidget {
 }
 
 class _NotificationsPageState extends ConsumerState<NotificationsPage> {
-  @override
-  void initState() {
-    super.initState();
-    // 화면을 열면 읽음으로 처리해 배지를 정리한다.
+  bool _markedRead = false;
+
+  /// 목록을 성공적으로 보여준 뒤에만 읽음으로 처리한다. 조회가 실패했는데
+  /// 읽음만 성공하면 사용자는 보지도 못한 알림을 잃는다.
+  void _markReadOnce() {
+    if (_markedRead) return;
+    _markedRead = true;
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => markAllNotificationsRead(ref),
     );
@@ -41,18 +44,21 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 style: TextStyle(color: t.mutedText),
               ),
             ),
-            data: (items) => items.isEmpty
-                ? const AppEmptyState(
-                    icon: Icons.notifications_none_rounded,
-                    title: '알림이 없습니다',
-                    message: '파티원과 소통하면 알림이 도착합니다.',
-                  )
-                : ListView.separated(
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, index) =>
-                        _NotificationTile(item: items[index]),
-                  ),
+            data: (items) {
+              _markReadOnce();
+              return items.isEmpty
+                  ? const AppEmptyState(
+                      icon: Icons.notifications_none_rounded,
+                      title: '알림이 없습니다',
+                      message: '파티원과 소통하면 알림이 도착합니다.',
+                    )
+                  : ListView.separated(
+                      itemCount: items.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) =>
+                          _NotificationTile(item: items[index]),
+                    );
+            },
           ),
     );
   }

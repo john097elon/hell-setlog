@@ -28,7 +28,7 @@ class SetRow extends StatefulWidget {
   final int reps;
   final ValueChanged<double> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
-  final VoidCallback onComplete;
+  final VoidCallback? onComplete;
   final WorkoutSet? set;
   final VoidCallback? onDelete;
 
@@ -136,6 +136,7 @@ class _SetRowState extends State<SetRow> {
                       }
                     },
                     fieldKey: const Key('set-weight-input'),
+                    semanticLabel: '무게',
                   )
                 : Center(child: Text(_weightText, style: numberStyle)),
           ),
@@ -159,6 +160,7 @@ class _SetRowState extends State<SetRow> {
                       }
                     },
                     fieldKey: const Key('set-reps-input'),
+                    semanticLabel: '횟수',
                   )
                 : Center(child: Text('${widget.reps}', style: numberStyle)),
           ),
@@ -205,6 +207,7 @@ class _Stepper extends StatelessWidget {
     required this.inputFormatters,
     required this.onChanged,
     required this.fieldKey,
+    required this.semanticLabel,
   });
   final TextStyle? style;
   final VoidCallback onMinus;
@@ -214,11 +217,12 @@ class _Stepper extends StatelessWidget {
   final List<TextInputFormatter> inputFormatters;
   final ValueChanged<String> onChanged;
   final Key fieldKey;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) => Row(
     children: <Widget>[
-      _StepBtn(icon: Icons.remove, onTap: onMinus),
+      _StepBtn(icon: Icons.remove, onTap: onMinus, label: '$semanticLabel 줄이기'),
       Expanded(
         child: TextField(
           key: fieldKey,
@@ -238,30 +242,45 @@ class _Stepper extends StatelessWidget {
           ),
         ),
       ),
-      _StepBtn(icon: Icons.add, onTap: onPlus),
+      _StepBtn(icon: Icons.add, onTap: onPlus, label: '$semanticLabel 늘리기'),
     ],
   );
 }
 
 class _StepBtn extends StatelessWidget {
-  const _StepBtn({required this.icon, required this.onTap});
+  const _StepBtn({
+    required this.icon,
+    required this.onTap,
+    required this.label,
+  });
   final IconData icon;
   final VoidCallback onTap;
+  final String label;
 
   @override
-  Widget build(BuildContext context) => InkResponse(
-    onTap: onTap,
-    radius: 22,
-    child: Container(
-      width: 34,
-      height: 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: context.tokens.border),
+  // 탭 영역은 48dp 이상이어야 한다. 보이는 사각형은 34dp로 두고 여백으로 넓힌다.
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: InkResponse(
+      onTap: onTap,
+      radius: 24,
+      child: Container(
+        width: 48,
+        height: 48,
+        alignment: Alignment.center,
+        child: Container(
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: context.tokens.surface,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(color: context.tokens.border),
+          ),
+          child: Icon(icon, size: 18, color: context.tokens.mutedText),
+        ),
       ),
-      child: Icon(icon, size: 18, color: context.tokens.mutedText),
     ),
   );
 }
