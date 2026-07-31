@@ -36,13 +36,12 @@ class _PartyChatPanelState extends ConsumerState<PartyChatPanel> {
     if (body.isEmpty || _isSending) return;
     setState(() => _isSending = true);
     final result = await ref
-        .read(partyRepositoryProvider)
+        .read(partyChatControllerProvider)
         .sendMessage(partyId, body);
     if (!mounted) return;
     result.when(
       ok: (_) {
         _controller.clear();
-        ref.invalidate(partyMessagesProvider(partyId));
       },
       err: (failure) => ScaffoldMessenger.of(
         context,
@@ -67,7 +66,9 @@ class _PartyChatPanelState extends ConsumerState<PartyChatPanel> {
               selectedPartyId: partyId,
               onChanged: (id) => setState(() => _selectedPartyId = id),
             ),
-            Expanded(child: _Messages(partyId: partyId)),
+            Expanded(
+              child: _Messages(key: ValueKey(partyId), partyId: partyId),
+            ),
             _MessageInput(
               controller: _controller,
               isSending: _isSending,
@@ -123,14 +124,28 @@ class _PartySelector extends StatelessWidget {
   );
 }
 
-class _Messages extends ConsumerWidget {
-  const _Messages({required this.partyId});
+class _Messages extends ConsumerStatefulWidget {
+  const _Messages({required this.partyId, super.key});
 
   final String partyId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final messages = ref.watch(partyMessagesProvider(partyId));
+  ConsumerState<_Messages> createState() => _MessagesState();
+}
+
+class _MessagesState extends ConsumerState<_Messages> {
+  final ScrollController _scrollController = ScrollController();
+  String? _latestMessageId;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final messages = ref.watch(partyMessagesProvider(widget.partyId));
     final userId = ref.watch(supabaseClientProvider)?.auth.currentUser?.id;
     return messages.when(
       loading: () => const AppLoading(),
@@ -139,7 +154,9 @@ class _Messages extends ConsumerWidget {
         if (messages.isEmpty) return const _EmptyMessages();
         final ordered = List<PartyMessage>.of(messages)
           ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        _followLatest(ordered.last.id);
         return ListView.builder(
+          controller: _scrollController,
           padding: const EdgeInsets.all(AppSpacing.xl),
           itemCount: ordered.length,
           itemBuilder: (context, index) => _MessageBubble(
@@ -149,6 +166,20 @@ class _Messages extends ConsumerWidget {
         );
       },
     );
+  }
+
+  void _followLatest(String latestMessageId) {
+    if (_latestMessageId == latestMessageId) return;
+    final shouldFollow =
+        !_scrollController.hasClients ||
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent;
+    _latestMessageId = latestMessageId;
+    if (!shouldFollow) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 }
 

@@ -228,7 +228,7 @@ class SupabasePartyRepository implements PartyRepository {
           .from('party_messages')
           .select()
           .eq('party_id', partyId)
-          .order('created_at')
+          .order('created_at', ascending: false)
           .limit(limit);
       return Ok(
         (rows as List)
@@ -237,6 +237,35 @@ class SupabasePartyRepository implements PartyRepository {
       );
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
+    }
+  }
+
+  @override
+  Stream<Result<List<PartyMessage>, Failure>> watchMessages(
+    String partyId, {
+    int limit = 50,
+  }) async* {
+    final c = _client;
+    if (c == null || _userId == null) {
+      yield const Ok(<PartyMessage>[]);
+      return;
+    }
+    try {
+      await for (final rows
+          in c
+              .from('party_messages')
+              .stream(primaryKey: const <String>['id'])
+              .eq('party_id', partyId)
+              .order('created_at', ascending: false)
+              .limit(limit)) {
+        yield Ok(
+          <String, PartyMessage>{
+            for (final row in rows) row['id'] as String: _message(row),
+          }.values.toList(),
+        );
+      }
+    } on Exception {
+      yield await fetchMessages(partyId, limit: limit);
     }
   }
 
