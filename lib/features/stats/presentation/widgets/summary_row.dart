@@ -9,11 +9,13 @@ class SummaryRow extends StatelessWidget {
   const SummaryRow({
     required this.workoutDays,
     required this.totalVolume,
+    required this.weightUnit,
     super.key,
   });
 
   final int workoutDays;
   final double totalVolume;
+  final WeightUnit weightUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class SummaryRow extends StatelessWidget {
           child: _SummaryCard(
             icon: Icons.fitness_center_rounded,
             label: copy.statsTotalVolume,
-            value: copy.statsVolumeValue(formatWeight(totalVolume)),
+            value: formatWeightWithUnit(totalVolume, unit: weightUnit),
           ),
         ),
       ],

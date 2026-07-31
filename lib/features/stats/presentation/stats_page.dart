@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/widgets/app_states.dart';
+import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/stats/application/stats_providers.dart';
 import 'package:heal_setlog/features/stats/presentation/widgets/body_part_split.dart';
 import 'package:heal_setlog/features/stats/presentation/widgets/summary_row.dart';
@@ -42,6 +43,9 @@ class _StatsContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bodyPart = ref.watch(bodyPartSplitProvider());
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     final totalVolume = volumes.values.fold<double>(
       0,
       (sum, value) => sum + value,
@@ -55,7 +59,11 @@ class _StatsContent extends ConsumerWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: AppSpacing.md),
-        SummaryRow(workoutDays: workoutDays, totalVolume: totalVolume),
+        SummaryRow(
+          workoutDays: workoutDays,
+          totalVolume: totalVolume,
+          weightUnit: weightUnit,
+        ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
           context.l10n.statsWeeklyVolume,

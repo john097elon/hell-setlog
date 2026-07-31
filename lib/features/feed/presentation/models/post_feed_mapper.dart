@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/domain/entities/post.dart';
 
 import 'feed_post.dart';
 
 /// Converts persisted posts to the existing feed-card view model.
-FeedPost feedPostFromPost(Post post, {String? currentUserId}) => FeedPost(
+FeedPost feedPostFromPost(
+  Post post, {
+  String? currentUserId,
+  WeightUnit weightUnit = WeightUnit.kg,
+}) => FeedPost(
   postId: post.id,
   authorId: post.userId,
   isMine: currentUserId != null && currentUserId == post.userId,
@@ -22,7 +27,11 @@ FeedPost feedPostFromPost(Post post, {String? currentUserId}) => FeedPost(
   ),
   summary: WorkoutSummary(
     metrics: <({String label, String value})>[
-      if (post.volumeKg != null) (label: '볼륨', value: '${post.volumeKg} kg'),
+      if (post.volumeKg != null)
+        (
+          label: '볼륨',
+          value: formatWeightWithUnit(post.volumeKg!, unit: weightUnit),
+        ),
       if (post.durationMin != null)
         (label: '시간', value: '${post.durationMin}분'),
     ],

@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
+import '../../../core/formatting/app_format.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/routine_item.dart';
 import '../../workout_log/application/exercise_name_provider.dart';
 import '../../workout_log/presentation/widgets/exercise_picker_sheet.dart';
+import '../../settings/application/settings_controller.dart';
 import '../application/routine_editor_controller.dart';
 import '../application/routine_providers.dart';
 
@@ -147,6 +149,9 @@ class _RoutineItemEditor extends ConsumerWidget {
     // 화면에 UUID가 그대로 보이던 자리. 이름을 못 찾으면 중립 라벨로 둔다.
     final name =
         ref.watch(exerciseNameProvider(item.exerciseId)).valueOrNull ?? '종목';
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -173,12 +178,15 @@ class _RoutineItemEditor extends ConsumerWidget {
                       _update(ref, item.copyWith(targetReps: value.round())),
                 ),
                 _NumberField(
-                  value: item.targetWeight,
-                  label: '무게(kg)',
+                  key: ValueKey<String>('target-weight-${weightUnit.name}'),
+                  value: weightFromKg(item.targetWeight, weightUnit),
+                  label: '무게(${weightUnit.name})',
                   // 2.5kg 같은 값이 잘리지 않도록 무게만 소수를 받는다.
                   decimal: true,
-                  onChanged: (value) =>
-                      _update(ref, item.copyWith(targetWeight: value)),
+                  onChanged: (value) => _update(
+                    ref,
+                    item.copyWith(targetWeight: weightToKg(value, weightUnit)),
+                  ),
                 ),
                 IconButton(
                   onPressed: () => ref
@@ -204,6 +212,7 @@ class _NumberField extends StatefulWidget {
     required this.label,
     required this.onChanged,
     this.decimal = false,
+    super.key,
   });
   final double value;
   final String label;
@@ -236,7 +245,7 @@ class _NumberFieldState extends State<_NumberField> {
       _controller.text = _text(widget.value);
       return;
     }
-    if (parsed == widget.value) return;
+    if (_text(parsed) == _text(widget.value)) return;
     widget.onChanged(parsed);
   }
 

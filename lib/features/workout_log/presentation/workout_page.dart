@@ -14,6 +14,7 @@ import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
 import '../../party/application/party_providers.dart';
 import '../../routine/application/routine_providers.dart';
+import '../../settings/application/settings_controller.dart';
 import '../../stats/application/stats_providers.dart';
 import '../../character/application/character_providers.dart';
 import '../../character/presentation/evolution_page.dart';
@@ -50,11 +51,17 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   @override
   Widget build(BuildContext context) {
     final active = ref.watch(activeSessionProvider);
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     return active.when(
       loading: () => const Scaffold(body: AppLoading()),
       error: (_, _) =>
           Scaffold(body: Center(child: Text(context.l10n.workoutInProgress))),
-      data: (result) => result.when(ok: _activeView, err: (_) => _startView()),
+      data: (result) => result.when(
+        ok: (session) => _activeView(session, weightUnit),
+        err: (_) => _startView(weightUnit),
+      ),
     );
   }
 
@@ -75,7 +82,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     );
   }
 
-  Widget _startView() {
+  Widget _startView(WeightUnit weightUnit) {
     final t = context.tokens;
     final weekly = ref.watch(weeklyVolumeProvider());
     final routines = ref.watch(routinesProvider);
@@ -93,7 +100,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
             loading: () => const SizedBox(height: 74),
             error: (_, _) => const SizedBox.shrink(),
             data: (result) => result.when(
-              ok: (volumes) => _WeekStat(volumes: volumes),
+              ok: (volumes) =>
+                  _WeekStat(volumes: volumes, weightUnit: weightUnit),
               err: (_) => const SizedBox.shrink(),
             ),
           ),
@@ -134,7 +142,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     );
   }
 
-  Widget _activeView(WorkoutSession session) {
+  Widget _activeView(WorkoutSession session, WeightUnit weightUnit) {
     final sets = ref.watch(sessionSetsProvider(session.id));
     final timer = ref.watch(restTimerProvider);
     return Scaffold(
@@ -144,7 +152,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       body: sets.when(
         loading: () => const AppLoading(),
         error: (_, _) => const SizedBox.shrink(),
-        data: (items) => _sessionList(session, items, timer),
+        data: (items) => _sessionList(session, items, timer, weightUnit),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -162,6 +170,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     WorkoutSession session,
     List<WorkoutSet> sets,
     RestTimerState timer,
+    WeightUnit weightUnit,
   ) {
     final grouped = <String, List<WorkoutSet>>{};
     for (final set in sets) {
@@ -215,7 +224,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
             exerciseId: entry.key,
             equipment: exercise?.equipment ?? Equipment.other,
             thumbnailUrl: exercise?.thumbnailUrl,
-            setRows: _rowsFor(session, entry.key, entry.value),
+            setRows: _rowsFor(session, entry.key, entry.value, weightUnit),
+            weightUnit: weightUnit,
             onAddSet: () => setState(() => _addDraft(entry.key, entry.value)),
           ),
         );
@@ -227,6 +237,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     WorkoutSession session,
     String exerciseId,
     List<WorkoutSet> sets,
+    WeightUnit weightUnit,
   ) {
     final rows = <Widget>[];
     for (final set in sets) {
@@ -236,6 +247,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           weight: set.weight,
           reps: set.reps,
           set: set,
+          weightUnit: weightUnit,
           onWeightChanged: (value) => _updatePlanned(set, weight: value),
           onRepsChanged: (value) => _updatePlanned(set, reps: value),
           onComplete: set.isCompleted ? () {} : () => _completeExisting(set),
@@ -253,6 +265,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           index: sets.length + index,
           weight: draft.weight,
           reps: draft.reps,
+          weightUnit: weightUnit,
           onWeightChanged: (value) => setState(() => draft.weight = value),
           onRepsChanged: (value) => setState(() => draft.reps = value),
           // 저장 중 연타로 같은 세트가 두 번 기록되던 자리.
@@ -356,13 +369,16 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
 
   /// 이번 세션에서 세운 기록 중 대표 하나를 문구로 만든다.
   String _prLabel(List<PersonalRecord> records) {
+    final weightUnit = ref.read(settingsControllerProvider).weightUnit;
     final oneRm = records.where((record) => record.type == PrType.oneRm);
     final best = (oneRm.isNotEmpty ? oneRm : records).reduce(
       (a, b) => a.value >= b.value ? a : b,
     );
     return switch (best.type) {
-      PrType.oneRm => '1RM ${formatWeight(best.value)}kg 신기록',
-      PrType.volume => '볼륨 ${formatWeight(best.value)}kg 신기록',
+      PrType.oneRm =>
+        '1RM ${formatWeightWithUnit(best.value, unit: weightUnit)} 신기록',
+      PrType.volume =>
+        '볼륨 ${formatWeightWithUnit(best.value, unit: weightUnit)} 신기록',
       PrType.reps => '${best.value.round()}회 신기록',
     };
   }
@@ -379,8 +395,9 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       (sum, set) => sum + set.weight * set.reps,
     );
     final minutes = DateTime.now().difference(session.startedAt).inMinutes;
+    final weightUnit = ref.read(settingsControllerProvider).weightUnit;
     final tags = <String>[
-      if (volume > 0) '${formatWeight(volume)} kg',
+      if (volume > 0) formatWeightWithUnit(volume, unit: weightUnit),
       if (minutes > 0) '$minutes분',
       '${completed.length}세트',
     ];
@@ -540,9 +557,10 @@ class _StartHero extends StatelessWidget {
 
 /// 이번 주 요약(볼륨·운동일).
 class _WeekStat extends StatelessWidget {
-  const _WeekStat({required this.volumes});
+  const _WeekStat({required this.volumes, required this.weightUnit});
 
   final Map<DateTime, double> volumes;
+  final WeightUnit weightUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -558,7 +576,7 @@ class _WeekStat extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          _stat(t, '이번 주 볼륨', '${formatCompactNumber(total)} kg'),
+          _stat(t, '이번 주 볼륨', formatCompactWeight(total, unit: weightUnit)),
           Container(
             width: 0.5,
             height: 30,

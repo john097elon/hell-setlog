@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
@@ -9,6 +10,7 @@ import '../../../domain/entities/character_identity.dart';
 import 'character_setup_page.dart';
 import '../application/character_identity_controller.dart';
 import '../application/character_providers.dart';
+import '../../settings/application/settings_controller.dart';
 import 'evolution_page.dart';
 import 'widgets/growth_view.dart';
 
@@ -97,6 +99,9 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
+    final weightUnit = ref.watch(
+      settingsControllerProvider.select((state) => state.weightUnit),
+    );
     final seenLevel = ref.watch(seenCharacterLevelProvider).valueOrNull;
     final seenStage = ref.watch(seenCharacterEvolutionStageProvider);
     final hasPendingEvolution = seenStage.when(
@@ -157,7 +162,9 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
             MuscleGrowthBar(muscle: muscle),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '완료한 세트의 볼륨 100kg마다 1XP를 얻어요. 준비 세트는 빠집니다.\n'
+            '완료한 세트의 볼륨 '
+            '${formatWeightWithUnit(100, unit: weightUnit)}마다 1XP를 얻어요. '
+            '준비 세트는 빠집니다.\n'
             '${traitCopy(widget.identity.trait).detail}.',
             style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
           ),
