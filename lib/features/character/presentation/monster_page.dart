@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../../domain/entities/character_identity.dart';
@@ -21,35 +22,53 @@ class MonsterPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final identity = ref.watch(characterIdentityProvider);
-    return Scaffold(
-      backgroundColor: context.tokens.bg,
-      body: identity.when(
-        loading: () => const AppLoading(),
-        error: (_, _) => const AppEmptyState(
-          icon: Icons.pets_rounded,
-          title: '캐릭터 정보를 불러오지 못했습니다',
-        ),
-        // 아직 캐릭터를 안 골랐으면 만들기부터 안내한다.
-        data: (value) =>
-            value == null ? const _NeedsSetup() : _Growth(identity: value),
+    return identity.when(
+      loading: () => const AppScreen(
+        title: '몬스터',
+        slivers: <Widget>[
+          SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
+        ],
       ),
+      error: (_, _) => const AppScreen(
+        title: '몬스터',
+        slivers: <Widget>[
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: AppEmptyState(
+              icon: Icons.pets_rounded,
+              title: '캐릭터 정보를 불러오지 못했습니다',
+            ),
+          ),
+        ],
+      ),
+      // 아직 캐릭터를 안 골랐으면 만들기부터 안내한다.
+      data: (value) =>
+          value == null ? const _NeedsSetup() : _Growth(identity: value),
     );
   }
 }
 
 /// 캐릭터를 아직 만들지 않은 상태.
-class _NeedsSetup extends ConsumerWidget {
+class _NeedsSetup extends StatelessWidget {
   const _NeedsSetup();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => AppEmptyState(
-    icon: Icons.pets_rounded,
-    title: '함께 운동할 캐릭터를 만들어요',
-    message: '종족과 성향을 고르고 이름을 지어 주세요.',
-    action: FilledButton(
-      onPressed: () => openCharacterSetup(context),
-      child: const Text('캐릭터 만들기'),
-    ),
+  Widget build(BuildContext context) => AppScreen(
+    title: '몬스터',
+    slivers: <Widget>[
+      SliverFillRemaining(
+        hasScrollBody: false,
+        child: AppEmptyState(
+          icon: Icons.pets_rounded,
+          title: '함께 운동할 캐릭터를 만들어요',
+          message: '종족과 성향을 고르고 이름을 지어 주세요.',
+          action: FilledButton(
+            onPressed: () => openCharacterSetup(context),
+            child: const Text('캐릭터 만들기'),
+          ),
+        ),
+      ),
+    ],
   );
 }
 
@@ -74,10 +93,23 @@ class _Growth extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => ref
       .watch(characterGrowthProvider)
       .when(
-        loading: () => const AppLoading(),
-        error: (_, _) => const AppEmptyState(
-          icon: Icons.pets_rounded,
-          title: '캐릭터 정보를 불러오지 못했습니다',
+        loading: () => const AppScreen(
+          title: '몬스터',
+          slivers: <Widget>[
+            SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
+          ],
+        ),
+        error: (_, _) => const AppScreen(
+          title: '몬스터',
+          slivers: <Widget>[
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: AppEmptyState(
+                icon: Icons.pets_rounded,
+                title: '캐릭터 정보를 불러오지 못했습니다',
+              ),
+            ),
+          ],
         ),
         data: (value) => _GrowthContent(growth: value, identity: identity),
       );
@@ -98,7 +130,6 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     final weightUnit = ref.watch(
       settingsControllerProvider.select((state) => state.weightUnit),
     );
@@ -129,54 +160,53 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
     }
     // 지난번에 본 레벨보다 올랐으면 한 번만 축하한다.
     final gained = seenLevel == null ? 0 : widget.growth.totalLevel - seenLevel;
-    return RefreshIndicator(
+    return AppScreen(
+      title: '몬스터',
       onRefresh: () async {
         ref
           ..invalidate(characterVolumesProvider)
           ..invalidate(characterWeeklyVolumesProvider);
       },
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-        children: <Widget>[
-          if (evolutionStatusLoaded && !hasPendingEvolution && gained > 0)
-            LevelUpBanner(
-              gainedLevels: gained,
-              onDismiss: () =>
-                  markCharacterLevelSeen(ref, widget.growth.totalLevel),
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: AppPagePadding(
+            top: AppSpacing.sm,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                if (evolutionStatusLoaded && !hasPendingEvolution && gained > 0)
+                  LevelUpBanner(
+                    gainedLevels: gained,
+                    onDismiss: () =>
+                        markCharacterLevelSeen(ref, widget.growth.totalLevel),
+                  ),
+                CharacterHero(growth: widget.growth, identity: widget.identity),
+                const SizedBox(height: AppSpacing.lg),
+                WeeklyGrowthStrip(growth: widget.growth),
+                const SizedBox(height: AppSpacing.xl),
+                AppSection(
+                  title: '부위별 성장',
+                  footer:
+                      '완료한 세트의 볼륨 '
+                      '${formatWeightWithUnit(100, unit: weightUnit)}마다 1XP를 얻어요. '
+                      '준비 세트는 빠집니다.\n'
+                      '${traitCopy(widget.identity.trait).detail}.',
+                  children: <Widget>[
+                    for (final muscle in widget.growth.muscles)
+                      MuscleGrowthBar(muscle: muscle),
+                  ],
+                ),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      openCharacterSetup(context, initial: widget.identity),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('캐릭터 바꾸기'),
+                ),
+              ],
             ),
-          CharacterHero(growth: widget.growth, identity: widget.identity),
-          const SizedBox(height: AppSpacing.lg),
-          WeeklyGrowthStrip(growth: widget.growth),
-          const SizedBox(height: AppSpacing.xxl),
-          Text(
-            '부위별 성장',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
-              color: t.text,
-            ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          for (final muscle in widget.growth.muscles)
-            MuscleGrowthBar(muscle: muscle),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '완료한 세트의 볼륨 '
-            '${formatWeightWithUnit(100, unit: weightUnit)}마다 1XP를 얻어요. '
-            '준비 세트는 빠집니다.\n'
-            '${traitCopy(widget.identity.trait).detail}.',
-            style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          OutlinedButton.icon(
-            onPressed: () =>
-                openCharacterSetup(context, initial: widget.identity),
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('캐릭터 바꾸기'),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

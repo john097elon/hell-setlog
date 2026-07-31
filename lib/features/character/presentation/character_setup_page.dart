@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
 import '../../../domain/entities/character_identity.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
 import '../application/character_identity_controller.dart';
@@ -59,35 +60,43 @@ class _CharacterSetupPageState extends ConsumerState<CharacterSetupPage> {
       backgroundColor: t.bg,
       appBar: AppBar(title: Text(editing ? '캐릭터 바꾸기' : '캐릭터 만들기')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.lg,
+          AppSpacing.xxl,
+        ),
         children: <Widget>[
           _Preview(species: _species, name: _name.text.trim()),
-          const SizedBox(height: AppSpacing.xxl),
-          const _SectionTitle('종족'),
-          const SizedBox(height: AppSpacing.md),
-          for (final species in CharacterSpecies.values)
-            _SpeciesTile(
-              species: species,
-              selected: species == _species,
-              onTap: () => setState(() => _species = species),
-            ),
-          const SizedBox(height: AppSpacing.xxl),
-          const _SectionTitle('성향'),
-          const SizedBox(height: 4),
-          Text(
-            '고른 반복 구간의 세트에서 경험치를 25% 더 받아요. 나중에 바꿀 수 있어요.',
-            style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
+          const SizedBox(height: AppSpacing.xl),
+          AppSection(
+            title: '종족',
+            children: <Widget>[
+              for (final species in CharacterSpecies.values)
+                _SpeciesTile(
+                  species: species,
+                  selected: species == _species,
+                  onTap: () => setState(() => _species = species),
+                ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          for (final trait in CharacterTrait.values)
-            _TraitTile(
-              trait: trait,
-              selected: trait == _trait,
-              onTap: () => setState(() => _trait = trait),
-            ),
-          const SizedBox(height: AppSpacing.xxl),
-          const _SectionTitle('이름'),
-          const SizedBox(height: AppSpacing.md),
+          AppSection(
+            title: '성향',
+            footer: '고른 반복 구간의 세트에서 경험치를 25% 더 받아요. 나중에 바꿀 수 있어요.',
+            children: <Widget>[
+              for (final trait in CharacterTrait.values)
+                _TraitTile(
+                  trait: trait,
+                  selected: trait == _trait,
+                  onTap: () => setState(() => _trait = trait),
+                ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.xs),
+            child: Text('이름', style: AppText.sectionLabel(context)),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _name,
             maxLength: 12,
@@ -120,18 +129,18 @@ class _Preview extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
       decoration: BoxDecoration(
         color: t.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: t.border),
       ),
       child: Column(
         children: <Widget>[
           Image.asset(
             stageAsset(species, 0),
-            width: 148,
-            height: 148,
+            width: 144,
+            height: 144,
             filterQuality: FilterQuality.none,
             errorBuilder: (_, _, _) =>
                 Icon(Icons.pets_rounded, size: 88, color: t.brand),
@@ -141,7 +150,7 @@ class _Preview extends StatelessWidget {
             name.isEmpty ? speciesCopy(species).name : name,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             speciesCopy(species).detail,
             style: TextStyle(fontSize: 12.5, color: t.mutedText),
@@ -150,23 +159,6 @@ class _Preview extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: TextStyle(
-      fontSize: 17,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -0.3,
-      color: context.tokens.text,
-    ),
-  );
 }
 
 class _SpeciesTile extends StatelessWidget {
@@ -183,19 +175,22 @@ class _SpeciesTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final copy = speciesCopy(species);
-    return _ChoiceTile(
-      selected: selected,
+    return AppRow(
       onTap: onTap,
       leading: Image.asset(
         stageAsset(species, 0),
-        width: 44,
-        height: 44,
+        width: AppSpacing.xxl,
+        height: AppSpacing.xxl,
         filterQuality: FilterQuality.none,
         errorBuilder: (_, _, _) =>
             Icon(Icons.pets_rounded, color: context.tokens.brand),
       ),
       title: copy.name,
-      detail: copy.detail,
+      subtitle: copy.detail,
+      trailing: Icon(
+        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+        color: selected ? context.tokens.brand : context.tokens.faintText,
+      ),
     );
   }
 }
@@ -219,80 +214,14 @@ class _TraitTile extends StatelessWidget {
       CharacterTrait.endurance => Icons.directions_run_rounded,
       CharacterTrait.balanced => Icons.balance_rounded,
     };
-    return _ChoiceTile(
-      selected: selected,
+    return AppRow(
       onTap: onTap,
       leading: Icon(icon, color: context.tokens.brand),
       title: copy.name,
-      detail: copy.detail,
-    );
-  }
-}
-
-class _ChoiceTile extends StatelessWidget {
-  const _ChoiceTile({
-    required this.selected,
-    required this.onTap,
-    required this.leading,
-    required this.title,
-    required this.detail,
-  });
-
-  final bool selected;
-  final VoidCallback onTap;
-  final Widget leading;
-  final String title;
-  final String detail;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: selected ? t.brand.withValues(alpha: 0.08) : t.card,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: selected ? t.brand : t.border,
-                width: selected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              children: <Widget>[
-                SizedBox(width: 46, height: 46, child: Center(child: leading)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: t.text,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        detail,
-                        style: TextStyle(fontSize: 12.5, color: t.mutedText),
-                      ),
-                    ],
-                  ),
-                ),
-                if (selected) Icon(Icons.check_circle_rounded, color: t.brand),
-              ],
-            ),
-          ),
-        ),
+      subtitle: copy.detail,
+      trailing: Icon(
+        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+        color: selected ? context.tokens.brand : context.tokens.faintText,
       ),
     );
   }

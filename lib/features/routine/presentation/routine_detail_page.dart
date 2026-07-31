@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/routine.dart';
 import '../../../domain/entities/routine_item.dart';
@@ -85,7 +88,12 @@ class _RoutineDetailBody extends ConsumerWidget {
         children: <Widget>[
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.xl,
+              ),
               itemCount: items.length + 3,
               itemBuilder: (context, index) {
                 if (index == 0) {
@@ -96,13 +104,16 @@ class _RoutineDetailBody extends ConsumerWidget {
                 }
                 if (index == 1) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: 20),
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
                     child: _InfoRow(equipment: firstExercise?.equipment),
                   );
                 }
                 if (index == 2) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: 28, bottom: 10),
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.xxl,
+                      bottom: AppSpacing.sm,
+                    ),
                     child: Text(
                       '운동 ${items.length}개',
                       style: Theme.of(
@@ -112,7 +123,7 @@ class _RoutineDetailBody extends ConsumerWidget {
                   );
                 }
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _RoutineExerciseTile(item: items[index - 3]),
                 );
               },
@@ -120,7 +131,12 @@ class _RoutineDetailBody extends ConsumerWidget {
           ),
           SafeArea(
             top: false,
-            minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            minimum: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
             child: Column(
               children: <Widget>[
                 SizedBox(
@@ -163,7 +179,7 @@ class _Header extends StatelessWidget {
                   context,
                 ).textTheme.displaySmall?.copyWith(color: t.text),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
               _MuscleChip(muscleGroup: muscleGroup),
             ],
           ),
@@ -173,7 +189,7 @@ class _Header extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             color: t.card,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(color: t.border),
           ),
           child: Icon(Icons.accessibility_new_rounded, color: t.mutedText),
@@ -192,10 +208,13 @@ class _MuscleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: t.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: t.border),
       ),
       child: Text(
@@ -214,60 +233,15 @@ class _InfoRow extends StatelessWidget {
   final Equipment? equipment;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.border),
+  Widget build(BuildContext context) => AppMetricRow(
+    metrics: <AppMetric>[
+      AppMetric(
+        label: '장비',
+        value: equipment == null ? '기본 시스템' : equipmentLabelKo(equipment!),
       ),
-      child: Row(
-        children: <Widget>[
-          _InfoValue(
-            label: '장비',
-            value: equipment == null ? '기본 시스템' : equipmentLabelKo(equipment!),
-          ),
-          Container(width: 1, height: 32, color: t.border),
-          const _InfoValue(label: '1RM', value: '—'),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoValue extends StatelessWidget {
-  const _InfoValue({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelSmall?.copyWith(color: t.faintText),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: t.text,
-              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      const AppMetric(label: '1RM', value: '—'),
+    ],
+  );
 }
 
 class _RoutineExerciseTile extends ConsumerWidget {
@@ -277,58 +251,25 @@ class _RoutineExerciseTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.tokens;
     final exercise = ref.watch(exerciseByIdProvider(item.exerciseId));
     return exercise.when(
       loading: () => const SizedBox(height: 72),
       error: (_, _) => const SizedBox.shrink(),
       data: (result) => result.when(
-        ok: (value) => Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: t.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: t.border),
-          ),
-          child: Row(
-            children: <Widget>[
-              ExerciseThumbnail(
+        ok: (value) => AppSection(
+          margin: EdgeInsets.zero,
+          children: <Widget>[
+            AppRow(
+              title: value.nameKo,
+              subtitle: equipmentLabelKo(value.equipment),
+              leading: ExerciseThumbnail(
                 equipment: value.equipment,
                 thumbnailUrl: value.thumbnailUrl,
-                size: 52,
+                size: AppSpacing.xxl,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      value.nameKo,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium?.copyWith(color: t.text),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      equipmentLabelKo(value.equipment),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: t.mutedText),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                '${item.targetSets}세트 x ${item.targetReps}회',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: t.text,
-                  fontFeatures: const <FontFeature>[
-                    FontFeature.tabularFigures(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+              value: '${item.targetSets}세트 x ${item.targetReps}회',
+            ),
+          ],
         ),
         err: (_) => const SizedBox.shrink(),
       ),

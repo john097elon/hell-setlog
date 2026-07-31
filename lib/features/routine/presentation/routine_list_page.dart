@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../../core/extensions/build_context_x.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
+import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/routine.dart';
 import '../application/routine_editor_controller.dart';
 import '../application/routine_presets.dart';
@@ -18,31 +22,61 @@ class RoutineListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routines = ref.watch(routinesProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.routines)),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/routines/edit/new'),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(context.l10n.create),
-      ),
-      body: routines.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => const Center(child: Text('루틴을 불러오지 못했습니다')),
+    return AppScreen(
+      title: context.l10n.routines,
+      actions: <Widget>[
+        IconButton(
+          tooltip: context.l10n.create,
+          onPressed: () => context.push('/routines/edit/new'),
+          icon: const Icon(Icons.add_rounded),
+        ),
+      ],
+      slivers: routines.when(
+        loading: () => const <Widget>[
+          SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
+        ],
+        error: (_, _) => const <Widget>[
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: Text('루틴을 불러오지 못했습니다')),
+          ),
+        ],
         data: (result) => result.when(
           ok: (items) => items.isEmpty
-              ? const _EmptyRoutines()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) => _RoutineTile(
-                    routine: items[index],
-                    onStart: () => _start(context, ref, items[index]),
-                    onEdit: () =>
-                        context.push('/routines/edit/${items[index].id}'),
-                    onDelete: () => _delete(context, ref, items[index]),
+              ? const <Widget>[
+                  SliverToBoxAdapter(
+                    child: AppPagePadding(
+                      top: AppSpacing.sm,
+                      child: _EmptyRoutines(),
+                    ),
                   ),
-                ),
-          err: (failure) => Center(child: Text(failure.message)),
+                ]
+              : <Widget>[
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                      AppSpacing.lg,
+                      0,
+                    ),
+                    sliver: SliverList.builder(
+                      itemCount: items.length,
+                      itemBuilder: (context, index) => _RoutineTile(
+                        routine: items[index],
+                        onStart: () => _start(context, ref, items[index]),
+                        onEdit: () =>
+                            context.push('/routines/edit/${items[index].id}'),
+                        onDelete: () => _delete(context, ref, items[index]),
+                      ),
+                    ),
+                  ),
+                ],
+          err: (failure) => <Widget>[
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text(failure.message)),
+            ),
+          ],
         ),
       ),
     );
@@ -130,35 +164,30 @@ class _EmptyRoutines extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final presets = ref.watch(routinePresetsProvider);
     final t = context.tokens;
-    return ListView(
-      padding: const EdgeInsets.all(24),
+    return Column(
       children: <Widget>[
         Icon(Icons.format_list_bulleted_rounded, size: 48, color: t.brand),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           '추천 루틴으로 시작',
           style: Theme.of(context).textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           '내게 맞는 루틴을 선택해 바로 기록을 시작하세요.',
           style: TextStyle(color: t.mutedText),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xl),
         presets.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppLoading(),
           error: (_, _) => const _PresetMessage('추천 루틴을 불러오지 못했습니다'),
           data: (items) => items.isEmpty
               ? const _PresetMessage('추천 루틴을 준비 중입니다')
-              : Column(
+              : AppSection(
                   children: <Widget>[
-                    for (final preset in items)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _PresetCard(preset: preset),
-                      ),
+                    for (final preset in items) _PresetRow(preset: preset),
                   ],
                 ),
         ),
@@ -167,50 +196,17 @@ class _EmptyRoutines extends ConsumerWidget {
   }
 }
 
-class _PresetCard extends ConsumerWidget {
-  const _PresetCard({required this.preset});
+class _PresetRow extends ConsumerWidget {
+  const _PresetRow({required this.preset});
   final RoutinePreset preset;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.tokens;
-    return Semantics(
-      button: true,
-      label: '${preset.name} 루틴 저장',
-      child: Material(
-        color: t.card,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => _save(context, ref),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 88),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: t.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  preset.name,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(preset.description, style: TextStyle(color: t.mutedText)),
-                const SizedBox(height: 10),
-                Text(
-                  '${preset.items.length}종목 · ${_levelLabel(preset.level)}',
-                  style: TextStyle(color: t.faintText),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => AppRow(
+    title: preset.name,
+    subtitle: preset.description,
+    value: '${preset.items.length}종목 · ${_levelLabel(preset.level)}',
+    onTap: () => _save(context, ref),
+  );
 
   Future<void> _save(BuildContext context, WidgetRef ref) async {
     final controller = ref.read(routineEditorControllerProvider);
@@ -250,12 +246,15 @@ class _PresetCard extends ConsumerWidget {
 class _PresetMessage extends StatelessWidget {
   const _PresetMessage(this.message);
   final String message;
+
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.all(AppSpacing.xl),
     child: Text(message, textAlign: TextAlign.center),
   );
 }
+
+enum _RoutineAction { edit, delete }
 
 class _RoutineTile extends StatelessWidget {
   const _RoutineTile({
@@ -264,33 +263,49 @@ class _RoutineTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
   final Routine routine;
   final VoidCallback onStart;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) => Card(
-    margin: const EdgeInsets.only(bottom: 12),
-    child: ListTile(
-      title: Text(routine.name),
-      subtitle: routine.description == null ? null : Text(routine.description!),
-      onTap: onEdit,
-      trailing: Wrap(
-        spacing: 4,
-        children: <Widget>[
-          IconButton(
-            onPressed: onStart,
-            icon: const Icon(Icons.play_arrow_rounded),
-          ),
-          IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined)),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline),
-          ),
-        ],
+  Widget build(BuildContext context) => AppSection(
+    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+    children: <Widget>[
+      AppRow(
+        title: routine.name,
+        subtitle: routine.description,
+        onTap: onEdit,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            IconButton(
+              tooltip: '루틴 시작',
+              onPressed: onStart,
+              icon: const Icon(Icons.play_arrow_rounded),
+            ),
+            PopupMenuButton<_RoutineAction>(
+              tooltip: '루틴 메뉴',
+              onSelected: (action) => switch (action) {
+                _RoutineAction.edit => onEdit(),
+                _RoutineAction.delete => onDelete(),
+              },
+              itemBuilder: (context) => const <PopupMenuEntry<_RoutineAction>>[
+                PopupMenuItem<_RoutineAction>(
+                  value: _RoutineAction.edit,
+                  child: Text('수정'),
+                ),
+                PopupMenuItem<_RoutineAction>(
+                  value: _RoutineAction.delete,
+                  child: Text('삭제'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
+    ],
   );
 }
 

@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../core/formatting/app_format.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/personal_record.dart';
@@ -48,6 +51,9 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   final Map<String, List<_SetDraft>> _drafts = <String, List<_SetDraft>>{};
   bool _isStarting = false;
 
+  String get _screenTitle =>
+      widget.embedded ? context.l10n.setLogs : context.l10n.todayWorkout;
+
   @override
   Widget build(BuildContext context) {
     final active = ref.watch(activeSessionProvider);
@@ -55,9 +61,21 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       settingsControllerProvider.select((state) => state.weightUnit),
     );
     return active.when(
-      loading: () => const Scaffold(body: AppLoading()),
-      error: (_, _) =>
-          Scaffold(body: Center(child: Text(context.l10n.workoutInProgress))),
+      loading: () => AppScreen(
+        title: _screenTitle,
+        slivers: const <Widget>[
+          SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
+        ],
+      ),
+      error: (_, _) => AppScreen(
+        title: _screenTitle,
+        slivers: <Widget>[
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: Text(context.l10n.workoutInProgress)),
+          ),
+        ],
+      ),
       data: (result) => result.when(
         ok: (session) => _activeView(session, weightUnit),
         err: (_) => _startView(weightUnit),
@@ -83,62 +101,57 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   }
 
   Widget _startView(WeightUnit weightUnit) {
-    final t = context.tokens;
     final weekly = ref.watch(weeklyVolumeProvider());
     final routines = ref.watch(routinesProvider);
-    return Scaffold(
-      appBar: widget.embedded
-          ? null
-          : AppBar(title: Text(context.l10n.todayWorkout)),
-      backgroundColor: t.bg,
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        children: <Widget>[
-          _StartHero(onStart: _isStarting ? null : _start),
-          const SizedBox(height: 16),
-          weekly.when(
-            loading: () => const SizedBox(height: 74),
-            error: (_, _) => const SizedBox.shrink(),
-            data: (result) => result.when(
-              ok: (volumes) =>
-                  _WeekStat(volumes: volumes, weightUnit: weightUnit),
-              err: (_) => const SizedBox.shrink(),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: <Widget>[
-              Text(
-                '내 루틴',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: t.text,
+    return AppScreen(
+      title: _screenTitle,
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: AppPagePadding(
+            top: AppSpacing.sm,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _StartHero(onStart: _isStarting ? null : _start),
+                const SizedBox(height: AppSpacing.lg),
+                weekly.when(
+                  loading: () => const SizedBox(height: 74),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (result) => result.when(
+                    ok: (volumes) =>
+                        _WeekStat(volumes: volumes, weightUnit: weightUnit),
+                    err: (_) => const SizedBox.shrink(),
+                  ),
                 ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.push('/routines'),
-                child: const Text('전체'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          routines.when(
-            loading: () => const AppLoading(),
-            error: (_, _) => const SizedBox.shrink(),
-            data: (result) => result.when(
-              ok: (items) => _RoutineList(
-                routines: items,
-                onOpen: (routine) =>
-                    context.push('/routines/detail/${routine.id}'),
-              ),
-              err: (_) => const SizedBox.shrink(),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: <Widget>[
+                    Text('내 루틴', style: AppText.sectionLabel(context)),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => context.push('/routines'),
+                      child: const Text('전체'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                routines.when(
+                  loading: () => const AppLoading(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (result) => result.when(
+                    ok: (items) => _RoutineList(
+                      routines: items,
+                      onOpen: (routine) =>
+                          context.push('/routines/detail/${routine.id}'),
+                    ),
+                    err: (_) => const SizedBox.shrink(),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -146,13 +159,21 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final sets = ref.watch(sessionSetsProvider(session.id));
     final timer = ref.watch(restTimerProvider);
     return Scaffold(
-      appBar: widget.embedded
-          ? null
-          : AppBar(title: Text(context.l10n.todayWorkout)),
+      backgroundColor: context.tokens.bg,
       body: sets.when(
-        loading: () => const AppLoading(),
-        error: (_, _) => const SizedBox.shrink(),
-        data: (items) => _sessionList(session, items, timer, weightUnit),
+        loading: () => AppScreen(
+          title: _screenTitle,
+          slivers: const <Widget>[
+            SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
+          ],
+        ),
+        error: (_, _) => AppScreen(
+          title: _screenTitle,
+          slivers: const <Widget>[
+            SliverFillRemaining(hasScrollBody: false, child: SizedBox.shrink()),
+          ],
+        ),
+        data: (items) => _sessionScreen(session, items, timer, weightUnit),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -166,7 +187,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     );
   }
 
-  Widget _sessionList(
+  Widget _sessionScreen(
     WorkoutSession session,
     List<WorkoutSet> sets,
     RestTimerState timer,
@@ -183,53 +204,73 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       grouped.putIfAbsent(exerciseId, () => <WorkoutSet>[]);
     }
     final entries = grouped.entries.toList(growable: false);
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-      itemCount: entries.length + 2,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return RestTimerBar(
-            state: timer,
-            onAdd: () => ref.read(restTimerProvider.notifier).addSeconds(),
-            onSkip: () => ref.read(restTimerProvider.notifier).skip(),
-          );
-        }
-        if (index == entries.length + 1) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 12),
+    return AppScreen(
+      title: _screenTitle,
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: AppPagePadding(
+            child: RestTimerBar(
+              state: timer,
+              onAdd: () => ref.read(restTimerProvider.notifier).addSeconds(),
+              onSkip: () => ref.read(restTimerProvider.notifier).skip(),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          sliver: SliverList.builder(
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              final name =
+                  _selectedExerciseNames[entry.key] ??
+                  ref.watch(exerciseNameProvider(entry.key)).valueOrNull;
+              if (name == null) return const SizedBox.shrink();
+              final selected = _selectedExercises[entry.key];
+              final metadata = ref
+                  .watch(exerciseByIdProvider(entry.key))
+                  .valueOrNull
+                  ?.when(ok: (value) => value, err: (_) => null);
+              final exercise = selected ?? metadata;
+              return Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: ExerciseBlock(
+                  key: Key('exercise-block-${entry.key}'),
+                  name: name,
+                  exerciseId: entry.key,
+                  equipment: exercise?.equipment ?? Equipment.other,
+                  thumbnailUrl: exercise?.thumbnailUrl,
+                  setRows: _rowsFor(
+                    session,
+                    entry.key,
+                    entry.value,
+                    weightUnit,
+                  ),
+                  weightUnit: weightUnit,
+                  onAddSet: () =>
+                      setState(() => _addDraft(entry.key, entry.value)),
+                ),
+              );
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+              0,
+            ),
             child: OutlinedButton.icon(
               key: const Key('add-exercise'),
               onPressed: () => _pickExercise(sets),
               icon: const Icon(Icons.add),
               label: Text(context.l10n.addExercise),
             ),
-          );
-        }
-        final entry = entries[index - 1];
-        final name =
-            _selectedExerciseNames[entry.key] ??
-            ref.watch(exerciseNameProvider(entry.key)).valueOrNull;
-        if (name == null) return const SizedBox.shrink();
-        final selected = _selectedExercises[entry.key];
-        final metadata = ref
-            .watch(exerciseByIdProvider(entry.key))
-            .valueOrNull
-            ?.when(ok: (value) => value, err: (_) => null);
-        final exercise = selected ?? metadata;
-        return Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: ExerciseBlock(
-            key: Key('exercise-block-${entry.key}'),
-            name: name,
-            exerciseId: entry.key,
-            equipment: exercise?.equipment ?? Equipment.other,
-            thumbnailUrl: exercise?.thumbnailUrl,
-            setRows: _rowsFor(session, entry.key, entry.value, weightUnit),
-            weightUnit: weightUnit,
-            onAddSet: () => setState(() => _addDraft(entry.key, entry.value)),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -500,54 +541,55 @@ class _StartHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Material(
-      color: t.text,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onStart,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 16, 20),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      '새 운동 시작',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.4,
-                        color: t.onBrand,
+    return Semantics(
+      button: true,
+      label: '새 운동 시작',
+      child: Material(
+        color: t.brand,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          onTap: onStart,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        '새 운동 시작',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(color: t.onBrand),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '빈 세션으로 바로 기록',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: t.onBrand.withValues(alpha: 0.6),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        '빈 세션으로 바로 기록',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: t.onBrand.withValues(alpha: 0.72),
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+                SizedBox.square(
+                  dimension: 48,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: t.onBrand.withValues(alpha: 0.14),
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                    child: Icon(
+                      Icons.play_arrow_rounded,
+                      color: t.onBrand,
+                      size: 26,
+                    ),
+                  ),
                 ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: t.onBrand.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.play_arrow_rounded,
-                  color: t.onBrand,
-                  size: 26,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -564,56 +606,18 @@ class _WeekStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     final total = volumes.values.fold<double>(0, (sum, v) => sum + v);
     final days = volumes.values.where((v) => v > 0).length;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.border.withValues(alpha: 0.6)),
-      ),
-      child: Row(
-        children: <Widget>[
-          _stat(t, '이번 주 볼륨', formatCompactWeight(total, unit: weightUnit)),
-          Container(
-            width: 0.5,
-            height: 30,
-            color: t.borderStrong.withValues(alpha: 0.4),
-          ),
-          _stat(t, '운동일', '$days일'),
-        ],
-      ),
+    return AppMetricRow(
+      metrics: <AppMetric>[
+        AppMetric(
+          label: '이번 주 볼륨',
+          value: formatCompactWeight(total, unit: weightUnit),
+        ),
+        AppMetric(label: '운동일', value: '$days일'),
+      ],
     );
   }
-
-  Widget _stat(AppTokens t, String label, String value) => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: t.faintText,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.6,
-            fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-            color: t.text,
-          ),
-        ),
-      ],
-    ),
-  );
 }
 
 /// 내 루틴 카드 목록.
@@ -625,124 +629,28 @@ class _RoutineList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     if (routines.isEmpty) {
-      return Semantics(
-        button: true,
-        label: '루틴 만들기',
-        child: Material(
-          color: t.card,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
+      return AppSection(
+        children: <Widget>[
+          AppRow(
+            title: '루틴 만들기',
+            leading: const Icon(Icons.add_rounded),
             onTap: () => context.push('/routines'),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: t.border),
-              ),
-              child: Column(
-                children: <Widget>[
-                  Icon(Icons.add_rounded, color: t.mutedText, size: 28),
-                  const SizedBox(height: 6),
-                  Text(
-                    '루틴 만들기',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: t.text,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
-        ),
+        ],
       );
     }
     final visible = routines.take(4).toList(growable: false);
-    return Column(
+    return AppSection(
       children: <Widget>[
         for (final routine in visible)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _RoutineCard(routine: routine, onTap: () => onOpen(routine)),
+          AppRow(
+            title: routine.name,
+            subtitle: routine.description ?? '루틴',
+            leading: const Icon(Icons.list_alt_rounded),
+            onTap: () => onOpen(routine),
           ),
       ],
-    );
-  }
-}
-
-class _RoutineCard extends StatelessWidget {
-  const _RoutineCard({required this.routine, required this.onTap});
-
-  final Routine routine;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Material(
-      color: t.card,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: t.border.withValues(alpha: 0.6)),
-          ),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: t.bg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: t.border),
-                ),
-                child: Icon(
-                  Icons.list_alt_rounded,
-                  color: t.mutedText,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      routine.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                        color: t.text,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      routine.description ?? '루틴',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12.5, color: t.mutedText),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: t.faintText),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

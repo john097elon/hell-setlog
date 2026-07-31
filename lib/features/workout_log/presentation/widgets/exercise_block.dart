@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/formatting/app_format.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_list.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 import 'set_table_header.dart';
@@ -27,44 +29,28 @@ class ExerciseBlock extends StatelessWidget {
   final WeightUnit weightUnit;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Row(
-              children: <Widget>[
-                ExerciseThumbnail(
-                  equipment: equipment,
-                  thumbnailUrl: thumbnailUrl,
-                  size: 36,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SetTableHeader(weightUnit: weightUnit),
-          ...setRows,
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-            child: TextButton.icon(
-              key: Key('add-set-$name'),
-              onPressed: onAddSet,
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.addSet),
-            ),
-          ),
-        ],
+  Widget build(BuildContext context) => AppSection(
+    margin: EdgeInsets.zero,
+    children: <Widget>[
+      AppRow(
+        title: name,
+        leading: ExerciseThumbnail(
+          equipment: equipment,
+          thumbnailUrl: thumbnailUrl,
+          size: AppSpacing.xxl,
+        ),
       ),
-    ),
+      SetTableHeader(weightUnit: weightUnit),
+      ...setRows,
+      ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: TextButton.icon(
+          key: Key('add-set-$name'),
+          onPressed: onAddSet,
+          icon: const Icon(Icons.add),
+          label: Text(context.l10n.addSet),
+        ),
+      ),
+    ],
   );
 }

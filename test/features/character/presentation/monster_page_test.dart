@@ -42,7 +42,7 @@ void main() {
     expect(find.text('+30 XP'), findsOneWidget);
 
     // 부위별 목록은 화면 아래에 있다.
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
     await tester.pumpAndSettle();
     expect(find.text('가슴'), findsOneWidget);
     expect(find.text('하체'), findsOneWidget);
@@ -69,6 +69,28 @@ void main() {
 
     expect(find.byType(LevelUpBanner), findsNothing);
   });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 몬스터 화면이 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await _pump(
+        tester,
+        volumes: <MuscleGroup, double>{MuscleGroup.chest: 3000},
+        identity: const CharacterIdentity(
+          species: CharacterSpecies.cat,
+          trait: CharacterTrait.power,
+          name: '오늘도성장하는불꽃이',
+        ),
+        themeId: themeId,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 Future<void> _pump(
@@ -82,6 +104,7 @@ Future<void> _pump(
     trait: CharacterTrait.power,
     name: '불꽃이',
   ),
+  AppThemeId themeId = AppThemeId.appleWhite,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -97,7 +120,7 @@ Future<void> _pump(
         characterIdentityProvider.overrideWith((ref) async => identity),
       ],
       child: MaterialApp(
-        theme: themeFor(AppThemeId.appleWhite),
+        theme: themeFor(themeId),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const MonsterPage(),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 import 'package:heal_setlog/features/character/application/character_identity_controller.dart';
 import 'package:heal_setlog/features/character/application/character_providers.dart';
+import 'package:heal_setlog/features/character/presentation/character_setup_page.dart';
 import 'package:heal_setlog/features/character/presentation/evolution_page.dart';
 import 'package:heal_setlog/features/character/presentation/monster_page.dart';
 import 'package:heal_setlog/features/character/presentation/widgets/growth_view.dart';
@@ -78,14 +79,48 @@ void main() {
     await _pumpMonster(tester);
     expect(find.byType(EvolutionPage), findsNothing);
   });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 캐릭터 생성·진화가 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: _app(const CharacterSetupPage(), themeId: themeId),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(
+        _app(
+          const MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: EvolutionPage(
+              identity: _identity,
+              previousStage: 0,
+              newStage: 1,
+            ),
+          ),
+          themeId: themeId,
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
-Widget _app(Widget home) => MaterialApp(
-  theme: buildAppTheme(),
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
-  supportedLocales: AppLocalizations.supportedLocales,
-  home: home,
-);
+Widget _app(Widget home, {AppThemeId themeId = AppThemeId.appleWhite}) =>
+    MaterialApp(
+      theme: themeFor(themeId),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: home,
+    );
 
 Future<void> _pumpMonster(WidgetTester tester) async {
   await tester.pumpWidget(

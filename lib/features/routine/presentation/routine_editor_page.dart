@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../core/formatting/app_format.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/routine_item.dart';
 import '../../workout_log/application/exercise_name_provider.dart';
@@ -70,13 +73,15 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: <Widget>[
+          Text('루틴 이름', style: AppText.sectionLabel(context)),
+          const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(labelText: '루틴 이름'),
+            decoration: const InputDecoration(hintText: '루틴 이름'),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.xl),
           if (items != null)
             items.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -85,7 +90,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
                 ok: (value) => Column(
                   children: <Widget>[
                     for (final item in value) _RoutineItemEditor(item: item),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     OutlinedButton.icon(
                       onPressed: () => _pickExercise(routineId!),
                       icon: const Icon(Icons.add_rounded),
@@ -152,53 +157,51 @@ class _RoutineItemEditor extends ConsumerWidget {
     final weightUnit = ref.watch(
       settingsControllerProvider.select((state) => state.weightUnit),
     );
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(name, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                _NumberField(
-                  value: item.targetSets.toDouble(),
-                  label: '세트',
-                  onChanged: (value) =>
-                      _update(ref, item.copyWith(targetSets: value.round())),
-                ),
-                _NumberField(
-                  value: item.targetReps.toDouble(),
-                  label: '횟수',
-                  onChanged: (value) =>
-                      _update(ref, item.copyWith(targetReps: value.round())),
-                ),
-                _NumberField(
-                  key: ValueKey<String>('target-weight-${weightUnit.name}'),
-                  value: weightFromKg(item.targetWeight, weightUnit),
-                  label: '무게(${weightUnit.name})',
-                  // 2.5kg 같은 값이 잘리지 않도록 무게만 소수를 받는다.
-                  decimal: true,
-                  onChanged: (value) => _update(
-                    ref,
-                    item.copyWith(targetWeight: weightToKg(value, weightUnit)),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => ref
-                      .read(routineEditorControllerProvider)
-                      .removeItem(item),
-                  icon: const Icon(Icons.delete_outline),
-                ),
-              ],
-            ),
-          ],
+    return AppSection(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      children: <Widget>[
+        AppRow(
+          title: name,
+          trailing: IconButton(
+            tooltip: '종목 삭제',
+            onPressed: () =>
+                ref.read(routineEditorControllerProvider).removeItem(item),
+            icon: Icon(Icons.delete_outline, color: context.tokens.like),
+          ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: <Widget>[
+              _NumberField(
+                value: item.targetSets.toDouble(),
+                label: '세트',
+                onChanged: (value) =>
+                    _update(ref, item.copyWith(targetSets: value.round())),
+              ),
+              _NumberField(
+                value: item.targetReps.toDouble(),
+                label: '횟수',
+                onChanged: (value) =>
+                    _update(ref, item.copyWith(targetReps: value.round())),
+              ),
+              _NumberField(
+                key: ValueKey<String>('target-weight-${weightUnit.name}'),
+                value: weightFromKg(item.targetWeight, weightUnit),
+                label: '무게(${weightUnit.name})',
+                // 2.5kg 같은 값이 잘리지 않도록 무게만 소수를 받는다.
+                decimal: true,
+                onChanged: (value) => _update(
+                  ref,
+                  item.copyWith(targetWeight: weightToKg(value, weightUnit)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -264,6 +267,7 @@ class _NumberFieldState extends State<_NumberField> {
             widget.decimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
           ),
         ],
+        style: const TextStyle(fontFeatures: kTabularFigures),
         decoration: InputDecoration(labelText: widget.label),
         onFieldSubmitted: (_) => _commit(),
       ),
