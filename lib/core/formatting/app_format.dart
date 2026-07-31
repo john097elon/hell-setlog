@@ -39,3 +39,13 @@ String initialOf(String? name) {
   final trimmed = name?.trim() ?? '';
   return trimmed.isEmpty ? '?' : trimmed.characters.first;
 }
+
+/// 목록에 쓰는 상대 시각. `방금`, `12분 전`, `3일 전`, 그 이상은 날짜.
+String formatRelativeTime(DateTime time, {DateTime? now}) {
+  final diff = (now ?? DateTime.now()).difference(time);
+  if (diff.inMinutes < 1) return '방금';
+  if (diff.inHours < 1) return '${diff.inMinutes}분 전';
+  if (diff.inDays < 1) return '${diff.inHours}시간 전';
+  if (diff.inDays < 7) return '${diff.inDays}일 전';
+  return '${time.month}월 ${time.day}일';
+}

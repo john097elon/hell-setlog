@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../remote/reaction_counts.dart';
 import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
@@ -139,9 +140,23 @@ class SupabaseProfileRepository implements ProfileRepository {
           .select()
           .eq('user_id', userId)
           .order('created_at', ascending: false);
+      final posts = (rows as List)
+          .map((row) => _post(Map<String, Object?>.from(row as Map)))
+          .toList(growable: false);
+      // 내 글에 누가 반응했는지 목록에서 바로 보이도록 반응 수를 채운다.
+      final counts = await fetchReactionCounts(
+        client,
+        posts.map((post) => post.id).toList(growable: false),
+        viewerId: userId,
+      );
       return Ok(
-        (rows as List)
-            .map((row) => _post(Map<String, Object?>.from(row as Map)))
+        posts
+            .map(
+              (post) => post.copyWith(
+                likeCount: counts.likes[post.id] ?? 0,
+                commentCount: counts.comments[post.id] ?? 0,
+              ),
+            )
             .toList(growable: false),
       );
     } on Exception catch (error) {

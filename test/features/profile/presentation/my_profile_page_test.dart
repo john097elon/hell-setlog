@@ -23,6 +23,20 @@ void main() {
     expect(find.byType(SliverGrid), findsOneWidget);
   });
 
+  testWidgets('썸네일을 누르면 게시물 상세로 들어가고 반응 수가 보인다', (tester) async {
+    await _pump(
+      tester,
+      posts: <Post>[_post.copyWith(likeCount: 3, commentCount: 2)],
+    );
+
+    expect(find.text('3'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('post-thumb-post-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('좋아요'), findsOneWidget);
+    expect(find.text('댓글'), findsOneWidget);
+  });
+
   testWidgets('renders empty state when there are no posts', (tester) async {
     await _pump(tester, posts: <Post>[]);
 

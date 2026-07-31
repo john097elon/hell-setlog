@@ -10,6 +10,7 @@ import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../auth/application/auth_service.dart';
+import '../../feed/presentation/post_detail_page.dart';
 import '../application/profile_providers.dart';
 import '../../../core/formatting/app_format.dart';
 
@@ -205,7 +206,14 @@ class _ProfileBody extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                   sliver: SliverGrid(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _PostThumbnail(post: values[index]),
+                      (context, index) => _PostThumbnail(
+                        post: values[index],
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => PostDetailPage(post: values[index]),
+                          ),
+                        ),
+                      ),
                       childCount: values.length,
                     ),
                     gridDelegate:
@@ -325,9 +333,10 @@ class _Stat extends StatelessWidget {
 
 /// 그리드 한 칸. 사진은 이미지로, 영상과 기록 전용 글은 대체 표시로 보여준다.
 class _PostThumbnail extends StatelessWidget {
-  const _PostThumbnail({required this.post});
+  const _PostThumbnail({required this.post, required this.onTap});
 
   final Post post;
+  final VoidCallback onTap;
 
   bool get _isVideo => post.mediaKind == PostMediaKind.video;
   bool get _hasMedia => post.mediaUrl.isNotEmpty;
@@ -335,38 +344,55 @@ class _PostThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: t.bg,
-          border: Border.all(color: t.border),
+    return Semantics(
+      button: true,
+      label: '게시물 열기',
+      child: InkWell(
+        key: Key('post-thumb-${post.id}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            if (_hasMedia && !_isVideo)
-              Image.network(
-                post.mediaUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _fallback(t),
-              )
-            else
-              _fallback(t),
-            if (_isVideo)
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.play_circle_fill_rounded,
-                    size: 18,
-                    color: t.text.withValues(alpha: 0.7),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: t.bg,
+              border: Border.all(color: t.border),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                if (_hasMedia && !_isVideo)
+                  Image.network(
+                    post.mediaUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallback(t),
+                  )
+                else
+                  _fallback(t),
+                if (_isVideo)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.play_circle_fill_rounded,
+                        size: 18,
+                        color: t.text.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                // 어떤 글에 반응이 붙었는지 목록에서 바로 보이게 한다.
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: _Reactions(
+                    likes: post.likeCount,
+                    comments: post.commentCount,
                   ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -398,6 +424,50 @@ class _PostThumbnail extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// 썸네일 위 반응 배지. 좋아요와 댓글이 모두 0이면 숨긴다.
+class _Reactions extends StatelessWidget {
+  const _Reactions({required this.likes, required this.comments});
+
+  final int likes;
+  final int comments;
+
+  @override
+  Widget build(BuildContext context) {
+    if (likes == 0 && comments == 0) return const SizedBox.shrink();
+    final t = context.tokens;
+    return Container(
+      margin: const EdgeInsets.all(4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: t.card.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(Icons.favorite_rounded, size: 11, color: t.like),
+          const SizedBox(width: 3),
+          _count(t, likes),
+          const SizedBox(width: 6),
+          Icon(Icons.mode_comment_rounded, size: 10, color: t.mutedText),
+          const SizedBox(width: 3),
+          _count(t, comments),
+        ],
+      ),
+    );
+  }
+
+  Widget _count(AppTokens t, int value) => Text(
+    formatCompactNumber(value),
+    style: TextStyle(
+      fontSize: 10.5,
+      fontWeight: FontWeight.w700,
+      color: t.text,
+      fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
     ),
   );
 }

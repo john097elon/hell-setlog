@@ -88,6 +88,9 @@ alter table routine_items enable row level security;
 alter table workout_sessions enable row level security;
 alter table workout_sets enable row level security;
 
+-- 닉네임/사진은 공개 정보다. 이게 없으면 남의 이름이 전부 '회원'으로 보이고 사용자 검색도 빈다.
+drop policy if exists "profiles authenticated read" on profiles;
+create policy "profiles authenticated read" on profiles for select to authenticated using (true);
 create policy "profiles own rows" on profiles for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "exercises read seed or own" on exercises for select using (not is_custom or auth.uid() = user_id);
 create policy "exercises own custom write" on exercises for all using (auth.uid() = user_id and is_custom) with check (auth.uid() = user_id and is_custom);

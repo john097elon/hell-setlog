@@ -4,11 +4,13 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../remote/reaction_counts.dart';
 import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/post.dart';
 import '../../domain/entities/post_comment.dart';
+import '../../domain/entities/post_reaction.dart';
 import '../../domain/repositories/post_repository.dart';
 
 /// Supabase-backed public post repository. It is safe to use in local mode.
@@ -48,28 +50,25 @@ class SupabasePostRepository implements PostRepository {
           .map((row) => _post(Map<String, Object?>.from(row as Map)))
           .where((post) => !blockedIds.contains(post.userId))
           .toList(growable: false);
-      final names = await _authorNames(
+      final authors = await _authorProfiles(
         client,
         posts.map((post) => post.userId),
+      );
+      final counts = await fetchReactionCounts(
+        client,
+        posts.map((post) => post.id).toList(growable: false),
+        viewerId: userId,
       );
       return Ok(
         posts
             .map(
-              (post) => Post(
-                id: post.id,
-                userId: post.userId,
-                caption: post.caption,
-                mediaUrl: post.mediaUrl,
-                mediaKind: post.mediaKind,
-                createdAt: post.createdAt,
-                bodyPart: post.bodyPart,
-                location: post.location,
-                sessionId: post.sessionId,
-                volumeKg: post.volumeKg,
-                durationMin: post.durationMin,
-                prLabel: post.prLabel,
-                xp: post.xp,
-                authorName: names[post.userId],
+              (post) => post.copyWith(
+                authorName: authors[post.userId]?.nickname,
+                authorAvatarUrl: authors[post.userId]?.avatarUrl,
+                likeCount: counts.likes[post.id] ?? 0,
+                commentCount: counts.comments[post.id] ?? 0,
+                likedByMe: counts.likedByMe.contains(post.id),
+                savedByMe: counts.savedByMe.contains(post.id),
               ),
             )
             .toList(growable: false),
@@ -303,26 +302,92 @@ class SupabasePostRepository implements PostRepository {
     final client = _client;
     if (client == null) return const Ok(<PostComment>[]);
     try {
-      final rows = await client
-          .from('post_comments')
-          .select()
-          .eq('post_id', postId)
-          .order('created_at');
+      final rows = rowList(
+        await client
+            .from('post_comments')
+            .select()
+            .eq('post_id', postId)
+            .order('created_at'),
+      );
+      // 누가 남긴 댓글인지 보이도록 작성자 프로필을 함께 읽는다.
+      final authors = await _authorProfiles(
+        client,
+        rows.map((row) => rowString(row, 'user_id')),
+      );
       return Ok(
-        (rows as List).map((r) {
-          final m = Map<String, Object?>.from(r as Map);
-          return PostComment(
-            id: m['id'] as String,
-            postId: postId,
-            userId: m['user_id'] as String,
-            body: m['body'] as String,
-            createdAt: rowDate(m, 'created_at'),
-          );
-        }).toList(),
+        rows
+            .map((row) {
+              final userId = rowString(row, 'user_id');
+              final author = authors[userId];
+              return PostComment(
+                id: rowString(row, 'id'),
+                postId: postId,
+                userId: userId,
+                body: rowString(row, 'body'),
+                createdAt: rowDate(row, 'created_at'),
+                authorName: author?.nickname,
+                authorAvatarUrl: author?.avatarUrl,
+              );
+            })
+            .toList(growable: false),
       );
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
     }
+  }
+
+  @override
+  Future<Result<List<PostReaction>, Failure>> fetchLikers(String postId) async {
+    final client = _client;
+    if (client == null) return const Ok(<PostReaction>[]);
+    try {
+      final rows = rowList(
+        await client
+            .from('post_likes')
+            .select()
+            .eq('post_id', postId)
+            .order('created_at', ascending: false),
+      );
+      final authors = await _authorProfiles(
+        client,
+        rows.map((row) => rowString(row, 'user_id')),
+      );
+      return Ok(
+        rows
+            .map((row) {
+              final userId = rowString(row, 'user_id');
+              final author = authors[userId];
+              return PostReaction(
+                userId: userId,
+                nickname: author?.nickname ?? '회원',
+                avatarUrl: author?.avatarUrl,
+                createdAt: rowDate(row, 'created_at'),
+              );
+            })
+            .toList(growable: false),
+      );
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('좋아요를 불러오지 못했습니다: $e'));
+    }
+  }
+
+  static Future<Map<String, ({String nickname, String? avatarUrl})>>
+  _authorProfiles(SupabaseClient client, Iterable<String> userIds) async {
+    final ids = userIds.toSet();
+    if (ids.isEmpty) return <String, ({String nickname, String? avatarUrl})>{};
+    final rows = rowList(
+      await client
+          .from('profiles')
+          .select('user_id, nickname, avatar_url')
+          .inFilter('user_id', ids.toList()),
+    );
+    return <String, ({String nickname, String? avatarUrl})>{
+      for (final row in rows)
+        rowString(row, 'user_id'): (
+          nickname: rowString(row, 'nickname', fallback: '회원'),
+          avatarUrl: rowStringOrNull(row, 'avatar_url'),
+        ),
+    };
   }
 
   @override
@@ -356,25 +421,6 @@ class SupabasePostRepository implements PostRepository {
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
     }
-  }
-
-  static Future<Map<String, String>> _authorNames(
-    SupabaseClient client,
-    Iterable<String> userIds,
-  ) async {
-    final ids = userIds.toSet();
-    if (ids.isEmpty) return <String, String>{};
-    final rows = await client
-        .from('profiles')
-        .select('user_id, nickname')
-        .inFilter('user_id', ids.toList());
-    return {
-      for (final row in rows as List)
-        (row as Map)['user_id'] as String:
-            ((row['nickname'] as String?)?.trim().isNotEmpty ?? false)
-            ? row['nickname'] as String
-            : '회원',
-    };
   }
 
   static Future<Set<String>> _blockedIds(

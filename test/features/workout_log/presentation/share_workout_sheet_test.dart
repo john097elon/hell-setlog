@@ -8,6 +8,7 @@ import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/post.dart';
 import 'package:heal_setlog/domain/entities/post_comment.dart';
+import 'package:heal_setlog/domain/entities/post_reaction.dart';
 import 'package:heal_setlog/domain/repositories/post_repository.dart';
 import 'package:heal_setlog/features/feed/application/post_providers.dart';
 import 'package:heal_setlog/features/workout_log/presentation/share_workout_sheet.dart';
@@ -94,6 +95,11 @@ class _RecordingPostRepository implements PostRepository {
   @override
   Future<Result<void, Failure>> toggleSave(String postId) async =>
       const Ok(null);
+
+  @override
+  Future<Result<List<PostReaction>, Failure>> fetchLikers(
+    String postId,
+  ) async => const Ok(<PostReaction>[]);
 
   @override
   Future<Result<List<PostComment>, Failure>> fetchComments(

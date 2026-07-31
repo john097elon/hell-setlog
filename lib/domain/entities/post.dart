@@ -44,4 +44,34 @@ class Post {
   final bool likedByMe;
   final bool savedByMe;
   final String? authorAvatarUrl;
+
+  /// 저장 후 작성자 이름이나 반응 수를 채워 넣을 때 쓴다.
+  Post copyWith({
+    String? authorName,
+    String? authorAvatarUrl,
+    int? likeCount,
+    int? commentCount,
+    bool? likedByMe,
+    bool? savedByMe,
+  }) => Post(
+    id: id,
+    userId: userId,
+    caption: caption,
+    mediaUrl: mediaUrl,
+    mediaKind: mediaKind,
+    createdAt: createdAt,
+    bodyPart: bodyPart,
+    location: location,
+    sessionId: sessionId,
+    volumeKg: volumeKg,
+    durationMin: durationMin,
+    prLabel: prLabel,
+    xp: xp,
+    authorName: authorName ?? this.authorName,
+    authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
+    likeCount: likeCount ?? this.likeCount,
+    commentCount: commentCount ?? this.commentCount,
+    likedByMe: likedByMe ?? this.likedByMe,
+    savedByMe: savedByMe ?? this.savedByMe,
+  );
 }
