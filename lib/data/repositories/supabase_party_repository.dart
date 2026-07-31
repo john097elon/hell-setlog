@@ -98,11 +98,7 @@ class SupabasePartyRepository implements PartyRepository {
                 .single()
             as Map,
       );
-      await c.from('party_members').insert({
-        'party_id': row['id'],
-        'user_id': u,
-        'role': 'owner',
-      });
+      // 소유자 멤버 행은 parties 트리거가 만든다.
       return Ok(_party(row));
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
@@ -110,40 +106,35 @@ class SupabasePartyRepository implements PartyRepository {
   }
 
   @override
-  Future<Result<void, Failure>> joinParty(String partyId) async {
-    final c = _client;
-    final u = _userId;
-    if (c == null || u == null) return Err(_authFailure);
-    try {
-      final p = Map<String, Object?>.from(
-        await c.from('parties').select().eq('id', partyId).single() as Map,
-      );
-      final m = await c
-          .from('party_members')
-          .select('user_id')
-          .eq('party_id', partyId);
-      if ((m as List).length >= (p['max_members'] as num).toInt()) {
-        return const Err(DatabaseFailure('정원이 가득 찼습니다'));
-      }
-      await c.from('party_members').insert({'party_id': partyId, 'user_id': u});
-      return const Ok(null);
-    } on Exception catch (e) {
-      return Err(DatabaseFailure('$e'));
-    }
-  }
+  Future<Result<void, Failure>> joinParty(String partyId) =>
+      _join('join_party', <String, Object?>{'p_party': partyId});
 
   @override
-  Future<Result<void, Failure>> joinByCode(String code) async {
+  Future<Result<void, Failure>> joinByCode(String code) => _join(
+    'join_party_by_code',
+    <String, Object?>{'p_code': code.trim().toUpperCase()},
+  );
+
+  /// 가입 검증은 서버 함수가 한다. 클라이언트는 정원·비공개를 판단하지 않는다.
+  Future<Result<void, Failure>> _join(
+    String function,
+    Map<String, Object?> params,
+  ) async {
     final c = _client;
     if (c == null || _userId == null) return Err(_authFailure);
     try {
-      final p = await c
-          .from('parties')
-          .select('id')
-          .eq('join_code', code)
-          .maybeSingle();
-      if (p == null) return const Err(DatabaseFailure('참여 코드를 찾을 수 없습니다'));
-      return joinParty((p as Map)['id'] as String);
+      final outcome = await c.rpc<Object?>(function, params: params);
+      return switch (outcome) {
+        'ok' => const Ok<void, Failure>(null),
+        'full' => const Err<void, Failure>(DatabaseFailure('정원이 가득 찼습니다')),
+        'code_required' => const Err<void, Failure>(
+          DatabaseFailure('참여 코드가 올바르지 않습니다'),
+        ),
+        'not_found' => const Err<void, Failure>(
+          DatabaseFailure('파티를 찾을 수 없습니다'),
+        ),
+        _ => const Err<void, Failure>(DatabaseFailure('파티에 참여하지 못했습니다')),
+      };
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
     }
