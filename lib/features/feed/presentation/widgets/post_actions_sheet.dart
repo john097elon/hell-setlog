@@ -4,6 +4,7 @@ import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/features/feed/application/post_providers.dart';
+import 'package:heal_setlog/features/profile/application/profile_providers.dart';
 
 /// Shows moderation actions for a post.
 Future<void> showPostActionsSheet(
@@ -189,7 +190,10 @@ Future<void> _handle(
   if (!context.mounted) return;
   result.when(
     ok: (_) {
-      ref.invalidate(publicFeedProvider);
+      // 내 프로필 그리드도 같이 갱신해야 방금 올린 글이 보인다.
+      ref
+        ..invalidate(publicFeedProvider)
+        ..invalidate(myPostsProvider);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(successMessage)));

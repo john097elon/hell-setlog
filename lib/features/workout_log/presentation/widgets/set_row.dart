@@ -40,7 +40,8 @@ class _SetRowState extends State<SetRow> {
   late final TextEditingController _weightController;
   late final TextEditingController _repsController;
 
-  bool get _isDraft => widget.set == null;
+  // 루틴이 미리 만들어 둔 계획 세트도 완료 전에는 실제 값으로 고칠 수 있어야 한다.
+  bool get _isDraft => widget.set == null || !widget.set!.isCompleted;
   bool get _isDone => widget.set?.isCompleted == true;
 
   String get _weightText => widget.weight.toStringAsFixed(

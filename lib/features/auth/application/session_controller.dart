@@ -1,12 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/repositories/supabase_sync_repository.dart';
 import '../../exercise_db/application/exercise_providers.dart';
+import '../../feed/application/post_providers.dart';
+import '../../notifications/application/notification_providers.dart';
+import '../../party/application/party_providers.dart';
+import '../../profile/application/profile_providers.dart';
+import '../../routine/application/routine_providers.dart';
+import '../../stats/application/stats_providers.dart';
+import '../../workout_log/application/workout_providers.dart';
 import 'auth_service.dart';
 
 /// 로그인 세션 종료를 한곳에서 처리한다.
 final sessionControllerProvider = Provider<SessionController>(
   (ref) => SessionController(ref),
 );
+
+/// 로그아웃 결과. 올리지 못한 기록이 있으면 로컬 데이터를 지우지 않는다.
+typedef SignOutOutcome = ({bool localDataKept});
 
 class SessionController {
   const SessionController(this._ref);
@@ -15,8 +26,41 @@ class SessionController {
 
   /// 로그아웃하면서 이 기기에 남은 개인 데이터를 지운다. 지우지 않으면 다음에
   /// 로그인한 계정이 이전 사용자의 루틴·운동 기록을 그대로 보게 된다.
-  Future<void> signOut() async {
+  ///
+  /// 다만 아직 서버에 올리지 못한 기록이 있으면 지우지 않는다. 지우면 복구할
+  /// 방법이 없다. 이 경우 호출자가 사용자에게 알려야 한다.
+  Future<SignOutOutcome> signOut() async {
+    final pushed = await _pushPending();
     await _ref.read(authServiceProvider).signOut();
-    await _ref.read(appDatabaseProvider).clearUserData();
+    if (pushed) await _ref.read(appDatabaseProvider).clearUserData();
+    _invalidateAccountScopedCaches();
+    return (localDataKept: !pushed);
+  }
+
+  /// 남은 변경을 서버로 올린다. 실패하면 로컬 데이터를 보존한다.
+  Future<bool> _pushPending() async {
+    try {
+      await _ref.read(syncRepositoryProvider).pushAll();
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
+  /// 계정에 묶인 캐시. 남겨두면 다음 사용자가 이전 사용자의 화면을 보게 된다.
+  void _invalidateAccountScopedCaches() {
+    _ref
+      ..invalidate(myProfileProvider)
+      ..invalidate(myPostsProvider)
+      ..invalidate(myFollowCountsProvider)
+      ..invalidate(publicFeedProvider)
+      ..invalidate(myPartiesProvider)
+      ..invalidate(partyExploreProvider)
+      ..invalidate(myNotificationsProvider)
+      ..invalidate(unreadNotificationCountProvider)
+      ..invalidate(routinesProvider)
+      ..invalidate(activeSessionProvider)
+      ..invalidate(weeklyVolumeProvider)
+      ..invalidate(bodyPartSplitProvider);
   }
 }

@@ -14,6 +14,10 @@ void main() {
     expect(formatWeight(60), '60');
     expect(formatWeight(62.5), '62.5');
     expect(formatWeight(12400), '12,400');
+    // 소수 자리 올림이 정수부로 넘어가야 한다. 예전에는 '1.10'이 나왔다.
+    expect(formatWeight(1.96), '2');
+    expect(formatWeight(9.95), '10');
+    expect(formatWeight(2.44), '2.4');
   });
 
   test('formatCompactNumber abbreviates K and M', () {

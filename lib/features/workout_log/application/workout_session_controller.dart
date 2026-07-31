@@ -80,6 +80,13 @@ class WorkoutSessionController {
   Future<Result<void, Failure>> deleteSet(String setId) =>
       _repository.deleteSet(setId);
 
+  /// 루틴으로 만든 계획 세트의 실제 수행값을 반영한다.
+  Future<Result<WorkoutSet, Failure>> updatePlannedSet(
+    WorkoutSet set, {
+    double? weight,
+    int? reps,
+  }) => _repository.updateSet(set.copyWith(weight: weight, reps: reps));
+
   Future<Result<WorkoutSet, Failure>> restoreSet(WorkoutSet set) =>
       _repository.updateSet(set.copyWith(clearDeletedAt: true));
 }

@@ -12,6 +12,7 @@ import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
 import '../../routine/application/routine_providers.dart';
 import '../../stats/application/stats_providers.dart';
+import '../../character/application/character_providers.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 import '../application/exercise_name_provider.dart';
 import '../application/rest_timer_controller.dart';
@@ -40,6 +41,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   final Map<String, Exercise> _selectedExercises = <String, Exercise>{};
   // 종목별 입력 중인 세트 줄. 순서가 곧 화면 순서라 완료된 줄만 빼면 나머지 입력값이 남는다.
   final Map<String, List<_SetDraft>> _drafts = <String, List<_SetDraft>>{};
+  bool _isStarting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +55,20 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   }
 
   Future<void> _start() async {
-    await ref.read(workoutSessionControllerProvider).startSession();
-    ref.invalidate(activeSessionProvider);
+    if (_isStarting) return;
+    setState(() => _isStarting = true);
+    final result = await ref
+        .read(workoutSessionControllerProvider)
+        .startSession();
+    // 시작 직후 탭을 옮기면 dispose된 ref를 쓰게 된다.
+    if (!mounted) return;
+    setState(() => _isStarting = false);
+    result.when(
+      ok: (_) => ref.invalidate(activeSessionProvider),
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
+    );
   }
 
   Widget _startView() {
@@ -69,7 +83,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: <Widget>[
-          _StartHero(onStart: _start),
+          _StartHero(onStart: _isStarting ? null : _start),
           const SizedBox(height: 16),
           weekly.when(
             loading: () => const SizedBox(height: 74),
@@ -218,8 +232,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           weight: set.weight,
           reps: set.reps,
           set: set,
-          onWeightChanged: (_) {},
-          onRepsChanged: (_) {},
+          onWeightChanged: (value) => _updatePlanned(set, weight: value),
+          onRepsChanged: (value) => _updatePlanned(set, reps: value),
           onComplete: set.isCompleted ? () {} : () => _completeExisting(set),
           onDelete: () => _delete(set),
         ),
@@ -245,6 +259,13 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       );
     }
     return rows;
+  }
+
+  void _updatePlanned(WorkoutSet set, {double? weight, int? reps}) {
+    if (set.isCompleted) return;
+    ref
+        .read(workoutSessionControllerProvider)
+        .updatePlannedSet(set, weight: weight, reps: reps);
   }
 
   void _addDraft(String exerciseId, List<WorkoutSet> sets) {
@@ -334,7 +355,8 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final sets =
         ref.read(sessionSetsProvider(session.id)).valueOrNull ??
         const <WorkoutSet>[];
-    final completed = sets.where((set) => set.isCompleted);
+    // 세션 볼륨과 같은 기준. 준비 세트는 빼야 수치가 어긋나지 않는다.
+    final completed = sets.where((set) => set.isCompleted && !set.isWarmup);
     final volume = completed.fold<double>(
       0,
       (sum, set) => sum + set.weight * set.reps,
@@ -357,7 +379,12 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
           _selectedExercises.clear();
           _drafts.clear();
         });
-        ref.invalidate(activeSessionProvider);
+        ref
+          ..invalidate(activeSessionProvider)
+          // 종료했는데 통계와 캐릭터가 이전 값 그대로였다.
+          ..invalidate(weeklyVolumeProvider)
+          ..invalidate(bodyPartSplitProvider)
+          ..invalidate(characterVolumesProvider);
         showShareWorkoutSheet(
           context,
           data: ShareViewData(
@@ -387,7 +414,7 @@ class _SetDraft {
 class _StartHero extends StatelessWidget {
   const _StartHero({required this.onStart});
 
-  final Future<void> Function() onStart;
+  final Future<void> Function()? onStart;
 
   @override
   Widget build(BuildContext context) {

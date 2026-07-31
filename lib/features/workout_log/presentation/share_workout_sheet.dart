@@ -6,6 +6,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../feed/application/post_providers.dart';
 import 'models/share_view_data.dart';
 import 'widgets/record_ring_button.dart';
+import '../../profile/application/profile_providers.dart';
 
 /// Shows the local-only video-sharing mock after a workout completes.
 Future<void> showShareWorkoutSheet(
@@ -55,7 +56,10 @@ class _ShareWorkoutSheetState extends ConsumerState<_ShareWorkoutSheet> {
     setState(() => _sharing = false);
     result.when(
       ok: (_) {
-        ref.invalidate(publicFeedProvider);
+        // 내 프로필 그리드도 같이 갱신해야 방금 올린 글이 보인다.
+        ref
+          ..invalidate(publicFeedProvider)
+          ..invalidate(myPostsProvider);
         final messenger = ScaffoldMessenger.of(context);
         Navigator.pop(context);
         messenger.showSnackBar(const SnackBar(content: Text('피드에 공유했습니다.')));

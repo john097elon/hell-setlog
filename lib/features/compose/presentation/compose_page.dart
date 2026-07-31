@@ -8,6 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../auth/application/auth_service.dart';
 import '../../feed/application/post_providers.dart';
 import 'capture_flow.dart';
+import '../../profile/application/profile_providers.dart';
 
 /// Composer for a captured image or video.
 class ComposePage extends ConsumerStatefulWidget {
@@ -51,7 +52,10 @@ class _ComposePageState extends ConsumerState<ComposePage> {
     result.when(
       ok: (_) {
         widget.onPublished?.call(_captionController.text);
-        ref.invalidate(publicFeedProvider);
+        // 내 프로필 그리드도 같이 갱신해야 방금 올린 글이 보인다.
+        ref
+          ..invalidate(publicFeedProvider)
+          ..invalidate(myPostsProvider);
         final messenger = ScaffoldMessenger.of(context);
         messenger.showSnackBar(const SnackBar(content: Text('게시되었습니다')));
         Navigator.pop(context);

@@ -163,8 +163,18 @@ class SettingsPage extends ConsumerWidget {
                 SettingRow(
                   title: copy.settingsLogout,
                   onTap: () async {
-                    await ref.read(sessionControllerProvider).signOut();
-                    if (context.mounted) context.go('/login');
+                    final outcome = await ref
+                        .read(sessionControllerProvider)
+                        .signOut();
+                    if (!context.mounted) return;
+                    if (outcome.localDataKept) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('일부 기록을 서버에 올리지 못해 이 기기에 남겨 뒀어요.'),
+                        ),
+                      );
+                    }
+                    context.go('/login');
                   },
                 ),
             ],

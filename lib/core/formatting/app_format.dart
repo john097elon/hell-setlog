@@ -16,9 +16,11 @@ String formatInt(num value) {
 
 /// 볼륨(kg). 정수면 소수 생략, 아니면 소수 1자리. `12400` → `"12,400"`.
 String formatWeight(double kg) {
-  if (kg == kg.roundToDouble()) return formatInt(kg);
-  final whole = kg.truncate();
-  final frac = ((kg - whole).abs() * 10).round();
+  // 소수 첫째 자리로 먼저 반올림해야 1.96이 '1.10'으로 새지 않는다.
+  final rounded = (kg * 10).round() / 10;
+  if (rounded == rounded.roundToDouble()) return formatInt(rounded);
+  final whole = rounded.truncate();
+  final frac = ((rounded - whole).abs() * 10).round();
   return '${formatInt(whole)}.$frac';
 }
 
