@@ -53,6 +53,12 @@ abstract class PartyRepository {
     String partyId, {
     int limit = 50,
   });
+
+  /// 기존 메시지와 이후 실시간 변경을 이어서 보낸다.
+  Stream<Result<List<PartyMessage>, Failure>> watchMessages(
+    String partyId, {
+    int limit = 50,
+  });
   Future<Result<PartyMessage, Failure>> sendMessage(
     String partyId,
     String body,
