@@ -36,3 +36,54 @@ final myFollowCountsProvider = FutureProvider<({int followers, int following})>(
     return (followers: rows[0].length, following: rows[1].length);
   },
 );
+
+/// 다른 사용자의 공개 프로필.
+final userProfileProvider = FutureProvider.family<UserProfile, String>((
+  ref,
+  userId,
+) async {
+  final result = await ref
+      .watch(profileRepositoryProvider)
+      .fetchProfile(userId);
+  return result.when(ok: (profile) => profile, err: (failure) => throw failure);
+});
+
+/// 다른 사용자의 게시물.
+final userPostsProvider = FutureProvider.family<List<Post>, String>((
+  ref,
+  userId,
+) async {
+  final result = await ref
+      .watch(profileRepositoryProvider)
+      .fetchUserPosts(userId);
+  return result.when(ok: (posts) => posts, err: (failure) => throw failure);
+});
+
+/// 임의 사용자의 팔로워/팔로잉 수.
+final followCountsProvider =
+    FutureProvider.family<({int followers, int following}), String>((
+      ref,
+      userId,
+    ) async {
+      final result = await ref
+          .watch(profileRepositoryProvider)
+          .fetchFollowCounts(userId);
+      return result.when(
+        ok: (counts) => counts,
+        err: (_) => (followers: 0, following: 0),
+      );
+    });
+
+/// 팔로워 또는 팔로잉 목록.
+final followListProvider =
+    FutureProvider.family<List<UserProfile>, ({String userId, bool followers})>(
+      (ref, arg) async {
+        final result = await ref
+            .watch(profileRepositoryProvider)
+            .fetchFollowList(arg.userId, followers: arg.followers);
+        return result.when(
+          ok: (items) => items,
+          err: (failure) => throw failure,
+        );
+      },
+    );

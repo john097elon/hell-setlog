@@ -40,3 +40,21 @@ final publicFeedProvider = FutureProvider.family<List<Post>, String?>((
       .fetchPublicFeed(bodyPart: bodyPart);
   return result.when(ok: (posts) => posts, err: (failure) => throw failure);
 });
+
+/// 내가 이 사용자를 팔로우하고 있는지.
+final isFollowingProvider = FutureProvider.family<bool, String>((
+  ref,
+  userId,
+) async {
+  final result = await ref.watch(postRepositoryProvider).isFollowing(userId);
+  return result.when(ok: (value) => value, err: (_) => false);
+});
+
+/// 게시물 한 건. 알림에서 바로 열 때 쓴다.
+final postByIdProvider = FutureProvider.family<Post, String>((
+  ref,
+  postId,
+) async {
+  final result = await ref.watch(postRepositoryProvider).fetchPost(postId);
+  return result.when(ok: (post) => post, err: (failure) => throw failure);
+});

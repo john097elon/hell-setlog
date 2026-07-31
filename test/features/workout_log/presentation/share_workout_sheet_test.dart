@@ -55,6 +55,10 @@ void main() {
 }
 
 class _RecordingPostRepository implements PostRepository {
+  @override
+  Future<Result<Post, Failure>> fetchPost(String postId) async =>
+      const Err(NotFoundFailure());
+
   int created = 0;
 
   @override

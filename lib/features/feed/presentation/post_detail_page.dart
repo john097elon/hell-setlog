@@ -449,3 +449,26 @@ class _SectionMessage extends StatelessWidget {
     ),
   );
 }
+
+/// 알림처럼 ID만 아는 곳에서 게시물 상세로 들어가는 진입점.
+class PostDetailRoute extends ConsumerWidget {
+  const PostDetailRoute({required this.postId, super.key});
+
+  final String postId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(postByIdProvider(postId))
+      .when(
+        loading: () => const Scaffold(body: AppLoading()),
+        error: (_, _) => Scaffold(
+          appBar: AppBar(),
+          body: const AppEmptyState(
+            icon: Icons.error_outline,
+            title: '게시물을 불러오지 못했습니다',
+            message: '삭제되었거나 볼 수 없는 글일 수 있어요.',
+          ),
+        ),
+        data: (post) => PostDetailPage(post: post),
+      );
+}

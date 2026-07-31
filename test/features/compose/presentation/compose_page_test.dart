@@ -77,6 +77,10 @@ class _SignedInAuthService implements AuthService {
 }
 
 class _SuccessPostRepository implements PostRepository {
+  @override
+  Future<Result<Post, Failure>> fetchPost(String postId) async =>
+      const Err(NotFoundFailure());
+
   const _SuccessPostRepository();
   @override
   Future<Result<Post, Failure>> createPost({

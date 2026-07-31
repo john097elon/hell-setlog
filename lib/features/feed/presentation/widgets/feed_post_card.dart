@@ -8,6 +8,7 @@ import '../comment_sheet.dart';
 import '../models/feed_post.dart';
 import 'post_actions_sheet.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
+import '../../../profile/presentation/user_profile_page.dart';
 
 /// 인스타/스레드형 피드 카드. 미디어(영상·사진)를 히어로로 두고
 /// 그 아래 액션 → 운동 요약 → 캡션 순으로 쌓는다.
@@ -160,7 +161,18 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(15, 13, 12, 11),
       child: Row(
         children: <Widget>[
-          _Avatar(name: author.name, ringed: author.isLive),
+          // 작성자를 눌러 프로필로 들어갈 수 있어야 한다.
+          InkWell(
+            onTap: post.authorId == null
+                ? null
+                : () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => UserProfilePage(userId: post.authorId!),
+                    ),
+                  ),
+            borderRadius: BorderRadius.circular(22),
+            child: _Avatar(name: author.name, ringed: author.isLive),
+          ),
           const SizedBox(width: 11),
           Expanded(
             child: Column(
@@ -198,25 +210,14 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          if (post.showFollow)
-            Text(
-              '팔로우',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: t.brand,
-              ),
-            )
-          else
-            IconButton(
-              tooltip: '더보기',
-              onPressed: onMore,
-              icon: Icon(
-                Icons.more_horiz_rounded,
-                color: t.faintText,
-                size: 22,
-              ),
-            ),
+          // 팔로우와 더보기는 서로 배타적이지 않다. 내 글이 아니면 팔로우도 보여준다.
+          if (!post.isMine && post.authorId != null)
+            FollowButton(userId: post.authorId!, compact: true),
+          IconButton(
+            tooltip: '더보기',
+            onPressed: onMore,
+            icon: Icon(Icons.more_horiz_rounded, color: t.faintText, size: 22),
+          ),
         ],
       ),
     );

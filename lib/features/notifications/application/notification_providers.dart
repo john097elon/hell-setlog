@@ -17,7 +17,9 @@ final myNotificationsProvider = FutureProvider<List<AppNotification>>((
     final rows = rowList(
       await client
           .from('notifications')
-          .select('id, kind, body, read_at, created_at, actor_id')
+          .select(
+            'id, kind, body, read_at, created_at, actor_id, post_id, party_id',
+          )
           .eq('user_id', userId)
           .order('created_at', ascending: false)
           .limit(50),
@@ -90,4 +92,7 @@ AppNotification _fromRow(
   actorAvatarUrl: actor?.avatarUrl,
   readAt: rowDateOrNull(row, 'read_at'),
   createdAt: rowDate(row, 'created_at'),
+  actorId: rowStringOrNull(row, 'actor_id'),
+  postId: rowStringOrNull(row, 'post_id'),
+  partyId: rowStringOrNull(row, 'party_id'),
 );

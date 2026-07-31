@@ -350,6 +350,39 @@ class SupabasePostRepository implements PostRepository {
   }
 
   @override
+  Future<Result<Post, Failure>> fetchPost(String postId) async {
+    final client = _client;
+    if (client == null) {
+      return const Err(DatabaseFailure('Supabase가 구성되지 않았습니다'));
+    }
+    try {
+      final row = await client
+          .from('posts')
+          .select()
+          .eq('id', postId)
+          .maybeSingle();
+      if (row == null) return const Err(NotFoundFailure('게시물을 찾을 수 없습니다'));
+      final post = _post(Map<String, Object?>.from(row));
+      final authors = await _authorProfiles(client, <String>[post.userId]);
+      final counts = await fetchReactionCounts(client, <String>[
+        post.id,
+      ], viewerId: client.auth.currentUser?.id);
+      return Ok(
+        post.copyWith(
+          authorName: authors[post.userId]?.nickname,
+          authorAvatarUrl: authors[post.userId]?.avatarUrl,
+          likeCount: counts.likes[post.id] ?? 0,
+          commentCount: counts.comments[post.id] ?? 0,
+          likedByMe: counts.likedByMe.contains(post.id),
+          savedByMe: counts.savedByMe.contains(post.id),
+        ),
+      );
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('게시물을 불러오지 못했습니다: $error'));
+    }
+  }
+
+  @override
   Future<Result<List<PostReaction>, Failure>> fetchLikers(String postId) async {
     final client = _client;
     if (client == null) return const Ok(<PostReaction>[]);

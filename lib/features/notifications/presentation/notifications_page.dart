@@ -6,6 +6,8 @@ import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/app_notification.dart';
 import '../application/notification_providers.dart';
 import '../../../core/formatting/app_format.dart';
+import '../../profile/presentation/user_profile_page.dart';
+import '../../feed/presentation/post_detail_page.dart';
 
 /// 좋아요·댓글·팔로우·파티 참여 알림을 모아 보여준다.
 class NotificationsPage extends ConsumerStatefulWidget {
@@ -69,6 +71,27 @@ class _NotificationTile extends StatelessWidget {
 
   final AppNotification item;
 
+  /// 좋아요·댓글은 그 게시물로, 팔로우는 그 사람 프로필로 간다.
+  void _open(BuildContext context) {
+    final postId = item.postId;
+    if (postId != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => PostDetailRoute(postId: postId),
+        ),
+      );
+      return;
+    }
+    final actorId = item.actorId;
+    if (actorId != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => UserProfilePage(userId: actorId),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -79,6 +102,7 @@ class _NotificationTile extends StatelessWidget {
     return Container(
       color: item.isUnread ? t.brand.withValues(alpha: 0.04) : null,
       child: ListTile(
+        onTap: () => _open(context),
         leading: Container(
           width: 40,
           height: 40,

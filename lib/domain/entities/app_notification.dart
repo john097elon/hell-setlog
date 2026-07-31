@@ -11,6 +11,9 @@ class AppNotification {
     this.actorAvatarUrl,
     this.body,
     this.readAt,
+    this.actorId,
+    this.postId,
+    this.partyId,
   });
 
   final String id;
@@ -20,6 +23,9 @@ class AppNotification {
   final String? actorAvatarUrl;
   final String? body;
   final DateTime? readAt;
+  final String? actorId;
+  final String? postId;
+  final String? partyId;
 
   bool get isUnread => readAt == null;
 }

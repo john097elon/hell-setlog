@@ -115,6 +115,18 @@ class _Repository implements ProfileRepository {
   Future<Result<String, Failure>> uploadAvatar(File image) async =>
       const Ok('');
   @override
-  Future<Result<({int followers, int following}), Failure>>
-  fetchFollowCounts() async => const Ok((followers: 0, following: 0));
+  Future<Result<({int followers, int following}), Failure>> fetchFollowCounts([
+    String? userId,
+  ]) async => const Ok((followers: 0, following: 0));
+  @override
+  Future<Result<UserProfile, Failure>> fetchProfile(String userId) async =>
+      Ok(_profile);
+  @override
+  Future<Result<List<Post>, Failure>> fetchUserPosts(String userId) async =>
+      const Ok(<Post>[]);
+  @override
+  Future<Result<List<UserProfile>, Failure>> fetchFollowList(
+    String userId, {
+    required bool followers,
+  }) async => const Ok(<UserProfile>[]);
 }

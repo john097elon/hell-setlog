@@ -170,21 +170,116 @@ class SupabaseProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<Result<({int followers, int following}), Failure>>
-  fetchFollowCounts() async {
+  Future<Result<({int followers, int following}), Failure>> fetchFollowCounts([
+    String? userId,
+  ]) async {
     final client = _client;
-    final userId = client?.auth.currentUser?.id;
-    if (client == null || userId == null) {
+    final target = userId ?? client?.auth.currentUser?.id;
+    if (client == null || target == null) {
       return const Err(DatabaseFailure('로그인이 필요합니다'));
     }
     try {
       final rows = await Future.wait<List>(<Future<List>>[
-        client.from('follows').select('follower_id').eq('following_id', userId),
-        client.from('follows').select('following_id').eq('follower_id', userId),
+        client.from('follows').select('follower_id').eq('following_id', target),
+        client.from('follows').select('following_id').eq('follower_id', target),
       ]);
       return Ok((followers: rows[0].length, following: rows[1].length));
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
+    }
+  }
+
+  @override
+  Future<Result<UserProfile, Failure>> fetchProfile(String userId) async {
+    final client = _client;
+    if (client == null) {
+      return const Err(DatabaseFailure('Supabase가 구성되지 않았습니다'));
+    }
+    try {
+      final row = await client
+          .from('profiles')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (row == null) return const Err(NotFoundFailure('프로필을 찾을 수 없습니다'));
+      return Ok(_profile(Map<String, Object?>.from(row)));
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('프로필을 불러오지 못했습니다: $error'));
+    }
+  }
+
+  @override
+  Future<Result<List<Post>, Failure>> fetchUserPosts(String userId) async {
+    final client = _client;
+    if (client == null) {
+      return const Err(DatabaseFailure('Supabase가 구성되지 않았습니다'));
+    }
+    try {
+      final rows = await client
+          .from('posts')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      final posts = (rows as List)
+          .map((row) => _post(Map<String, Object?>.from(row as Map)))
+          .toList(growable: false);
+      final counts = await fetchReactionCounts(
+        client,
+        posts.map((post) => post.id).toList(growable: false),
+        viewerId: client.auth.currentUser?.id,
+      );
+      return Ok(
+        posts
+            .map(
+              (post) => post.copyWith(
+                likeCount: counts.likes[post.id] ?? 0,
+                commentCount: counts.comments[post.id] ?? 0,
+                likedByMe: counts.likedByMe.contains(post.id),
+              ),
+            )
+            .toList(growable: false),
+      );
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('게시물을 불러오지 못했습니다: $error'));
+    }
+  }
+
+  @override
+  Future<Result<List<UserProfile>, Failure>> fetchFollowList(
+    String userId, {
+    required bool followers,
+  }) async {
+    final client = _client;
+    if (client == null) {
+      return const Err(DatabaseFailure('Supabase가 구성되지 않았습니다'));
+    }
+    try {
+      // 팔로워 목록이면 나를 following하는 사람들의 follower_id를 모은다.
+      final rows = rowList(
+        followers
+            ? await client
+                  .from('follows')
+                  .select('follower_id')
+                  .eq('following_id', userId)
+            : await client
+                  .from('follows')
+                  .select('following_id')
+                  .eq('follower_id', userId),
+      );
+      final ids = rows
+          .map(
+            (row) => rowString(row, followers ? 'follower_id' : 'following_id'),
+          )
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList(growable: false);
+      if (ids.isEmpty) return const Ok(<UserProfile>[]);
+      final profiles = rowList(
+        await client.from('profiles').select().inFilter('user_id', ids),
+      );
+      return Ok(profiles.map(_profile).toList(growable: false));
+    } on Exception catch (error) {
+      return Err(DatabaseFailure('목록을 불러오지 못했습니다: $error'));
     }
   }
 

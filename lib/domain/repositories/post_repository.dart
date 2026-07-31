@@ -29,6 +29,12 @@ abstract class PostRepository {
   Future<Result<void, Failure>> toggleSave(String postId);
   Future<Result<List<PostComment>, Failure>> fetchComments(String postId);
 
+  /// 게시물 한 건. 알림에서 바로 열 때 쓴다.
+  Future<Result<Post, Failure>> fetchPost(String postId) =>
+      Future<Result<Post, Failure>>.value(
+        const Err(DatabaseFailure('게시물을 불러올 수 없습니다')),
+      );
+
   /// 좋아요를 남긴 사람 목록. 최근 반응이 앞에 온다.
   Future<Result<List<PostReaction>, Failure>> fetchLikers(String postId);
 
