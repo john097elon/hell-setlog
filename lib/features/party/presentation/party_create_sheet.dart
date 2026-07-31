@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../application/party_providers.dart';
 
@@ -13,6 +14,7 @@ Future<void> showPartyCreateSheet(BuildContext context, WidgetRef ref) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (_) => const _PartyCreateSheet(),
     );
 
@@ -111,7 +113,7 @@ class _PartyCreateSheetState extends ConsumerState<_PartyCreateSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -125,36 +127,39 @@ class _PartyCreateSheetState extends ConsumerState<_PartyCreateSheet> {
                   color: t.text,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               TextField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: '파티 이름'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: _description,
                 decoration: const InputDecoration(labelText: '소개(선택)'),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               _ChipRow(
                 label: '지역',
                 options: _regions,
                 selected: _region,
                 onSelected: (value) => setState(() => _region = value),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               _ChipRow(
                 label: '종목',
                 options: _focuses,
                 selected: _focus,
                 onSelected: (value) => setState(() => _focus = value),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Row(
                 children: <Widget>[
                   Text(
                     '정원 ${_maxMembers.round()}명',
-                    style: TextStyle(color: t.text),
+                    style: TextStyle(
+                      color: t.text,
+                      fontFeatures: kTabularFigures,
+                    ),
                   ),
                   Expanded(
                     child: Slider(
@@ -177,7 +182,7 @@ class _PartyCreateSheetState extends ConsumerState<_PartyCreateSheet> {
                   style: TextStyle(color: t.mutedText),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               FilledButton(
                 onPressed: _saving ? null : _submit,
                 child: _saving
@@ -223,10 +228,10 @@ class _ChipRow extends StatelessWidget {
             color: t.mutedText,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: <Widget>[
             for (final option in options)
               ChoiceChip(

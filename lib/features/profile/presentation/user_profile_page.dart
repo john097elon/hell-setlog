@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/formatting/app_format.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/user_profile.dart';
@@ -22,17 +25,23 @@ class UserProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(userProfileProvider(userId));
-    return Scaffold(
-      backgroundColor: context.tokens.bg,
-      appBar: AppBar(title: Text(profile.valueOrNull?.nickname ?? '프로필')),
-      body: profile.when(
-        loading: () => const AppLoading(),
-        error: (_, _) => const AppEmptyState(
-          icon: Icons.person_off_outlined,
-          title: '프로필을 불러오지 못했습니다',
-        ),
-        data: (value) => _Body(profile: value),
+    return profile.when(
+      loading: () => const AppScreen(
+        title: '프로필',
+        slivers: <Widget>[SliverFillRemaining(child: AppLoading())],
       ),
+      error: (_, _) => const AppScreen(
+        title: '프로필',
+        slivers: <Widget>[
+          SliverFillRemaining(
+            child: AppEmptyState(
+              icon: Icons.person_off_outlined,
+              title: '프로필을 불러오지 못했습니다',
+            ),
+          ),
+        ],
+      ),
+      data: (value) => _Body(profile: value),
     );
   }
 }
@@ -50,50 +59,61 @@ class _Body extends ConsumerWidget {
         ref.watch(followCountsProvider(profile.userId)).valueOrNull ??
         (followers: 0, following: 0);
     final isMe = ref.watch(authServiceProvider).currentUserId == profile.userId;
-    return CustomScrollView(
+    return AppScreen(
+      title: profile.nickname,
       slivers: <Widget>[
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: AppPagePadding(
+            top: AppSpacing.md,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _Avatar(profile: profile),
-                const SizedBox(height: 12),
-                Text(
-                  profile.nickname,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                if (profile.bio?.isNotEmpty ?? false) ...<Widget>[
-                  const SizedBox(height: 4),
-                  Text(
-                    profile.bio!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: t.mutedText),
-                  ),
-                ],
-                const SizedBox(height: 14),
                 Row(
                   children: <Widget>[
-                    _CountTile(
-                      label: '게시물',
-                      value: posts.valueOrNull?.length ?? 0,
-                    ),
-                    _CountTile(
-                      label: '팔로워',
-                      value: counts.followers,
-                      onTap: () => _openFollowList(context, followers: true),
-                    ),
-                    _CountTile(
-                      label: '팔로잉',
-                      value: counts.following,
-                      onTap: () => _openFollowList(context, followers: false),
+                    _Avatar(profile: profile),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Row(
+                        children: <Widget>[
+                          _CountTile(
+                            label: '게시물',
+                            value: posts.valueOrNull?.length ?? 0,
+                          ),
+                          _CountTile(
+                            label: '팔로워',
+                            value: counts.followers,
+                            onTap: () =>
+                                _openFollowList(context, followers: true),
+                          ),
+                          _CountTile(
+                            label: '팔로잉',
+                            value: counts.following,
+                            onTap: () =>
+                                _openFollowList(context, followers: false),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  profile.nickname,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (profile.bio?.isNotEmpty ?? false) ...<Widget>[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(profile.bio!, style: TextStyle(color: t.mutedText)),
+                ],
                 if (!isMe) ...<Widget>[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.md),
                   FollowButton(userId: profile.userId),
                 ],
+                const SizedBox(height: AppSpacing.xl),
+                Text('게시물', style: AppText.sectionLabel(context)),
+                const SizedBox(height: AppSpacing.sm),
               ],
             ),
           ),
@@ -192,8 +212,8 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
       return TextButton(
         onPressed: () => _toggle(following),
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          minimumSize: const Size(0, 48),
           foregroundColor: following
               ? context.tokens.mutedText
               : context.tokens.brand,
@@ -257,19 +277,24 @@ class _CountTile extends StatelessWidget {
   Widget build(BuildContext context) => Expanded(
     child: InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Column(
           children: <Widget>[
             Text(
               '$value',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontFeatures: kTabularFigures),
             ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(color: context.tokens.mutedText)),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: context.tokens.mutedText),
+            ),
           ],
         ),
       ),

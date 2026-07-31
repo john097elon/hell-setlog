@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../core/formatting/app_format.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/entities/post_comment.dart';
@@ -75,40 +78,56 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ..invalidate(postCommentsProvider(_postId));
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.only(bottom: AppSpacing.xl),
           children: <Widget>[
-            _PostSummary(post: widget.post, weightUnit: weightUnit),
-            _SectionHeader(
-              title: '좋아요',
-              count: likers.valueOrNull?.length ?? widget.post.likeCount,
-            ),
-            likers.when(
-              loading: () => const _SectionLoading(),
-              error: (_, _) => const _SectionMessage('반응을 불러오지 못했습니다'),
-              data: (items) => items.isEmpty
-                  ? const _SectionMessage('아직 반응이 없습니다')
-                  : Column(
-                      children: <Widget>[
-                        for (final liker in items) _LikerTile(liker: liker),
-                      ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _PostSummary(post: widget.post, weightUnit: weightUnit),
+                _SectionHeader(
+                  title: '좋아요',
+                  count: likers.valueOrNull?.length ?? widget.post.likeCount,
+                ),
+                AppPagePadding(
+                  child: likers.when(
+                    loading: () =>
+                        const AppSection(children: <Widget>[_SectionLoading()]),
+                    error: (_, _) => const AppSection(
+                      children: <Widget>[_SectionMessage('반응을 불러오지 못했습니다')],
                     ),
-            ),
-            const SizedBox(height: 8),
-            _SectionHeader(
-              title: '댓글',
-              count: comments.valueOrNull?.length ?? widget.post.commentCount,
-            ),
-            comments.when(
-              loading: () => const _SectionLoading(),
-              error: (_, _) => const _SectionMessage('댓글을 불러오지 못했습니다'),
-              data: (items) => items.isEmpty
-                  ? const _SectionMessage('첫 댓글을 남겨보세요')
-                  : Column(
-                      children: <Widget>[
-                        for (final comment in items)
-                          _CommentTile(comment: comment),
-                      ],
+                    data: (items) => AppSection(
+                      children: items.isEmpty
+                          ? const <Widget>[_SectionMessage('아직 반응이 없습니다')]
+                          : <Widget>[
+                              for (final liker in items)
+                                _LikerTile(liker: liker),
+                            ],
                     ),
+                  ),
+                ),
+                _SectionHeader(
+                  title: '댓글',
+                  count:
+                      comments.valueOrNull?.length ?? widget.post.commentCount,
+                ),
+                AppPagePadding(
+                  child: comments.when(
+                    loading: () =>
+                        const AppSection(children: <Widget>[_SectionLoading()]),
+                    error: (_, _) => const AppSection(
+                      children: <Widget>[_SectionMessage('댓글을 불러오지 못했습니다')],
+                    ),
+                    data: (items) => AppSection(
+                      children: items.isEmpty
+                          ? const <Widget>[_SectionMessage('첫 댓글을 남겨보세요')]
+                          : <Widget>[
+                              for (final comment in items)
+                                _CommentTile(comment: comment),
+                            ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -116,10 +135,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            8 + MediaQuery.viewInsetsOf(context).bottom,
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.lg,
+            AppSpacing.sm + MediaQuery.viewInsetsOf(context).bottom,
           ),
           child: Row(
             children: <Widget>[
@@ -132,7 +151,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   decoration: const InputDecoration(hintText: '댓글 입력'),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               IconButton(
                 tooltip: '전송',
                 onPressed: _sending ? null : _send,
@@ -164,11 +183,17 @@ class _PostSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final metrics = <String>[
+    final metrics = <AppMetric>[
       if (post.volumeKg != null)
-        formatWeightWithUnit(post.volumeKg!, unit: weightUnit),
-      if (post.durationMin != null) '${post.durationMin}분',
-      if (post.prLabel != null) post.prLabel!,
+        AppMetric(
+          label: '볼륨',
+          value: formatWeightWithUnit(post.volumeKg!, unit: weightUnit),
+          size: 18,
+        ),
+      if (post.durationMin != null)
+        AppMetric(label: '시간', value: '${post.durationMin}분', size: 18),
+      if (post.prLabel != null)
+        AppMetric(label: 'PR', value: post.prLabel!, size: 18),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,8 +233,8 @@ class _PostSummary extends StatelessWidget {
                 : _placeholder(t),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        AppPagePadding(
+          top: AppSpacing.md,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -223,7 +248,7 @@ class _PostSummary extends StatelessWidget {
                       color: t.text,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     formatRelativeTime(post.createdAt),
                     style: TextStyle(fontSize: 12.5, color: t.faintText),
@@ -231,17 +256,11 @@ class _PostSummary extends StatelessWidget {
                 ],
               ),
               if (metrics.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: <Widget>[
-                    for (final metric in metrics) _Chip(label: metric),
-                  ],
-                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppMetricRow(metrics: metrics),
               ],
               if (post.caption.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   post.caption,
                   style: TextStyle(fontSize: 14, height: 1.5, color: t.text),
@@ -273,7 +292,12 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 6),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
       child: Row(
         children: <Widget>[
           Text(
@@ -284,14 +308,14 @@ class _SectionHeader extends StatelessWidget {
               color: t.text,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             '$count',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: t.mutedText,
-              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+              fontFeatures: kTabularFigures,
             ),
           ),
         ],
@@ -344,107 +368,37 @@ class _PersonRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final url = avatarUrl ?? '';
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: t.bg,
-              shape: BoxShape.circle,
-              border: Border.all(color: t.border),
-            ),
-            child: url.isEmpty
-                ? Text(
-                    initialOf(name),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: t.text,
-                    ),
-                  )
-                : Image.network(
-                    url,
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        Icon(Icons.person_outline, color: t.faintText),
-                  ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Flexible(
-                      child: Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: t.text,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      trailing,
-                      style: TextStyle(fontSize: 12, color: t.faintText),
-                    ),
-                  ],
-                ),
-                if (body != null) ...<Widget>[
-                  const SizedBox(height: 2),
-                  Text(
-                    body!,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      height: 1.4,
-                      color: t.text,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: t.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: t.border),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w600,
-          color: t.mutedText,
+    return AppRow(
+      title: name,
+      subtitle: body,
+      value: trailing,
+      leading: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: t.bg,
+          shape: BoxShape.circle,
+          border: Border.all(color: t.border),
         ),
+        child: url.isEmpty
+            ? Text(
+                initialOf(name),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: t.text,
+                ),
+              )
+            : Image.network(
+                url,
+                width: 26,
+                height: 26,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    Icon(Icons.person_outline, color: t.faintText, size: 18),
+              ),
       ),
     );
   }
@@ -455,8 +409,8 @@ class _SectionLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    child: AppSkeleton(height: 44, radius: 12),
+    padding: EdgeInsets.all(AppSpacing.lg),
+    child: AppSkeleton(height: 48, radius: AppRadius.sm),
   );
 }
 
@@ -466,13 +420,7 @@ class _SectionMessage extends StatelessWidget {
   final String message;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-    child: Text(
-      message,
-      style: TextStyle(fontSize: 13.5, color: context.tokens.mutedText),
-    ),
-  );
+  Widget build(BuildContext context) => AppRow(title: message);
 }
 
 /// 알림처럼 ID만 아는 곳에서 게시물 상세로 들어가는 진입점.

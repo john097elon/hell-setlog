@@ -72,18 +72,20 @@ void main() {
       caption: '짧게',
     );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          theme: themeFor(AppThemeId.appleWhite),
-          home: const Scaffold(
-            body: SingleChildScrollView(child: FeedPostCard(post: post)),
+    for (final theme in AppThemeId.values) {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: themeFor(theme),
+            home: const Scaffold(
+              body: SingleChildScrollView(child: FeedPostCard(post: post)),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull);
+      expect(tester.takeException(), isNull);
+    }
   });
 }

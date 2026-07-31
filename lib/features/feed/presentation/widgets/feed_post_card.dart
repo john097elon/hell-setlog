@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/extensions/build_context_x.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 import '../../application/post_providers.dart';
@@ -118,20 +119,11 @@ class _FeedPostCardState extends ConsumerState<FeedPostCard> {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: t.card,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: t.border.withValues(alpha: 0.6)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border: Border(bottom: BorderSide(color: t.border)),
       ),
-      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -142,7 +134,6 @@ class _FeedPostCardState extends ConsumerState<FeedPostCard> {
             isLive: post.author.isLive,
             onTap: (post.media.url?.isNotEmpty ?? false) ? _openVideo : null,
           ),
-          const SizedBox(height: 4),
           _Actions(
             likes: _likeCount,
             comments: post.comments,
@@ -172,7 +163,12 @@ class _Header extends StatelessWidget {
     final t = context.tokens;
     final author = post.author;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 13, 12, 11),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.sm,
+        AppSpacing.sm,
+      ),
       child: Row(
         children: <Widget>[
           // 작성자를 눌러 프로필로 들어갈 수 있어야 한다.
@@ -184,10 +180,10 @@ class _Header extends StatelessWidget {
                       builder: (_) => UserProfilePage(userId: post.authorId!),
                     ),
                   ),
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             child: _Avatar(name: author.name, ringed: author.isLive),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,11 +204,11 @@ class _Header extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.xs),
                     _LevelBadge(level: author.level),
                   ],
                 ),
-                const SizedBox(height: 1),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${post.timeLabel} · ${post.bodyPart}',
                   style: TextStyle(
@@ -293,10 +289,13 @@ class _LevelBadge extends StatelessWidget {
     final t = context.tokens;
     // 애플 모노크롬: 레벨은 뉴트럴 그레이 칩.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: t.bg,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: t.border),
       ),
       child: Text(
@@ -305,6 +304,7 @@ class _LevelBadge extends StatelessWidget {
           fontSize: 9.5,
           fontWeight: FontWeight.w700,
           color: t.mutedText,
+          fontFeatures: kTabularFigures,
         ),
       ),
     );
@@ -326,6 +326,7 @@ class _Media extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final isVideo = media.kind == FeedMediaKind.video;
     final canPlay = isVideo && onTap != null;
     return Semantics(
@@ -340,13 +341,7 @@ class _Media extends StatelessWidget {
             fit: StackFit.expand,
             children: <Widget>[
               DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: media.gradient,
-                  ),
-                ),
+                decoration: BoxDecoration(color: t.surface),
                 // 사진 자리: 큰 이모지 대신 절제된 아웃라인 글리프.
                 child: (media.url?.isNotEmpty ?? false) && !isVideo
                     ? Image.network(
@@ -365,8 +360,8 @@ class _Media extends StatelessWidget {
                   left: 12,
                   child: _Pill(
                     text: 'LIVE',
-                    bg: context.tokens.like,
-                    fg: Colors.white,
+                    bg: t.like,
+                    fg: t.card,
                     icon: Icons.fiber_manual_record,
                   ),
                 )
@@ -376,8 +371,8 @@ class _Media extends StatelessWidget {
                   left: 12,
                   child: _Pill(
                     text: location!,
-                    bg: Colors.white.withValues(alpha: 0.82),
-                    fg: context.tokens.text,
+                    bg: t.card.withValues(alpha: 0.82),
+                    fg: t.text,
                     icon: Icons.place_outlined,
                   ),
                 ),
@@ -387,8 +382,8 @@ class _Media extends StatelessWidget {
                   right: 12,
                   child: _Pill(
                     text: media.durationLabel!,
-                    bg: Colors.black.withValues(alpha: 0.4),
-                    fg: Colors.white,
+                    bg: t.bg.withValues(alpha: 0.72),
+                    fg: t.text,
                   ),
                 ),
               if (media.count > 1)
@@ -397,8 +392,8 @@ class _Media extends StatelessWidget {
                   right: 12,
                   child: _Pill(
                     text: '1/${media.count}',
-                    bg: Colors.black.withValues(alpha: 0.4),
-                    fg: Colors.white,
+                    bg: t.bg.withValues(alpha: 0.72),
+                    fg: t.text,
                   ),
                 ),
             ],
@@ -418,7 +413,7 @@ class _MediaFallback extends StatelessWidget {
     child: Icon(
       Icons.photo_camera_outlined,
       size: 34,
-      color: Colors.black.withValues(alpha: 0.16),
+      color: context.tokens.faintText,
     ),
   );
 }
@@ -437,9 +432,6 @@ class _PlayButton extends StatelessWidget {
         color: t.surface.withValues(alpha: 0.72),
         shape: BoxShape.circle,
         border: Border.all(color: t.borderStrong),
-        boxShadow: <BoxShadow>[
-          BoxShadow(color: t.bg.withValues(alpha: 0.15), blurRadius: 16),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.only(left: 4),
@@ -464,10 +456,13 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.sm,
+      vertical: AppSpacing.xs,
+    ),
     decoration: BoxDecoration(
       color: bg,
-      borderRadius: BorderRadius.circular(100),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -518,7 +513,7 @@ class _Actions extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 4, 6, 2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       child: Row(
         children: <Widget>[
           _ActionItem(
@@ -558,7 +553,7 @@ class _Actions extends StatelessWidget {
   }
 }
 
-/// 최소 44dp 터치 타겟 + 탭 피드백(잉크)을 갖춘 피드 액션.
+/// 최소 48dp 터치 타겟 + 탭 피드백(잉크)을 갖춘 피드 액션.
 class _ActionItem extends StatelessWidget {
   const _ActionItem({
     required this.icon,
@@ -582,17 +577,17 @@ class _ActionItem extends StatelessWidget {
       label: semanticLabel,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Container(
-          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           alignment: Alignment.center,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Icon(icon, size: 23, color: color),
               if (label != null) ...<Widget>[
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   label!,
                   maxLines: 1,
@@ -601,6 +596,7 @@ class _ActionItem extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: t.text,
+                    fontFeatures: kTabularFigures,
                   ),
                 ),
               ],
@@ -621,11 +617,16 @@ class _SummaryStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: t.bg,
-        borderRadius: BorderRadius.circular(14),
+        color: t.surface,
+        border: Border(
+          top: BorderSide(color: t.border),
+          bottom: BorderSide(color: t.border),
+        ),
       ),
       child: Row(
         children: <Widget>[
@@ -634,7 +635,7 @@ class _SummaryStrip extends StatelessWidget {
               Container(
                 width: 0.5,
                 height: 26,
-                margin: const EdgeInsets.symmetric(horizontal: 14),
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 color: t.borderStrong.withValues(alpha: 0.4),
               ),
             Flexible(child: _Metric(metric: summary.metrics[i])),
@@ -649,6 +650,7 @@ class _SummaryStrip extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: t.success,
+                fontFeatures: kTabularFigures,
               ),
             ),
         ],
@@ -679,7 +681,7 @@ class _Metric extends StatelessWidget {
             color: t.faintText,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           metric.value,
           maxLines: 1,
@@ -688,7 +690,7 @@ class _Metric extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
-            fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+            fontFeatures: kTabularFigures,
             color: t.text,
           ),
         ),
@@ -706,17 +708,20 @@ class _PrTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: t.warning.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: t.warning.withValues(alpha: 0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(Icons.workspace_premium_rounded, size: 13, color: t.warning),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
               label,
@@ -744,7 +749,12 @@ class _Caption extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 11, 16, 14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -774,6 +784,7 @@ class _Caption extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: t.success,
+                      fontFeatures: kTabularFigures,
                     ),
                   ),
               ],
@@ -786,6 +797,7 @@ class _Caption extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: t.faintText,
+              fontFeatures: kTabularFigures,
             ),
           ),
         ],

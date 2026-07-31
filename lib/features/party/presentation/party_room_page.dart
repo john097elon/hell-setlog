@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/party.dart';
 import '../../../domain/entities/party_member.dart';
@@ -24,58 +27,54 @@ class PartyRoomPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.tokens;
     final party = ref
         .watch(myPartiesProvider)
         .valueOrNull
         ?.where((item) => item.id == partyId)
         .firstOrNull;
-    return Scaffold(
-      backgroundColor: t.bg,
-      appBar: AppBar(
-        title: Text(party?.name ?? '파티'),
-        actions: <Widget>[
-          IconButton(
-            tooltip: '채팅 열기',
-            onPressed: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              builder: (_) => FractionallySizedBox(
-                heightFactor: 0.85,
-                child: PartyChatPanel(initialPartyId: partyId),
-              ),
+    return AppScreen(
+      title: party?.name ?? '파티',
+      actions: <Widget>[
+        IconButton(
+          tooltip: '채팅 열기',
+          onPressed: () => showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => FractionallySizedBox(
+              heightFactor: 0.85,
+              child: PartyChatPanel(initialPartyId: partyId),
             ),
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
           ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        children: <Widget>[
-          if (party != null) _Header(party: party),
-          const SizedBox(height: 20),
-          // 파티의 이번 주 공동 목표를 멤버보다 먼저 보여준다.
-          PartyMissionCard(partyId: partyId, allowGoalEditing: true),
-          const SizedBox(height: 24),
-          const _SectionTitle(title: '파티원 캐릭터'),
-          const SizedBox(height: 8),
-          PartyCharacterGallery(partyId: partyId),
-          const SizedBox(height: 24),
-          const _SectionTitle(title: '멤버'),
-          const SizedBox(height: 8),
-          _Members(partyId: partyId),
-          const SizedBox(height: 24),
-          const _SectionTitle(title: '파티 피드'),
-          const SizedBox(height: 8),
-          _Feed(partyId: partyId),
-          const SizedBox(height: 28),
-          OutlinedButton.icon(
-            onPressed: () => _confirmLeave(context, ref),
-            icon: const Icon(Icons.logout_rounded),
-            label: const Text('파티 나가기'),
+          icon: const Icon(Icons.chat_bubble_outline_rounded),
+        ),
+      ],
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: AppPagePadding(
+            top: AppSpacing.sm,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (party != null) _Header(party: party),
+                PartyMissionCard(partyId: partyId, allowGoalEditing: true),
+                const SizedBox(height: AppSpacing.xl),
+                const _SectionTitle(title: '파티원 캐릭터'),
+                const SizedBox(height: AppSpacing.sm),
+                PartyCharacterGallery(partyId: partyId),
+                const SizedBox(height: AppSpacing.xl),
+                _Members(partyId: partyId),
+                _Feed(partyId: partyId),
+                OutlinedButton.icon(
+                  onPressed: () => _confirmLeave(context, ref),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('파티 나가기'),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -121,68 +120,57 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final code = party.joinCode;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: t.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            party.name,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
-              color: t.text,
-            ),
-          ),
-          if ((party.description ?? '').isNotEmpty) ...<Widget>[
-            const SizedBox(height: 6),
-            Text(
-              party.description!,
-              style: TextStyle(fontSize: 13.5, color: t.mutedText),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+    return AppSection(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (party.region != null) _Chip(label: party.region!),
-              if (party.focus != null) _Chip(label: party.focus!),
-              _Chip(label: '${party.memberCount}/${party.maxMembers}명'),
-            ],
-          ),
-          if ((code ?? '').isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            Row(
-              children: <Widget>[
-                Text(
-                  '참여 코드 $code',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: t.text,
-                    fontFeatures: const <FontFeature>[
-                      FontFeature.tabularFigures(),
-                    ],
-                  ),
+              Text(
+                party.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
+                  color: t.text,
                 ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => _copyCode(context, code!),
-                  icon: const Icon(Icons.copy_rounded, size: 18),
-                  label: const Text('복사'),
+              ),
+              if ((party.description ?? '').isNotEmpty) ...<Widget>[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  party.description!,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13.5, color: t.mutedText),
                 ),
               ],
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: <Widget>[
+                  if (party.region != null) _Chip(label: party.region!),
+                  if (party.focus != null) _Chip(label: party.focus!),
+                  _Chip(label: '${party.memberCount}/${party.maxMembers}명'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if ((code ?? '').isNotEmpty)
+          AppRow(
+            title: '참여 코드',
+            value: code,
+            trailing: IconButton(
+              tooltip: '참여 코드 복사',
+              onPressed: () => _copyCode(context, code!),
+              icon: const Icon(Icons.copy_rounded),
             ),
-          ],
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -201,15 +189,8 @@ class _SectionTitle extends StatelessWidget {
   final String title;
 
   @override
-  Widget build(BuildContext context) => Text(
-    title,
-    style: TextStyle(
-      fontSize: 17,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -0.3,
-      color: context.tokens.text,
-    ),
-  );
+  Widget build(BuildContext context) =>
+      Text(title, style: AppText.sectionLabel(context));
 }
 
 class _Members extends ConsumerWidget {
@@ -223,16 +204,27 @@ class _Members extends ConsumerWidget {
     return ref
         .watch(partyMembersProvider(partyId))
         .when(
-          loading: () => const SizedBox(height: 72, child: AppLoading()),
-          error: (_, _) =>
-              Text('멤버를 불러오지 못했습니다.', style: TextStyle(color: t.mutedText)),
-          data: (members) => members.isEmpty
-              ? Text('멤버가 없습니다.', style: TextStyle(color: t.mutedText))
-              : Column(
-                  children: <Widget>[
+          loading: () => const AppSection(
+            title: '멤버',
+            children: <Widget>[SizedBox(height: 72, child: AppLoading())],
+          ),
+          error: (_, _) => AppSection(
+            title: '멤버',
+            children: <Widget>[
+              AppRow(
+                title: '멤버를 불러오지 못했습니다',
+                leading: Icon(Icons.error_outline, color: t.mutedText),
+              ),
+            ],
+          ),
+          data: (members) => AppSection(
+            title: '멤버',
+            children: members.isEmpty
+                ? const <Widget>[AppRow(title: '멤버가 없습니다')]
+                : <Widget>[
                     for (final member in members) _MemberTile(member: member),
                   ],
-                ),
+          ),
         );
   }
 }
@@ -246,43 +238,28 @@ class _MemberTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final avatar = member.avatarUrl;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: t.bg,
-              shape: BoxShape.circle,
-              border: Border.all(color: t.border),
-            ),
-            child: (avatar ?? '').isEmpty
-                ? _Monogram(name: member.nickname)
-                : Image.network(
-                    avatar!,
-                    width: 38,
-                    height: 38,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _Monogram(name: member.nickname),
-                  ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              member.nickname,
-              style: TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-                color: t.text,
+    return AppRow(
+      title: member.nickname,
+      value: member.role == 'owner' ? '파티장' : null,
+      leading: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: t.bg,
+          shape: BoxShape.circle,
+          border: Border.all(color: t.border),
+        ),
+        child: (avatar ?? '').isEmpty
+            ? _Monogram(name: member.nickname)
+            : Image.network(
+                avatar!,
+                width: 26,
+                height: 26,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _Monogram(name: member.nickname),
               ),
-            ),
-          ),
-          if (member.role == 'owner') const _Chip(label: '파티장'),
-        ],
       ),
     );
   }
@@ -297,7 +274,7 @@ class _Monogram extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     initialOf(name),
     style: TextStyle(
-      fontSize: 15,
+      fontSize: 12,
       fontWeight: FontWeight.w700,
       color: context.tokens.text,
     ),
@@ -315,16 +292,25 @@ class _Feed extends ConsumerWidget {
     return ref
         .watch(partyFeedProvider(partyId))
         .when(
-          loading: () => const SizedBox(height: 96, child: AppLoading()),
-          error: (_, _) =>
-              Text('피드를 불러오지 못했습니다.', style: TextStyle(color: t.mutedText)),
-          data: (posts) => posts.isEmpty
-              ? Text('아직 파티원의 기록이 없습니다.', style: TextStyle(color: t.mutedText))
-              : Column(
-                  children: <Widget>[
-                    for (final post in posts) _PostTile(post: post),
-                  ],
-                ),
+          loading: () => const AppSection(
+            title: '파티 피드',
+            children: <Widget>[SizedBox(height: 96, child: AppLoading())],
+          ),
+          error: (_, _) => AppSection(
+            title: '파티 피드',
+            children: <Widget>[
+              AppRow(
+                title: '피드를 불러오지 못했습니다',
+                leading: Icon(Icons.error_outline, color: t.mutedText),
+              ),
+            ],
+          ),
+          data: (posts) => AppSection(
+            title: '파티 피드',
+            children: posts.isEmpty
+                ? const <Widget>[AppRow(title: '아직 파티원의 기록이 없습니다')]
+                : <Widget>[for (final post in posts) _PostTile(post: post)],
+          ),
         );
   }
 }
@@ -337,58 +323,26 @@ class _PostTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: t.border),
-      ),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 52,
-            height: 52,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: t.bg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: t.border),
-            ),
-            child: post.mediaUrl.isEmpty
-                ? Icon(Icons.image_outlined, color: t.faintText, size: 22)
-                : Image.network(
-                    post.mediaUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        Icon(Icons.image_outlined, color: t.faintText),
-                  ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  post.authorName ?? '파티원',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: t.text,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  post.caption,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, color: t.mutedText),
-                ),
-              ],
-            ),
-          ),
-        ],
+    return AppRow(
+      title: post.authorName ?? '파티원',
+      subtitle: post.caption,
+      leading: Container(
+        width: 26,
+        height: 26,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: t.bg,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: t.border),
+        ),
+        child: post.mediaUrl.isEmpty
+            ? Icon(Icons.image_outlined, color: t.faintText, size: 18)
+            : Image.network(
+                post.mediaUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    Icon(Icons.image_outlined, color: t.faintText, size: 18),
+              ),
       ),
     );
   }
@@ -403,10 +357,13 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: t.bg,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: t.border),
       ),
       child: Text(

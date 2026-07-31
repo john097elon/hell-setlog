@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
-import 'package:heal_setlog/core/theme/app_tokens.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/widgets/app_list.dart';
 import 'package:heal_setlog/features/feed/application/post_providers.dart';
 import 'package:heal_setlog/features/profile/application/profile_providers.dart';
 
@@ -16,6 +17,7 @@ Future<void> showPostActionsSheet(
 }) async {
   final action = await showModalBottomSheet<_PostAction>(
     context: context,
+    showDragHandle: true,
     builder: (_) => _PostActionsSheet(isMine: isMine),
   );
   if (!context.mounted || action == null || action == _PostAction.cancel) {
@@ -70,37 +72,31 @@ class _PostActionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     return SafeArea(
-      child: Container(
-        color: t.surface,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: AppSection(
+          margin: EdgeInsets.zero,
           children: <Widget>[
-            Container(width: 36, height: 4, color: t.borderStrong),
-            const SizedBox(height: 12),
             if (isMine)
-              _ActionTile(
-                label: '삭제',
-                color: t.like,
+              AppRow(
+                title: '삭제',
+                destructive: true,
                 onTap: () => Navigator.pop(context, _PostAction.delete),
               )
             else ...<Widget>[
-              _ActionTile(
-                label: '신고',
-                color: t.text,
+              AppRow(
+                title: '신고',
                 onTap: () => Navigator.pop(context, _PostAction.report),
               ),
-              _ActionTile(
-                label: '이 사용자 차단',
-                color: t.like,
+              AppRow(
+                title: '이 사용자 차단',
+                destructive: true,
                 onTap: () => Navigator.pop(context, _PostAction.block),
               ),
             ],
-            _ActionTile(
-              label: '취소',
-              color: t.mutedText,
+            AppRow(
+              title: '취소',
               onTap: () => Navigator.pop(context, _PostAction.cancel),
             ),
           ],
@@ -108,36 +104,6 @@ class _PostActionsSheet extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: label,
-    child: InkWell(
-      onTap: onTap,
-      child: SizedBox(
-        height: 52,
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(color: color, fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 Future<bool> _confirm(

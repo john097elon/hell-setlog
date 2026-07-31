@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 import '../models/feed_post.dart';
 
-/// 상단 세그먼트 스위처. [내 파티 | 공개] 알약 토글.
+/// 상단 세그먼트 스위처. [내 파티 | 공개]를 전환한다.
 class FeedSwitcher extends StatelessWidget {
   const FeedSwitcher({required this.scope, required this.onChanged, super.key});
 
@@ -12,58 +13,30 @@ class FeedSwitcher extends StatelessWidget {
   final ValueChanged<FeedScope> onChanged;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-      child: Row(
-        children: <Widget>[
-          _seg(context, '내 파티', FeedScope.party),
-          const SizedBox(width: 8),
-          _seg(context, '공개', FeedScope.public),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      AppSpacing.lg,
+      AppSpacing.xs,
+      AppSpacing.lg,
+      AppSpacing.md,
+    ),
+    child: SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<FeedScope>(
+        segments: const <ButtonSegment<FeedScope>>[
+          ButtonSegment<FeedScope>(value: FeedScope.party, label: Text('내 파티')),
+          ButtonSegment<FeedScope>(value: FeedScope.public, label: Text('공개')),
         ],
-      ),
-    ).withBg(t.bg);
-  }
-
-  Widget _seg(BuildContext context, String label, FeedScope value) {
-    final t = context.tokens;
-    final selected = scope == value;
-    // 시스템 '동작 줄이기'가 켜져 있으면 전환 애니메이션을 끈다.
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: label,
-        child: InkWell(
-          onTap: () => onChanged(value),
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: reduceMotion ? 0 : 180),
-            curve: Curves.easeOut,
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(vertical: 11),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              // 블랙 섞은 애플: 선택된 탭은 검정 알약.
-              color: selected ? t.text : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.2,
-                color: selected ? t.card : t.mutedText,
-              ),
-            ),
-          ),
+        selected: <FeedScope>{scope},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) => onChanged(selection.first),
+        style: const ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size.fromHeight(48)),
+          visualDensity: VisualDensity.standard,
         ),
       ),
-    );
-  }
+    ),
+  ).withBg(context.tokens.bg);
 }
 
 /// 내 파티 요약 스트립.
@@ -76,19 +49,17 @@ class PartyStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-      padding: const EdgeInsets.fromLTRB(13, 12, 15, 12),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: t.card,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: t.border.withValues(alpha: 0.5)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: t.border),
       ),
       child: Row(
         children: <Widget>[
@@ -97,23 +68,21 @@ class PartyStrip extends StatelessWidget {
             height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              // 애플 모노크롬: 그래파이트 톤 아이콘.
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[t.brandLight, t.brandDim],
-              ),
-              borderRadius: BorderRadius.circular(11),
+              color: t.surface,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: Border.all(color: t.border),
             ),
-            child: const Icon(Icons.bolt, color: Colors.white, size: 20),
+            child: Icon(Icons.bolt, color: t.brand, size: 20),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   party.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -121,10 +90,16 @@ class PartyStrip extends StatelessWidget {
                     color: t.text,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${party.doneCount}/${party.totalCount}명 운동 완료 · 오늘 +${formatInt(party.todayXp)} XP',
-                  style: TextStyle(fontSize: 11.5, color: t.mutedText),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: t.mutedText,
+                    fontFeatures: kTabularFigures,
+                  ),
                 ),
               ],
             ),
@@ -139,9 +114,10 @@ class PartyStrip extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.4,
                   color: t.text,
+                  fontFeatures: kTabularFigures,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 '미션',
                 style: TextStyle(
@@ -173,10 +149,10 @@ class PublicFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return SizedBox(
-      height: 44,
+      height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         children: <Widget>[
           _Chip(
             label: filters.region,
@@ -184,13 +160,13 @@ class PublicFilters extends StatelessWidget {
             leading: Icons.place_outlined,
             trailing: Icons.keyboard_arrow_down_rounded,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           const _Chip(
             label: '종목',
             selected: false,
             trailing: Icons.keyboard_arrow_down_rounded,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           for (final part in kBodyParts) ...<Widget>[
             Semantics(
               button: true,
@@ -198,11 +174,11 @@ class PublicFilters extends StatelessWidget {
               child: InkWell(
                 onTap: () =>
                     onPartySelected(filters.bodyPart == part ? null : part),
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 child: _Chip(label: part, selected: filters.bodyPart == part),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
           ],
         ],
       ),
@@ -227,12 +203,12 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         // 블랙 섞은 애플: 선택 칩은 검정.
         color: selected ? t.text : t.card,
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: selected ? t.text : t.border.withValues(alpha: 0.7),
         ),
@@ -253,7 +229,7 @@ class _Chip extends StatelessWidget {
             ),
           ),
           if (trailing != null) ...<Widget>[
-            const SizedBox(width: 3),
+            const SizedBox(width: AppSpacing.xs),
             Icon(trailing, size: 15, color: selected ? t.card : t.mutedText),
           ],
         ],
@@ -266,7 +242,7 @@ extension _BgHelpers on Widget {
   /// sticky 헤더 배경(스크롤 시 카드가 비쳐 보이지 않도록).
   Widget withBg(Color color) => ColoredBox(color: color, child: this);
   Widget withBgFallback(Color color) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.only(bottom: AppSpacing.md),
     child: ColoredBox(color: color, child: this),
   );
 }

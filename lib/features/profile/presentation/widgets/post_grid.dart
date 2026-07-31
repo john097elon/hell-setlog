@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/formatting/app_format.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/post.dart';
 import '../../../settings/application/settings_controller.dart';
@@ -19,7 +20,7 @@ class PostGridSliver extends ConsumerWidget {
       settingsControllerProvider.select((state) => state.weightUnit),
     );
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
       sliver: SliverGrid(
         delegate: SliverChildBuilderDelegate(
           (context, index) => PostThumbnail(
@@ -31,8 +32,8 @@ class PostGridSliver extends ConsumerWidget {
         ),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
+          crossAxisSpacing: AppSpacing.xs,
+          mainAxisSpacing: AppSpacing.xs,
         ),
       ),
     );
@@ -64,48 +65,42 @@ class PostThumbnail extends StatelessWidget {
       child: InkWell(
         key: Key('post-thumb-${post.id}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: t.bg,
-              border: Border.all(color: t.border),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                if (_hasMedia && !_isVideo)
-                  Image.network(
-                    post.mediaUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _fallback(t),
-                  )
-                else
-                  _fallback(t),
-                if (_isVideo)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.play_circle_fill_rounded,
-                        size: 18,
-                        color: t.text.withValues(alpha: 0.7),
-                      ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: t.bg,
+            border: Border.all(color: t.border),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              if (_hasMedia && !_isVideo)
+                Image.network(
+                  post.mediaUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _fallback(t),
+                )
+              else
+                _fallback(t),
+              if (_isVideo)
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    child: Icon(
+                      Icons.play_circle_fill_rounded,
+                      size: 18,
+                      color: t.text.withValues(alpha: 0.7),
                     ),
                   ),
-                // 어떤 글에 반응이 붙었는지 목록에서 바로 보이게 한다.
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: _Reactions(
-                    likes: post.likeCount,
-                    comments: post.commentCount,
-                  ),
                 ),
-              ],
-            ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: _Reactions(
+                  likes: post.likeCount,
+                  comments: post.commentCount,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -114,7 +109,7 @@ class PostThumbnail extends StatelessWidget {
 
   /// 미디어를 못 그릴 때도 무엇을 올린 글인지 알 수 있게 요약을 보여준다.
   Widget _fallback(AppTokens t) => Padding(
-    padding: const EdgeInsets.all(6),
+    padding: const EdgeInsets.all(AppSpacing.sm),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -123,7 +118,7 @@ class PostThumbnail extends StatelessWidget {
           size: 20,
           color: t.faintText,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           post.volumeKg != null
               ? formatWeightWithUnit(post.volumeKg!, unit: weightUnit)
@@ -154,21 +149,24 @@ class _Reactions extends StatelessWidget {
     if (likes == 0 && comments == 0) return const SizedBox.shrink();
     final t = context.tokens;
     return Container(
-      margin: const EdgeInsets.all(4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      margin: const EdgeInsets.all(AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: t.card.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(Icons.favorite_rounded, size: 11, color: t.like),
-          const SizedBox(width: 3),
+          const SizedBox(width: AppSpacing.xs),
           _count(t, likes),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm),
           Icon(Icons.mode_comment_rounded, size: 10, color: t.mutedText),
-          const SizedBox(width: 3),
+          const SizedBox(width: AppSpacing.xs),
           _count(t, comments),
         ],
       ),
@@ -181,7 +179,7 @@ class _Reactions extends StatelessWidget {
       fontSize: 10.5,
       fontWeight: FontWeight.w700,
       color: t.text,
-      fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+      fontFeatures: kTabularFigures,
     ),
   );
 }

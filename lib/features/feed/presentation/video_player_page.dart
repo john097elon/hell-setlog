@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/extensions/build_context_x.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 
 /// 영상은 전체 화면으로 재생하고 사진은 확대 가능한 원본으로 보여준다.
@@ -192,23 +193,30 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           if (_showControls) _buildCloseButton(context),
           if (_showControls)
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 12,
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              bottom: AppSpacing.md,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: t.bg.withValues(alpha: 0.78),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       VideoProgressIndicator(
                         _controller!,
                         allowScrubbing: true,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md,
+                        ),
                         colors: VideoProgressColors(
                           playedColor: t.brand,
                           bufferedColor: t.mutedText,
@@ -291,9 +299,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             children: <Widget>[
               indicator,
               if (message != null) ...<Widget>[
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: Text(
                     message,
                     textAlign: TextAlign.center,
@@ -310,13 +320,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   Widget _buildCloseButton(BuildContext context) => Positioned(
-    top: 8,
-    left: 8,
+    top: AppSpacing.sm,
+    left: AppSpacing.sm,
     child: IconButton(
       tooltip: context.l10n.close,
       onPressed: () => Navigator.pop(context),
       icon: Icon(Icons.close, color: context.tokens.text),
-      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
     ),
   );
 }

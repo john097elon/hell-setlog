@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../core/widgets/app_list.dart';
+import '../../../../core/widgets/app_screen.dart';
 import '../../../../core/widgets/app_states.dart';
 import '../../../../domain/entities/party.dart';
 import '../../application/party_providers.dart';
@@ -32,11 +35,14 @@ class _ExplorePanelState extends ConsumerState<ExplorePanel> {
           height: 52,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.sm,
+            ),
             children: <Widget>[
               for (final focus in _focusFilters)
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
                   child: ChoiceChip(
                     label: Text(focus),
                     selected: _focus == focus,
@@ -65,12 +71,19 @@ class _ExplorePanelState extends ConsumerState<ExplorePanel> {
                         message: '직접 파티를 만들어 보세요.',
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                        itemCount: parties.length,
-                        itemBuilder: (context, index) => _ExploreCard(
-                          party: parties[index],
-                          joined: myIds.contains(parties[index].id),
-                          onJoin: () => _join(parties[index]),
+                        itemCount: 1,
+                        itemBuilder: (context, _) => AppPagePadding(
+                          top: AppSpacing.xs,
+                          child: AppSection(
+                            children: <Widget>[
+                              for (final party in parties)
+                                _ExploreCard(
+                                  party: party,
+                                  joined: myIds.contains(party.id),
+                                  onJoin: () => _join(party),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
               ),
@@ -111,46 +124,15 @@ class _ExploreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.border),
-      ),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  party.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: t.text,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  <String?>[
-                    party.region,
-                    party.focus,
-                    '${party.memberCount}/${party.maxMembers}명',
-                  ].whereType<String>().join(' · '),
-                  style: TextStyle(fontSize: 12.5, color: t.mutedText),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          if (joined)
-            Text(
+    return AppRow(
+      title: party.name,
+      subtitle: <String?>[
+        party.region,
+        party.focus,
+      ].whereType<String>().join(' · '),
+      value: '${party.memberCount}/${party.maxMembers}명',
+      trailing: joined
+          ? Text(
               '참여됨',
               style: TextStyle(
                 fontSize: 13,
@@ -158,14 +140,14 @@ class _ExploreCard extends StatelessWidget {
                 color: t.faintText,
               ),
             )
-          else
-            FilledButton(
+          : FilledButton(
               onPressed: onJoin,
-              style: FilledButton.styleFrom(minimumSize: const Size(64, 40)),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(64, 48),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              ),
               child: const Text('참여'),
             ),
-        ],
-      ),
     );
   }
 }

@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 import '../../exercise_db/presentation/exercise_detail_page.dart';
@@ -55,6 +58,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             onChanged: _onChanged,
             decoration: const InputDecoration(
               hintText: '닉네임 또는 종목 검색',
+              prefixIcon: Icon(Icons.search_rounded),
               border: InputBorder.none,
               filled: false,
             ),
@@ -106,9 +110,15 @@ class _UserResults extends ConsumerWidget {
                   message: '다른 닉네임으로 찾아보세요.',
                 )
               : ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, index) =>
-                      _UserTile(user: users[index]),
+                  itemCount: 1,
+                  itemBuilder: (context, _) => AppPagePadding(
+                    top: AppSpacing.sm,
+                    child: AppSection(
+                      children: <Widget>[
+                        for (final user in users) _UserTile(user: user),
+                      ],
+                    ),
+                  ),
                 ),
         );
   }
@@ -123,15 +133,15 @@ class _UserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final avatar = user.avatarUrl;
-    return ListTile(
+    return AppRow(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => UserProfilePage(userId: user.userId),
         ),
       ),
       leading: Container(
-        width: 42,
-        height: 42,
+        width: 26,
+        height: 26,
         alignment: Alignment.center,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
@@ -150,14 +160,14 @@ class _UserTile extends StatelessWidget {
               )
             : Image.network(
                 avatar!,
-                width: 42,
-                height: 42,
+                width: 26,
+                height: 26,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) =>
                     Icon(Icons.person_outline, color: t.faintText),
               ),
       ),
-      title: Text(user.nickname),
+      title: user.nickname,
     );
   }
 }
@@ -185,25 +195,30 @@ class _ExerciseResults extends ConsumerWidget {
                     message: '다른 이름으로 검색해 보세요.',
                   )
                 : ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        leading: ExerciseThumbnail(
-                          equipment: item.equipment,
-                          thumbnailUrl: item.thumbnailUrl,
-                          size: 46,
-                        ),
-                        title: Text(item.nameKo),
-                        subtitle: Text(equipmentLabelKo(item.equipment)),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) =>
-                                ExerciseDetailPage(exerciseId: item.id),
-                          ),
-                        ),
-                      );
-                    },
+                    itemCount: 1,
+                    itemBuilder: (context, _) => AppPagePadding(
+                      top: AppSpacing.sm,
+                      child: AppSection(
+                        children: <Widget>[
+                          for (final item in items)
+                            AppRow(
+                              leading: ExerciseThumbnail(
+                                equipment: item.equipment,
+                                thumbnailUrl: item.thumbnailUrl,
+                                size: 26,
+                              ),
+                              title: item.nameKo,
+                              subtitle: equipmentLabelKo(item.equipment),
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      ExerciseDetailPage(exerciseId: item.id),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
             err: (failure) => Center(child: Text(failure.message)),
           ),

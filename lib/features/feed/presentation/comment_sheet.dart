@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/post_comment.dart';
 import '../application/post_providers.dart';
@@ -12,6 +14,7 @@ Future<void> showCommentSheet(BuildContext context, {required String postId}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (_) => FractionallySizedBox(
         heightFactor: 0.85,
         child: _CommentSheet(postId: postId),
@@ -92,7 +95,12 @@ class _CommentSheetState extends ConsumerState<_CommentSheet> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.xs,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: <Widget>[
                 Text(
@@ -121,16 +129,27 @@ class _CommentSheetState extends ConsumerState<_CommentSheet> {
                     title: '첫 댓글을 남겨보세요',
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
                     itemCount: comments.length,
-                    itemBuilder: (context, index) =>
+                    itemBuilder: (context, index) => Column(
+                      children: <Widget>[
+                        if (index > 0) const AppHairline(indent: 44),
                         _CommentTile(comment: comments[index]),
+                      ],
+                    ),
                   ),
           ),
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.md,
+              ),
               child: Row(
                 children: <Widget>[
                   Expanded(
@@ -141,7 +160,7 @@ class _CommentSheetState extends ConsumerState<_CommentSheet> {
                       decoration: const InputDecoration(hintText: '댓글 입력'),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   IconButton(
                     tooltip: '전송',
                     onPressed: _sending ? null : _send,
@@ -173,7 +192,7 @@ class _CommentTile extends StatelessWidget {
     final t = context.tokens;
     final name = comment.authorName ?? '회원';
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -195,7 +214,7 @@ class _CommentTile extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +227,7 @@ class _CommentTile extends StatelessWidget {
                     color: t.text,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   comment.body,
                   style: TextStyle(fontSize: 13.5, height: 1.4, color: t.text),

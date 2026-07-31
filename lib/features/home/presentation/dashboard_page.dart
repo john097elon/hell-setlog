@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../domain/entities/character_identity.dart';
 import '../../../domain/entities/party.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
@@ -24,63 +26,59 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.tokens;
     final unread = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
-    return Scaffold(
-      backgroundColor: t.bg,
-      appBar: AppBar(
-        title: const Text('헬셋로그'),
-        actions: <Widget>[
-          IconButton(
-            tooltip: '피드',
-            onPressed: () => context.push('/feed'),
-            icon: const Icon(Icons.dynamic_feed_outlined),
-          ),
-          IconButton(
-            tooltip: '알림',
-            onPressed: () => context.push('/notifications'),
-            icon: Badge.count(
-              count: unread,
-              isLabelVisible: unread > 0,
-              child: const Icon(Icons.notifications_none_rounded),
-            ),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref
-            ..invalidate(characterVolumesProvider)
-            ..invalidate(characterWeeklyVolumesProvider)
-            ..invalidate(myPartiesProvider)
-            ..invalidate(weeklyVolumeProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-          children: <Widget>[
-            const _CharacterCard(),
-            const SizedBox(height: AppSpacing.lg),
-            const _WeekSummary(),
-            const SizedBox(height: AppSpacing.xxl),
-            _SectionHeader(
-              title: '내 파티',
-              actionLabel: '전체',
-              onAction: () => context.go('/party'),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const _PartySection(),
-            const SizedBox(height: AppSpacing.xxl),
-            SizedBox(
-              height: 52,
-              child: FilledButton.icon(
-                onPressed: () => context.go('/workout'),
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('운동 시작하기'),
-              ),
-            ),
-          ],
+    return AppScreen(
+      title: '헬셋로그',
+      actions: <Widget>[
+        IconButton(
+          tooltip: '피드',
+          onPressed: () => context.push('/feed'),
+          icon: const Icon(Icons.dynamic_feed_outlined),
         ),
-      ),
+        IconButton(
+          tooltip: '알림',
+          onPressed: () => context.push('/notifications'),
+          icon: Badge.count(
+            count: unread,
+            isLabelVisible: unread > 0,
+            child: const Icon(Icons.notifications_none_rounded),
+          ),
+        ),
+      ],
+      onRefresh: () async {
+        ref
+          ..invalidate(characterVolumesProvider)
+          ..invalidate(characterWeeklyVolumesProvider)
+          ..invalidate(myPartiesProvider)
+          ..invalidate(weeklyVolumeProvider);
+      },
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: AppPagePadding(
+            top: AppSpacing.sm,
+            child: Column(
+              children: <Widget>[
+                const _CharacterCard(),
+                _SectionHeader(
+                  title: '내 파티',
+                  actionLabel: '전체',
+                  onAction: () => context.go('/party'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const _PartySection(),
+                const SizedBox(height: AppSpacing.xl),
+                const _WeekSummary(),
+                const SizedBox(height: AppSpacing.xl),
+                FilledButton.icon(
+                  onPressed: () => context.go('/workout'),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: const Text('운동 시작하기'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -94,43 +92,63 @@ class _CharacterCard extends ConsumerWidget {
     final t = context.tokens;
     final identity = ref.watch(characterIdentityProvider).valueOrNull;
     if (identity == null) {
-      return _Panel(
-        child: Column(
-          children: <Widget>[
-            Icon(Icons.pets_rounded, size: 40, color: t.brand),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '함께 운동할 캐릭터를 만들어요',
-              style: TextStyle(fontWeight: FontWeight.w700, color: t.text),
+      return AppSection(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              children: <Widget>[
+                Icon(Icons.pets_rounded, size: 40, color: t.brand),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  '함께 운동할 캐릭터를 만들어요',
+                  style: TextStyle(fontWeight: FontWeight.w700, color: t.text),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FilledButton(
+                  onPressed: () => openCharacterSetup(context),
+                  child: const Text('캐릭터 만들기'),
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            FilledButton(
-              onPressed: () => openCharacterSetup(context),
-              child: const Text('캐릭터 만들기'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
     final growth = ref.watch(characterGrowthProvider).valueOrNull;
-    return _Panel(
-      onTap: () => context.go('/workout/monster'),
-      child: Row(
-        children: <Widget>[
-          Image.asset(
-            stageAsset(identity.species, growth?.evolutionStage ?? 0),
-            width: 84,
-            height: 84,
-            filterQuality: FilterQuality.none,
-            errorBuilder: (_, _, _) =>
-                Icon(Icons.pets_rounded, size: 60, color: t.brand),
+    return AppSection(
+      children: <Widget>[
+        Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: () => context.go('/workout/monster'),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Row(
+                children: <Widget>[
+                  Image.asset(
+                    stageAsset(identity.species, growth?.evolutionStage ?? 0),
+                    width: 84,
+                    height: 84,
+                    filterQuality: FilterQuality.none,
+                    errorBuilder: (_, _, _) =>
+                        Icon(Icons.pets_rounded, size: 60, color: t.brand),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _CharacterSummary(
+                      identity: identity,
+                      growth: growth,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: t.faintText),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: _CharacterSummary(identity: identity, growth: growth),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -159,7 +177,7 @@ class _CharacterSummary extends StatelessWidget {
             color: t.text,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value == null
               ? traitCopy(identity.trait).name
@@ -171,9 +189,9 @@ class _CharacterSummary extends StatelessWidget {
           ),
         ),
         if (value != null) ...<Widget>[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
               value: value.evolutionProgress,
               minHeight: 8,
@@ -181,7 +199,7 @@ class _CharacterSummary extends StatelessWidget {
               backgroundColor: t.surface,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             '${evolutionHint(value)} · 이번 주 +${formatCompactNumber(value.weeklyXp)} XP',
             style: TextStyle(
@@ -202,7 +220,6 @@ class _WeekSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.tokens;
     final weightUnit = ref.watch(
       settingsControllerProvider.select((state) => state.weightUnit),
     );
@@ -213,53 +230,16 @@ class _WeekSummary extends ConsumerWidget {
     final total =
         volumes?.values.fold<double>(0, (sum, value) => sum + value) ?? 0;
     final days = volumes?.values.where((value) => value > 0).length ?? 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.border.withValues(alpha: 0.6)),
-      ),
-      child: Row(
-        children: <Widget>[
-          _metric(t, '이번 주 볼륨', formatCompactWeight(total, unit: weightUnit)),
-          Container(
-            width: 0.5,
-            height: 30,
-            color: t.borderStrong.withValues(alpha: 0.4),
-          ),
-          _metric(t, '운동일', '$days일'),
-        ],
-      ),
+    return AppMetricRow(
+      metrics: <AppMetric>[
+        AppMetric(
+          label: '이번 주 볼륨',
+          value: formatCompactWeight(total, unit: weightUnit),
+        ),
+        AppMetric(label: '운동일', value: '$days일'),
+      ],
     );
   }
-
-  Widget _metric(AppTokens t, String label, String value) => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: t.faintText,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            color: t.text,
-            fontFeatures: kTabularFigures,
-          ),
-        ),
-      ],
-    ),
-  );
 }
 
 /// 내 파티와 이번 주 미션.
@@ -278,7 +258,7 @@ class _PartySection extends ConsumerWidget {
                 children: <Widget>[
                   for (final party in parties.take(2))
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
                       child: _PartyBlock(party: party),
                     ),
                 ],
@@ -299,9 +279,9 @@ class _PartyBlock extends StatelessWidget {
       children: <Widget>[
         InkWell(
           onTap: () => context.push('/party/room/${party.id}'),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: Row(
               children: <Widget>[
                 Expanded(
@@ -329,7 +309,7 @@ class _PartyBlock extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.sm),
         PartyMissionCard(partyId: party.id, showContributions: false),
       ],
     );
@@ -344,24 +324,15 @@ class _PartyEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return _Panel(
-      onTap: () => context.go('/party'),
-      child: Column(
-        children: <Widget>[
-          Icon(Icons.groups_outlined, size: 34, color: t.mutedText),
-          const SizedBox(height: 8),
-          Text(message, style: TextStyle(fontSize: 13.5, color: t.mutedText)),
-          const SizedBox(height: 10),
-          Text(
-            '파티 찾아보기',
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: t.brand,
-            ),
-          ),
-        ],
-      ),
+    return AppSection(
+      children: <Widget>[
+        AppRow(
+          title: message,
+          subtitle: '파티 찾아보기',
+          leading: Icon(Icons.groups_outlined, color: t.mutedText),
+          onTap: () => context.go('/party'),
+        ),
+      ],
     );
   }
 }
@@ -380,45 +351,9 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: <Widget>[
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-          color: context.tokens.text,
-        ),
-      ),
+      Text(title, style: AppText.sectionLabel(context)),
       const Spacer(),
       TextButton(onPressed: onAction, child: Text(actionLabel)),
     ],
   );
-}
-
-class _Panel extends StatelessWidget {
-  const _Panel({required this.child, this.onTap});
-
-  final Widget child;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Material(
-      color: t.card,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: t.border),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/app_states.dart';
 import '../../../../domain/entities/party_member.dart';
@@ -41,7 +42,7 @@ class PartyCharacterGallery extends ConsumerWidget {
               itemCount: sorted.length,
               itemBuilder: (context, index) => Padding(
                 padding: EdgeInsets.only(
-                  right: index == sorted.length - 1 ? 0 : 12,
+                  right: index == sorted.length - 1 ? 0 : AppSpacing.md,
                 ),
                 child: _CharacterCard(member: sorted[index]),
               ),
@@ -68,7 +69,7 @@ class _CharacterCard extends StatelessWidget {
       child: Material(
         color: t.card,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           side: BorderSide(color: t.border),
         ),
         clipBehavior: Clip.antiAlias,
@@ -79,7 +80,7 @@ class _CharacterCard extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               children: <Widget>[
                 SizedBox(
@@ -117,7 +118,7 @@ class _CharacterCard extends StatelessWidget {
                           ),
                         ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   member.characterName ?? '캐릭터 없음',
                   maxLines: 1,
@@ -128,14 +129,18 @@ class _CharacterCard extends StatelessWidget {
                     color: t.text,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   member.hasCharacter
                       ? 'Lv. ${member.characterLevel ?? 1}'
                       : '레벨 없음',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11.5, color: t.mutedText),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: t.mutedText,
+                    fontFeatures: kTabularFigures,
+                  ),
                 ),
                 const Spacer(),
                 Text(

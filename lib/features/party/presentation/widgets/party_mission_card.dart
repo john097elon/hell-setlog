@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../core/widgets/app_list.dart';
 import '../../../../domain/entities/party_mission.dart';
 import '../../../auth/application/auth_service.dart';
 import '../../application/party_providers.dart';
@@ -33,12 +34,24 @@ class PartyMissionCard extends ConsumerWidget {
         .watch(partyMissionProvider(partyId))
         .when(
           loading: () => const AppMissionSkeleton(),
-          error: (_, _) => const SizedBox.shrink(),
+          error: (_, _) => const AppSection(
+            children: <Widget>[
+              AppRow(
+                title: '미션을 불러오지 못했습니다',
+                leading: Icon(Icons.error_outline),
+              ),
+            ],
+          ),
           data: (mission) => Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
             decoration: BoxDecoration(
               color: t.card,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
                 color: mission.isComplete
                     ? t.brand.withValues(alpha: 0.5)
@@ -57,7 +70,7 @@ class PartyMissionCard extends ConsumerWidget {
                       size: 18,
                       color: mission.isComplete ? t.brand : t.mutedText,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         '이번 주 파티 미션',
@@ -86,9 +99,9 @@ class PartyMissionCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.sm),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   child: LinearProgressIndicator(
                     value: mission.progress,
                     minHeight: 10,
@@ -96,7 +109,7 @@ class PartyMissionCard extends ConsumerWidget {
                     backgroundColor: t.surface,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   mission.isComplete
                       ? '이번 주 목표를 함께 채웠어요'
@@ -185,7 +198,7 @@ class PartyMissionCard extends ConsumerWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               OutlinedButton(
                 onPressed: () =>
                     Navigator.pop(dialogContext, const _WeeklyGoalChoice(null)),
@@ -233,7 +246,7 @@ class _ContributionRow extends StatelessWidget {
     final t = context.tokens;
     final url = person.avatarUrl ?? '';
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: <Widget>[
           CircleAvatar(
@@ -251,7 +264,7 @@ class _ContributionRow extends StatelessWidget {
                   )
                 : null,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               person.nickname,
@@ -285,7 +298,7 @@ class AppMissionSkeleton extends StatelessWidget {
     height: 96,
     decoration: BoxDecoration(
       color: context.tokens.card,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       border: Border.all(color: context.tokens.border),
     ),
   );

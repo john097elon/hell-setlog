@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 import 'package:heal_setlog/core/widgets/app_states.dart';
 import 'package:heal_setlog/features/compose/presentation/capture_flow.dart';
@@ -209,7 +210,7 @@ class _FeedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView.builder(
-    padding: const EdgeInsets.only(top: 2, bottom: 24),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
     itemCount: posts.length + 1,
     itemBuilder: (context, index) {
       if (index == 0) return header;
@@ -232,11 +233,16 @@ class _TopBar extends ConsumerWidget {
     final t = context.tokens;
     final unread = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 8, 2),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.xs,
+        0,
+      ),
       child: Row(
         children: <Widget>[
           Text(
-            'HealSetLog',
+            '헬셋로그',
             style: TextStyle(
               fontSize: 21,
               fontWeight: FontWeight.w700,

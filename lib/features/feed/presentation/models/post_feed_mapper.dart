@@ -23,7 +23,7 @@ FeedPost feedPostFromPost(
         ? FeedMediaKind.video
         : FeedMediaKind.photo,
     url: post.mediaUrl,
-    gradient: const <Color>[Color(0xFFECECEE), Color(0xFFDCDCE0)],
+    gradient: const <Color>[],
   ),
   summary: WorkoutSummary(
     metrics: <({String label, String value})>[

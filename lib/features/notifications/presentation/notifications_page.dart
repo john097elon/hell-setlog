@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_list.dart';
+import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/app_notification.dart';
 import '../application/notification_providers.dart';
@@ -32,34 +35,47 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Scaffold(
-      backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('알림')),
-      body: ref
+    return AppScreen(
+      title: '알림',
+      slivers: ref
           .watch(myNotificationsProvider)
           .when(
-            loading: () => const AppLoading(),
-            error: (_, _) => Center(
-              child: Text(
-                '알림을 불러오지 못했습니다.',
-                style: TextStyle(color: t.mutedText),
+            loading: () => const <Widget>[
+              SliverFillRemaining(child: AppLoading()),
+            ],
+            error: (_, _) => const <Widget>[
+              SliverFillRemaining(
+                child: AppEmptyState(
+                  icon: Icons.error_outline,
+                  title: '알림을 불러오지 못했습니다',
+                ),
               ),
-            ),
+            ],
             data: (items) {
               _markReadOnce();
               return items.isEmpty
-                  ? const AppEmptyState(
-                      icon: Icons.notifications_none_rounded,
-                      title: '알림이 없습니다',
-                      message: '파티원과 소통하면 알림이 도착합니다.',
-                    )
-                  : ListView.separated(
-                      itemCount: items.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) =>
-                          _NotificationTile(item: items[index]),
-                    );
+                  ? const <Widget>[
+                      SliverFillRemaining(
+                        child: AppEmptyState(
+                          icon: Icons.notifications_none_rounded,
+                          title: '알림이 없습니다',
+                          message: '파티원과 소통하면 알림이 도착합니다.',
+                        ),
+                      ),
+                    ]
+                  : <Widget>[
+                      SliverToBoxAdapter(
+                        child: AppPagePadding(
+                          top: AppSpacing.md,
+                          child: AppSection(
+                            children: <Widget>[
+                              for (final item in items)
+                                _NotificationTile(item: item),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ];
             },
           ),
     );
@@ -99,39 +115,51 @@ class _NotificationTile extends StatelessWidget {
     final name = item.actorName?.trim() ?? '';
     final actor = name.isEmpty ? '회원' : name;
     final avatar = item.actorAvatarUrl;
-    return Container(
-      color: item.isUnread ? t.brand.withValues(alpha: 0.04) : null,
-      child: ListTile(
-        onTap: () => _open(context),
-        leading: Container(
-          width: 40,
-          height: 40,
-          alignment: Alignment.center,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: t.bg,
-            shape: BoxShape.circle,
-            border: Border.all(color: t.border),
-          ),
-          child: (avatar ?? '').isEmpty
-              ? Text(
-                  initialOf(actor),
-                  style: TextStyle(fontWeight: FontWeight.w700, color: t.text),
-                )
-              : Image.network(
-                  avatar!,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) =>
-                      Icon(Icons.person_outline, color: t.faintText),
+    return AppRow(
+      onTap: () => _open(context),
+      leading: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: t.bg,
+          shape: BoxShape.circle,
+          border: Border.all(color: item.isUnread ? t.brand : t.border),
+        ),
+        child: (avatar ?? '').isEmpty
+            ? Text(
+                initialOf(actor),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: t.text,
                 ),
-        ),
-        title: Text('$actor님이 ${_message(item.kind)}'),
-        subtitle: Text(
-          _relativeTime(item.createdAt),
-          style: TextStyle(color: t.faintText),
-        ),
+              )
+            : Image.network(
+                avatar!,
+                width: 26,
+                height: 26,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    Icon(Icons.person_outline, color: t.faintText, size: 18),
+              ),
+      ),
+      title: '$actor님이 ${_message(item.kind)}',
+      value: _relativeTime(item.createdAt),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (item.isUnread) ...<Widget>[
+            Container(
+              width: AppSpacing.sm,
+              height: AppSpacing.sm,
+              decoration: BoxDecoration(color: t.brand, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+          Icon(Icons.chevron_right_rounded, size: 20, color: t.faintText),
+        ],
       ),
     );
   }

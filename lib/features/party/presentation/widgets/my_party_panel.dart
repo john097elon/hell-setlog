@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../core/widgets/app_list.dart';
+import '../../../../core/widgets/app_screen.dart';
 import '../../../../core/widgets/app_states.dart';
 import '../../../../domain/entities/party.dart';
 import '../../application/party_providers.dart';
@@ -23,11 +26,18 @@ class MyPartyPanel extends ConsumerWidget {
         data: (parties) => parties.isEmpty
             ? const _Empty(message: '아직 참여한 파티가 없습니다.')
             : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                itemCount: parties.length,
-                itemBuilder: (context, index) => _PartyCard(
-                  party: parties[index],
-                  onTap: () => context.push('/party/room/${parties[index].id}'),
+                itemCount: 1,
+                itemBuilder: (context, _) => AppPagePadding(
+                  top: AppSpacing.md,
+                  child: AppSection(
+                    children: <Widget>[
+                      for (final party in parties)
+                        _PartyCard(
+                          party: party,
+                          onTap: () => context.push('/party/room/${party.id}'),
+                        ),
+                    ],
+                  ),
                 ),
               ),
       );
@@ -42,21 +52,26 @@ class _Empty extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        48,
+        AppSpacing.xl,
+        AppSpacing.xl,
+      ),
       children: <Widget>[
         Icon(Icons.groups_outlined, size: 44, color: t.faintText),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Text(
           message,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14.5, color: t.mutedText),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xl),
         FilledButton(
           onPressed: () => showPartyCreateSheet(context, ref),
           child: const Text('파티 만들기'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.sm),
         OutlinedButton(
           onPressed: () => _joinByCode(context, ref),
           child: const Text('참여 코드로 들어가기'),
@@ -90,6 +105,7 @@ class _Empty extends ConsumerWidget {
         ],
       ),
     );
+    controller.dispose();
     if (code == null || code.isEmpty || !context.mounted) return;
     final result = await ref.read(partyRepositoryProvider).joinByCode(code);
     if (!context.mounted) return;
@@ -116,67 +132,25 @@ class _PartyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: t.border),
-            ),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: t.bg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: t.border),
-                  ),
-                  child: Icon(Icons.bolt, color: t.mutedText, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        party.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                          color: t.text,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        <String?>[
-                          party.region,
-                          party.focus,
-                          '${party.memberCount}/${party.maxMembers}명',
-                        ].whereType<String>().join(' · '),
-                        style: TextStyle(fontSize: 12.5, color: t.mutedText),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded, color: t.faintText),
-              ],
-            ),
-          ),
+    return AppRow(
+      title: party.name,
+      subtitle: <String?>[
+        party.region,
+        party.focus,
+      ].whereType<String>().join(' · '),
+      value: '${party.memberCount}/${party.maxMembers}명',
+      leading: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: t.bg,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: t.border),
         ),
+        child: Icon(Icons.bolt, color: t.mutedText, size: 18),
       ),
+      onTap: onTap,
     );
   }
 }
