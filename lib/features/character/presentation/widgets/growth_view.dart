@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../domain/entities/character_identity.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../../domain/usecases/calculate_character_growth.dart';
 
@@ -13,13 +14,10 @@ const List<String> kStageNames = <String>[
   '타이탄 냥',
   '냥관왕',
 ];
-const List<String> kStageAssets = <String>[
-  'assets/character/stage1_nyaongi.png',
-  'assets/character/stage2_geunnyangi.png',
-  'assets/character/stage3_musclecat.png',
-  'assets/character/stage4_titannyang.png',
-  'assets/character/stage5_nyagwanwang.png',
-];
+
+/// 종족과 단계로 스프라이트 경로를 만든다.
+String stageAsset(CharacterSpecies species, int stage) =>
+    'assets/character/${speciesKey(species)}_stage${stage + 1}.png';
 const Map<MuscleGroup, String> kMuscleLabels = <MuscleGroup, String>{
   MuscleGroup.chest: '가슴',
   MuscleGroup.back: '등',
@@ -37,9 +35,14 @@ String balanceLabel(BodyBalance balance) => switch (balance) {
 
 /// 캐릭터 카드. 단계 아트, 이름, 다음 진화까지의 진행률.
 class CharacterHero extends StatelessWidget {
-  const CharacterHero({required this.growth, super.key});
+  const CharacterHero({
+    required this.growth,
+    required this.identity,
+    super.key,
+  });
 
   final CharacterGrowth growth;
+  final CharacterIdentity identity;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,7 @@ class CharacterHero extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Image.asset(
-            kStageAssets[growth.evolutionStage],
+            stageAsset(identity.species, growth.evolutionStage),
             width: 168,
             height: 168,
             filterQuality: FilterQuality.none,
@@ -63,11 +66,13 @@ class CharacterHero extends StatelessWidget {
                 Icon(Icons.pets_rounded, size: 96, color: t.brand),
           ),
           const SizedBox(height: AppSpacing.md),
+          Text(identity.name, style: theme.textTheme.titleLarge),
+          const SizedBox(height: 2),
           Text(
-            kStageNames[growth.evolutionStage],
-            style: theme.textTheme.titleLarge,
+            '${kStageNames[growth.evolutionStage]} · ${traitCopy(identity.trait).name}',
+            style: TextStyle(fontSize: 12.5, color: t.faintText),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             'Lv. ${growth.totalLevel} · ${balanceLabel(growth.balance)}',
             style: TextStyle(

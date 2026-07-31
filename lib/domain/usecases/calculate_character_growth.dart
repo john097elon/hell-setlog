@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../entities/character_identity.dart';
 import '../entities/exercise.dart';
 
 /// 캐릭터가 추적하는 부위. 전신/기타는 여기에 나눠 담지 않는다.
@@ -172,3 +173,44 @@ BodyBalance _balanceOf(Map<MuscleGroup, double> volumes) {
 String evolutionHint(CharacterGrowth growth) => growth.isMaxStage
     ? '최고 단계에 도달했습니다'
     : '다음 진화까지 레벨 ${growth.levelsUntilNextEvolution}';
+
+/// 성향 보너스가 붙는 반복 수 구간의 배수.
+const double traitBonusMultiplier = 1.25;
+
+/// 성향에 맞는 세트면 경험치를 더 준다.
+///
+/// 파워형은 6회 이하, 지구력형은 12회 이상, 균형형은 그 사이(7~11회)를 노린다.
+/// 세 성향이 서로 다른 구간을 가져가 어떤 선택도 손해가 아니다.
+double traitMultiplier(CharacterTrait trait, int reps) {
+  final matches = switch (trait) {
+    CharacterTrait.power => reps > 0 && reps <= 6,
+    CharacterTrait.endurance => reps >= 12,
+    CharacterTrait.balanced => reps >= 7 && reps <= 11,
+  };
+  return matches ? traitBonusMultiplier : 1;
+}
+
+/// 성향 설명. 선택 화면과 캐릭터 화면이 같은 문구를 쓴다.
+({String name, String detail}) traitCopy(CharacterTrait trait) =>
+    switch (trait) {
+      CharacterTrait.power => (
+        name: '파워형',
+        detail: '6회 이하 고중량 세트에서 경험치를 더 받아요',
+      ),
+      CharacterTrait.endurance => (
+        name: '지구력형',
+        detail: '12회 이상 고반복 세트에서 경험치를 더 받아요',
+      ),
+      CharacterTrait.balanced => (
+        name: '균형형',
+        detail: '7~11회 중간 반복 세트에서 경험치를 더 받아요',
+      ),
+    };
+
+/// 종족 이름과 한 줄 소개.
+({String name, String detail}) speciesCopy(CharacterSpecies species) =>
+    switch (species) {
+      CharacterSpecies.cat => (name: '냥이', detail: '민첩하고 꾸준한 타입'),
+      CharacterSpecies.dog => (name: '멍이', detail: '활발하고 성실한 타입'),
+      CharacterSpecies.bear => (name: '곰이', detail: '묵직하고 강한 타입'),
+    };

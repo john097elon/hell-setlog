@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heal_setlog/domain/entities/character_identity.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 
@@ -96,6 +97,22 @@ void main() {
       }).balance,
       BodyBalance.balanced,
     );
+  });
+
+  test('성향은 서로 다른 반복 구간에서 보너스를 준다', () {
+    // 세 성향이 겹치지 않는 구간을 가져가 어떤 선택도 손해가 아니다.
+    expect(traitMultiplier(CharacterTrait.power, 5), traitBonusMultiplier);
+    expect(traitMultiplier(CharacterTrait.power, 9), 1);
+    expect(traitMultiplier(CharacterTrait.balanced, 9), traitBonusMultiplier);
+    expect(traitMultiplier(CharacterTrait.balanced, 15), 1);
+    expect(traitMultiplier(CharacterTrait.endurance, 15), traitBonusMultiplier);
+    expect(traitMultiplier(CharacterTrait.endurance, 5), 1);
+  });
+
+  test('반복 수가 0이면 어떤 성향도 보너스를 주지 않는다', () {
+    for (final trait in CharacterTrait.values) {
+      expect(traitMultiplier(trait, 0), 1);
+    }
   });
 
   test('이번 주 XP는 최근 볼륨만 센다', () {

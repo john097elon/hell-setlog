@@ -2,18 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/domain/entities/character_identity.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
+import 'package:heal_setlog/features/character/application/character_identity_controller.dart';
 import 'package:heal_setlog/features/character/application/character_providers.dart';
 import 'package:heal_setlog/features/character/presentation/monster_page.dart';
 import 'package:heal_setlog/features/character/presentation/widgets/growth_view.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('기록이 없으면 성장 안내를 보여준다', (tester) async {
-    await _pump(tester, volumes: const <MuscleGroup, double>{});
+  testWidgets('캐릭터를 아직 안 만들었으면 만들기부터 안내한다', (tester) async {
+    await _pump(tester, volumes: const <MuscleGroup, double>{}, identity: null);
 
-    expect(find.text('운동을 기록하면 캐릭터가 자랍니다'), findsOneWidget);
+    expect(find.text('함께 운동할 캐릭터를 만들어요'), findsOneWidget);
+    expect(find.text('캐릭터 만들기'), findsOneWidget);
+  });
+
+  testWidgets('내가 지은 이름과 성향을 캐릭터 카드에 보여준다', (tester) async {
+    await _pump(
+      tester,
+      volumes: <MuscleGroup, double>{MuscleGroup.chest: 3000},
+    );
+
+    expect(find.text('불꽃이'), findsOneWidget);
+    expect(find.textContaining('파워형'), findsWidgets);
   });
 
   testWidgets('부위별 레벨과 이번 주 경험치를 보여준다', (tester) async {
@@ -63,6 +76,11 @@ Future<void> _pump(
   required Map<MuscleGroup, double> volumes,
   Map<MuscleGroup, double> weekly = const <MuscleGroup, double>{},
   int? seenLevel,
+  CharacterIdentity? identity = const CharacterIdentity(
+    species: CharacterSpecies.cat,
+    trait: CharacterTrait.power,
+    name: '불꽃이',
+  ),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -72,6 +90,7 @@ Future<void> _pump(
               calculateCharacterGrowth(volumes, weeklyVolumes: weekly),
         ),
         seenCharacterLevelProvider.overrideWith((ref) async => seenLevel),
+        characterIdentityProvider.overrideWith((ref) async => identity),
       ],
       child: MaterialApp(
         theme: themeFor(AppThemeId.appleWhite),

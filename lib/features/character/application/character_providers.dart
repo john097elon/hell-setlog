@@ -1,14 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../domain/entities/character_identity.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../exercise_db/application/exercise_providers.dart';
+import 'character_identity_controller.dart';
 
 /// 마지막으로 사용자에게 보여 준 합산 레벨. 레벨업 축하를 한 번만 띄운다.
 const String kSeenCharacterLevelKey = 'character_seen_level';
 
 /// 부위별 누적 볼륨. 준비 세트는 통계와 같은 기준으로 제외한다.
+/// 성향에 맞는 반복 구간의 세트는 보너스를 받는다.
 final characterVolumesProvider = FutureProvider<Map<MuscleGroup, double>>(
   (ref) => _volumes(ref, since: null),
 );
@@ -47,6 +50,8 @@ Future<void> markCharacterLevelSeen(WidgetRef ref, int level) async {
 }
 
 Future<Map<MuscleGroup, double>> _volumes(Ref ref, {DateTime? since}) async {
+  final identity = await ref.watch(characterIdentityProvider.future);
+  final trait = identity?.trait ?? CharacterTrait.balanced;
   final database = ref.watch(appDatabaseProvider);
   final sets = await database.statsDao.allSets();
   final exercises = await database.statsDao.exercisesForIds(
@@ -69,11 +74,8 @@ Future<Map<MuscleGroup, double>> _volumes(Ref ref, {DateTime? since}) async {
     final muscle = muscles[set.exerciseId];
     if (muscle == null) continue;
     if (since != null && !sessionStart.containsKey(set.sessionId)) continue;
-    volumes.update(
-      muscle,
-      (volume) => volume + set.weight * set.reps,
-      ifAbsent: () => set.weight * set.reps,
-    );
+    final gained = set.weight * set.reps * traitMultiplier(trait, set.reps);
+    volumes.update(muscle, (volume) => volume + gained, ifAbsent: () => gained);
   }
   return volumes;
 }

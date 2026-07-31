@@ -5,6 +5,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
+import '../../../domain/entities/character_identity.dart';
+import 'character_setup_page.dart';
+import '../application/character_identity_controller.dart';
 import '../application/character_providers.dart';
 import 'widgets/growth_view.dart';
 
@@ -14,27 +17,74 @@ class MonsterPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final growth = ref.watch(characterGrowthProvider);
+    final identity = ref.watch(characterIdentityProvider);
     return Scaffold(
       backgroundColor: context.tokens.bg,
-      body: growth.when(
+      body: identity.when(
         loading: () => const AppLoading(),
         error: (_, _) => const AppEmptyState(
           icon: Icons.pets_rounded,
           title: '캐릭터 정보를 불러오지 못했습니다',
         ),
-        data: (value) => value.totalXp == 0
-            ? const _EmptyCharacter()
-            : _GrowthContent(growth: value),
+        // 아직 캐릭터를 안 골랐으면 만들기부터 안내한다.
+        data: (value) =>
+            value == null ? const _NeedsSetup() : _Growth(identity: value),
       ),
     );
   }
 }
 
+/// 캐릭터를 아직 만들지 않은 상태.
+class _NeedsSetup extends ConsumerWidget {
+  const _NeedsSetup();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => AppEmptyState(
+    icon: Icons.pets_rounded,
+    title: '함께 운동할 캐릭터를 만들어요',
+    message: '종족과 성향을 고르고 이름을 지어 주세요.',
+    action: FilledButton(
+      onPressed: () => openCharacterSetup(context),
+      child: const Text('캐릭터 만들기'),
+    ),
+  );
+}
+
+/// 캐릭터 만들기/바꾸기 화면을 연다.
+Future<void> openCharacterSetup(
+  BuildContext context, {
+  CharacterIdentity? initial,
+}) => Navigator.of(context)
+    .push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => CharacterSetupPage(initial: initial),
+      ),
+    )
+    .then((_) {});
+
+class _Growth extends ConsumerWidget {
+  const _Growth({required this.identity});
+
+  final CharacterIdentity identity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(characterGrowthProvider)
+      .when(
+        loading: () => const AppLoading(),
+        error: (_, _) => const AppEmptyState(
+          icon: Icons.pets_rounded,
+          title: '캐릭터 정보를 불러오지 못했습니다',
+        ),
+        data: (value) => _GrowthContent(growth: value, identity: identity),
+      );
+}
+
 class _GrowthContent extends ConsumerWidget {
-  const _GrowthContent({required this.growth});
+  const _GrowthContent({required this.growth, required this.identity});
 
   final CharacterGrowth growth;
+  final CharacterIdentity identity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +106,7 @@ class _GrowthContent extends ConsumerWidget {
               gainedLevels: gained,
               onDismiss: () => markCharacterLevelSeen(ref, growth.totalLevel),
             ),
-          CharacterHero(growth: growth),
+          CharacterHero(growth: growth, identity: identity),
           const SizedBox(height: AppSpacing.lg),
           WeeklyGrowthStrip(growth: growth),
           const SizedBox(height: AppSpacing.xxl),
@@ -73,22 +123,18 @@ class _GrowthContent extends ConsumerWidget {
           for (final muscle in growth.muscles) MuscleGrowthBar(muscle: muscle),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '완료한 세트의 볼륨 100kg마다 1XP를 얻어요. 준비 세트는 빠집니다.',
+            '완료한 세트의 볼륨 100kg마다 1XP를 얻어요. 준비 세트는 빠집니다.\n'
+            '${traitCopy(identity.trait).detail}.',
             style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          OutlinedButton.icon(
+            onPressed: () => openCharacterSetup(context, initial: identity),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('캐릭터 바꾸기'),
           ),
         ],
       ),
     );
   }
-}
-
-class _EmptyCharacter extends StatelessWidget {
-  const _EmptyCharacter();
-
-  @override
-  Widget build(BuildContext context) => const AppEmptyState(
-    icon: Icons.pets_rounded,
-    title: '운동을 기록하면 캐릭터가 자랍니다',
-    message: '세트를 완료할 때마다 부위별 경험치가 쌓여요.',
-  );
 }
