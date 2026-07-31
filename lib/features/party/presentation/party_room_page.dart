@@ -11,6 +11,7 @@ import '../../../domain/entities/post.dart';
 import '../application/party_providers.dart';
 import 'widgets/party_chat_panel.dart';
 import '../../../core/formatting/app_format.dart';
+import 'widgets/party_mission_card.dart';
 
 /// 파티 한 곳의 구성원과 활동을 보여준다.
 class PartyRoomPage extends ConsumerWidget {
@@ -52,6 +53,9 @@ class PartyRoomPage extends ConsumerWidget {
         children: <Widget>[
           if (party != null) _Header(party: party),
           const SizedBox(height: 20),
+          // 파티의 이번 주 공동 목표를 멤버보다 먼저 보여준다.
+          PartyMissionCard(partyId: partyId),
+          const SizedBox(height: 24),
           const _SectionTitle(title: '멤버'),
           const SizedBox(height: 8),
           _Members(partyId: partyId),

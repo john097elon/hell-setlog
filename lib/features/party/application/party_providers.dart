@@ -6,6 +6,7 @@ import '../../../domain/entities/party_member.dart';
 import '../../../domain/entities/party_message.dart';
 import '../../../domain/entities/post.dart';
 import '../../../domain/repositories/party_repository.dart';
+import '../../../domain/entities/party_mission.dart';
 
 final partyRepositoryProvider = Provider<PartyRepository>(
   (ref) => SupabasePartyRepository(ref.watch(supabaseClientProvider)),
@@ -41,4 +42,13 @@ final partyFeedProvider = FutureProvider.family<List<Post>, String>((
 ) async {
   final r = await ref.watch(partyRepositoryProvider).fetchPartyFeed(id);
   return r.when(ok: (v) => v, err: (e) => throw e);
+});
+
+/// 파티의 이번 주 미션 현황.
+final partyMissionProvider = FutureProvider.family<PartyMission, String>((
+  ref,
+  partyId,
+) async {
+  final result = await ref.watch(partyRepositoryProvider).fetchMission(partyId);
+  return result.when(ok: (mission) => mission, err: (failure) => throw failure);
 });

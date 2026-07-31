@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/features/app_shell/presentation/app_shell.dart';
 import 'package:heal_setlog/features/auth/presentation/login_page.dart';
 import 'package:heal_setlog/features/auth/presentation/register_page.dart';
+import 'package:heal_setlog/features/home/presentation/dashboard_page.dart';
 import 'package:heal_setlog/features/home/presentation/home_page.dart';
 import 'package:heal_setlog/features/settings/presentation/settings_page.dart';
 import 'package:heal_setlog/features/profile/presentation/my_profile_page.dart';
@@ -48,6 +49,8 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
           OnboardingPage(onDone: () => context.go('/login')),
     ),
     GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
+    // 피드는 부가 기능이라 하단 탭이 아니라 홈 상단에서 들어간다.
+    GoRoute(path: '/feed', builder: (context, state) => const HomePage()),
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsPage(),
@@ -59,7 +62,10 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),
       routes: <RouteBase>[
-        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => const DashboardPage(),
+        ),
         GoRoute(
           path: '/workout',
           builder: (context, state) => const WorkoutTabPage(),

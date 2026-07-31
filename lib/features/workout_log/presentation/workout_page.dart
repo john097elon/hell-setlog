@@ -12,6 +12,7 @@ import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../../domain/entities/routine.dart';
 import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
+import '../../party/application/party_providers.dart';
 import '../../routine/application/routine_providers.dart';
 import '../../stats/application/stats_providers.dart';
 import '../../character/application/character_providers.dart';
@@ -407,8 +408,10 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       ..invalidate(characterVolumesProvider)
       ..invalidate(characterWeeklyVolumesProvider);
     final prLabel = await _updatePersonalRecords(session.id);
-    if (!mounted) return;
     final xp = xpForVolume(volume);
+    // 파티 주간 미션은 파티에 남긴 활동으로 계산한다.
+    await _recordToParties(session.id, volume, xp);
+    if (!mounted) return;
     showShareWorkoutSheet(
       context,
       data: ShareViewData(
@@ -420,6 +423,18 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         xp: xp > 0 ? xp : null,
       ),
     );
+  }
+
+  /// 내가 속한 파티들에 이번 운동을 남긴다. 실패해도 종료를 막지 않는다.
+  Future<void> _recordToParties(String sessionId, double volume, int xp) async {
+    try {
+      await ref
+          .read(partyRepositoryProvider)
+          .recordActivity(sessionId: sessionId, volumeKg: volume, xp: xp);
+      ref.invalidate(myPartiesProvider);
+    } on Object {
+      // 네트워크가 없으면 다음 기회에 올린다.
+    }
   }
 
   /// 개인 기록을 갱신하고 대표 기록 문구를 돌려준다. 실패해도 종료를 막지 않는다.

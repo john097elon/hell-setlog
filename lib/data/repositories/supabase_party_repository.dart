@@ -7,6 +7,7 @@ import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/party.dart';
 import '../../domain/entities/party_member.dart';
+import '../../domain/entities/party_mission.dart';
 import '../../domain/entities/party_message.dart';
 import '../../domain/entities/post.dart';
 import '../../domain/repositories/party_repository.dart';
@@ -284,6 +285,115 @@ class SupabasePartyRepository implements PartyRepository {
       6,
       (_) => _codeAlphabet[random.nextInt(_codeAlphabet.length)],
     ).join();
+  }
+
+  @override
+  Future<Result<PartyMission, Failure>> fetchMission(String partyId) async {
+    final c = _client;
+    if (c == null || _userId == null) return Err(_authFailure);
+    try {
+      final weekStart = weekStartOf(DateTime.now());
+      final party = Map<String, Object?>.from(
+        await c
+                .from('parties')
+                .select('max_members, weekly_goal')
+                .eq('id', partyId)
+                .single()
+            as Map,
+      );
+      final members = rowList(
+        await c
+            .from('party_members')
+            .select('user_id, profiles(nickname, avatar_url)')
+            .eq('party_id', partyId),
+      );
+      final rows = rowList(
+        await c
+            .from('party_activities')
+            .select('user_id, volume_kg, xp')
+            .eq('party_id', partyId)
+            .gte('performed_at', weekStart.toUtc().toIso8601String()),
+      );
+      final sessions = <String, int>{};
+      final volumes = <String, double>{};
+      final xps = <String, int>{};
+      for (final row in rows) {
+        final userId = rowString(row, 'user_id');
+        sessions[userId] = (sessions[userId] ?? 0) + 1;
+        volumes[userId] =
+            (volumes[userId] ?? 0) + (rowDouble(row, 'volume_kg') ?? 0);
+        xps[userId] = (xps[userId] ?? 0) + (rowInt(row, 'xp') ?? 0);
+      }
+      final contributions =
+          members.map((member) {
+            final userId = rowString(member, 'user_id');
+            final profile = rowNested(member, 'profiles');
+            return PartyContribution(
+              userId: userId,
+              nickname: profile == null
+                  ? '회원'
+                  : rowString(profile, 'nickname', fallback: '회원'),
+              avatarUrl: profile == null
+                  ? null
+                  : rowStringOrNull(profile, 'avatar_url'),
+              sessions: sessions[userId] ?? 0,
+              volumeKg: volumes[userId] ?? 0,
+              xp: xps[userId] ?? 0,
+            );
+          }).toList()..sort((a, b) {
+            final byXp = b.xp.compareTo(a.xp);
+            return byXp != 0 ? byXp : b.sessions.compareTo(a.sessions);
+          });
+      final goal =
+          rowInt(party, 'weekly_goal') ?? defaultWeeklyGoal(members.length);
+      return Ok(
+        PartyMission(
+          goalSessions: goal,
+          doneSessions: rows.length,
+          contributions: contributions,
+          weekStart: weekStart,
+        ),
+      );
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('미션을 불러오지 못했습니다: $e'));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> recordActivity({
+    required String sessionId,
+    required double volumeKg,
+    required int xp,
+  }) async {
+    final c = _client;
+    final u = _userId;
+    if (c == null || u == null) return Err(_authFailure);
+    try {
+      final memberships = rowList(
+        await c.from('party_members').select('party_id').eq('user_id', u),
+      );
+      if (memberships.isEmpty) return const Ok(null);
+      // 같은 세션을 다시 올려도 unique 제약이 막는다.
+      await c
+          .from('party_activities')
+          .upsert(
+            <Map<String, Object?>>[
+              for (final row in memberships)
+                <String, Object?>{
+                  'party_id': rowString(row, 'party_id'),
+                  'user_id': u,
+                  'session_id': sessionId,
+                  'volume_kg': volumeKg,
+                  'xp': xp,
+                },
+            ],
+            onConflict: 'party_id,session_id',
+            ignoreDuplicates: true,
+          );
+      return const Ok(null);
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('파티에 기록을 남기지 못했습니다: $e'));
+    }
   }
 
   /// 파티별 인원수. 정책상 읽을 수 없는 파티는 결과에서 빠진다.
