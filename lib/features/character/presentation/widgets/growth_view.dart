@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../core/widgets/app_screen.dart';
 import '../../../../domain/entities/character_identity.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../../domain/usecases/calculate_character_growth.dart';
@@ -49,41 +50,42 @@ class CharacterHero extends StatelessWidget {
     final t = context.tokens;
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xl,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       decoration: BoxDecoration(
         color: t.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: t.border),
       ),
       child: Column(
         children: <Widget>[
           Image.asset(
             stageAsset(identity.species, growth.evolutionStage),
-            width: 168,
-            height: 168,
+            width: 160,
+            height: 160,
             filterQuality: FilterQuality.none,
             errorBuilder: (_, _, _) =>
                 Icon(Icons.pets_rounded, size: 96, color: t.brand),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(identity.name, style: theme.textTheme.titleLarge),
-          const SizedBox(height: 2),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '${kStageNames[growth.evolutionStage]} · ${traitCopy(identity.trait).name}',
             style: TextStyle(fontSize: 12.5, color: t.faintText),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
-            'Lv. ${growth.totalLevel} · ${balanceLabel(growth.balance)}',
-            style: TextStyle(
-              color: t.mutedText,
-              fontWeight: FontWeight.w600,
-              fontFeatures: kTabularFigures,
-            ),
+            balanceLabel(growth.balance),
+            style: TextStyle(color: t.mutedText, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.lg),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
               value: growth.evolutionProgress,
               minHeight: 10,
@@ -114,54 +116,22 @@ class WeeklyGrowthStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: t.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.border.withValues(alpha: 0.6)),
-      ),
-      child: Row(
-        children: <Widget>[
-          _metric(t, '이번 주', '+${formatCompactNumber(growth.weeklyXp)} XP'),
-          Container(
-            width: 0.5,
-            height: 30,
-            color: t.borderStrong.withValues(alpha: 0.4),
-          ),
-          _metric(t, '총 경험치', '${formatCompactNumber(growth.totalXp)} XP'),
-        ],
-      ),
-    );
-  }
-
-  Widget _metric(AppTokens t, String label, String value) => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: t.faintText,
-          ),
+    return AppMetricRow(
+      metrics: <AppMetric>[
+        AppMetric(label: '레벨', value: '${growth.totalLevel}', size: 22),
+        AppMetric(
+          label: '이번 주',
+          value: '+${formatCompactNumber(growth.weeklyXp)} XP',
+          size: 22,
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            color: t.text,
-            fontFeatures: kTabularFigures,
-          ),
+        AppMetric(
+          label: '총 경험치',
+          value: '${formatCompactNumber(growth.totalXp)} XP',
+          size: 22,
         ),
       ],
-    ),
-  );
+    );
+  }
 }
 
 /// 부위별 레벨과 다음 레벨까지의 진행률.
@@ -174,7 +144,10 @@ class MuscleGrowthBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -202,9 +175,9 @@ class MuscleGrowthBar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           ClipRRect(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
               value: muscle.progress,
               minHeight: 8,
@@ -212,7 +185,7 @@ class MuscleGrowthBar extends StatelessWidget {
               backgroundColor: t.surface,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             muscle.xpForNextLevel == 0
                 ? '최고 레벨'
@@ -245,16 +218,21 @@ class LevelUpBanner extends StatelessWidget {
     final t = context.tokens;
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: t.brand.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: t.brand.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: <Widget>[
           Icon(Icons.auto_awesome_rounded, color: t.brand),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               '레벨이 $gainedLevels 올랐어요',

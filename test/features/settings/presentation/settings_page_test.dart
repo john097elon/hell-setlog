@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/formatting/app_format.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/features/settings/presentation/settings_page.dart';
 import 'package:heal_setlog/l10n/app_localizations.dart';
@@ -54,13 +53,39 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('weight_unit'), WeightUnit.lb.name);
   });
+
+  testWidgets('테마를 선택한다', (tester) async {
+    await tester.pumpWidget(await _app());
+
+    await tester.tap(_themeButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppThemeId.nikeBlack.label).last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('theme_id'), AppThemeId.nikeBlack.name);
+  });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 설정 화면이 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(await _app(themeId: themeId));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
-Future<Widget> _app() async {
+Future<Widget> _app({AppThemeId themeId = AppThemeId.appleWhite}) async {
   SharedPreferences.setMockInitialValues(<String, Object>{});
   return ProviderScope(
     child: MaterialApp(
-      theme: buildAppTheme(),
+      theme: themeFor(themeId),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: const SettingsPage(),
@@ -73,5 +98,5 @@ final Finder _weightUnitButton = find.byWidgetPredicate(
 );
 
 final Finder _themeButton = find.byWidgetPredicate(
-  (Widget widget) => widget is SegmentedButton<AppThemeId>,
+  (Widget widget) => widget is DropdownButton<AppThemeId>,
 );

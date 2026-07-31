@@ -95,33 +95,42 @@ class _SetRowState extends State<SetRow> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final t = context.tokens;
     final numberStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
       fontFeatures: kTabularFigures,
-      color: _isDone ? scheme.primary : context.tokens.text,
+      color: _isDone ? t.mutedText : t.text,
     );
 
     final row = Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: AppSpacing.sm,
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: _isDone
-            ? scheme.primary.withValues(alpha: 0.06)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        color: (_isDone ? t.success : t.brand).withValues(alpha: 0.08),
+        border: Border(
+          left: BorderSide(color: _isDone ? t.success : t.brand, width: 3),
+        ),
       ),
       child: Row(
         children: <Widget>[
           SizedBox(
-            width: 42,
-            child: Text(
-              '${widget.index + 1}',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: context.tokens.mutedText,
-                fontFeatures: kTabularFigures,
+            width: AppSpacing.xxl,
+            height: AppSpacing.xxl,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: _isDone ? t.success.withValues(alpha: 0.14) : t.brand,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Center(
+                child: Text(
+                  '${widget.index + 1}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: _isDone ? t.success : t.onBrand,
+                    fontFeatures: kTabularFigures,
+                  ),
+                ),
               ),
             ),
           ),
@@ -176,7 +185,7 @@ class _SetRowState extends State<SetRow> {
                 : Center(child: Text('${widget.reps}', style: numberStyle)),
           ),
           SizedBox(
-            width: 44,
+            width: 48,
             child: IconButton(
               key: const Key('complete-set'),
               tooltip: context.l10n.completeSet,
@@ -184,7 +193,7 @@ class _SetRowState extends State<SetRow> {
               icon: Icon(
                 _isDone ? Icons.check_circle : Icons.check_circle_outline,
               ),
-              color: _isDone ? scheme.primary : context.tokens.faintText,
+              color: _isDone ? t.success : t.brand,
             ),
           ),
         ],
@@ -196,11 +205,8 @@ class _SetRowState extends State<SetRow> {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: Icon(
-          Icons.delete_outline,
-          color: Theme.of(context).colorScheme.error,
-        ),
+        padding: const EdgeInsets.only(right: AppSpacing.xl),
+        child: Icon(Icons.delete_outline, color: context.tokens.like),
       ),
       onDismissed: (_) => widget.onDelete!(),
       child: row,
@@ -231,30 +237,51 @@ class _Stepper extends StatelessWidget {
   final String semanticLabel;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: <Widget>[
-      _StepBtn(icon: Icons.remove, onTap: onMinus, label: '$semanticLabel 줄이기'),
-      Expanded(
-        child: TextField(
-          key: fieldKey,
-          controller: controller,
-          keyboardType: inputType,
-          inputFormatters: inputFormatters,
-          onChanged: onChanged,
-          textAlign: TextAlign.center,
-          style: style,
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
-            filled: false,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-          ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final field = TextField(
+        key: fieldKey,
+        controller: controller,
+        keyboardType: inputType,
+        inputFormatters: inputFormatters,
+        onChanged: onChanged,
+        textAlign: TextAlign.center,
+        style: style,
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.md),
         ),
-      ),
-      _StepBtn(icon: Icons.add, onTap: onPlus, label: '$semanticLabel 늘리기'),
-    ],
+      );
+      final minus = _StepBtn(
+        icon: Icons.remove,
+        onTap: onMinus,
+        label: '$semanticLabel 줄이기',
+      );
+      final plus = _StepBtn(
+        icon: Icons.add,
+        onTap: onPlus,
+        label: '$semanticLabel 늘리기',
+      );
+      if (constraints.maxWidth < 144) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(height: 48, child: field),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[minus, plus],
+            ),
+          ],
+        );
+      }
+      return Row(
+        children: <Widget>[
+          minus,
+          Expanded(child: field),
+          plus,
+        ],
+      );
+    },
   );
 }
 
@@ -269,28 +296,17 @@ class _StepBtn extends StatelessWidget {
   final String label;
 
   @override
-  // 탭 영역은 48dp 이상이어야 한다. 보이는 사각형은 34dp로 두고 여백으로 넓힌다.
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: label,
-    child: InkResponse(
-      onTap: onTap,
-      radius: 24,
-      child: Container(
-        width: 48,
-        height: 48,
-        alignment: Alignment.center,
-        child: Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: context.tokens.surface,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            border: Border.all(color: context.tokens.border),
-          ),
-          child: Icon(icon, size: 18, color: context.tokens.mutedText),
-        ),
+  Widget build(BuildContext context) => IconButton(
+    tooltip: label,
+    onPressed: onTap,
+    icon: Icon(icon, size: 18),
+    color: context.tokens.mutedText,
+    style: IconButton.styleFrom(
+      minimumSize: const Size.square(48),
+      backgroundColor: context.tokens.surface,
+      side: BorderSide(color: context.tokens.border),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
     ),
   );

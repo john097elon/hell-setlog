@@ -57,7 +57,9 @@ class WeeklyVolumeChart extends StatelessWidget {
                       '${date.month}/${date.day}',
                       maxLines: 1,
                       softWrap: false,
-                      style: Theme.of(context).textTheme.labelSmall,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontFeatures: kTabularFigures,
+                      ),
                     ),
                   );
                 },
@@ -72,7 +74,7 @@ class WeeklyVolumeChart extends StatelessWidget {
                 BarChartRodData(
                   toY: values[index],
                   color: context.tokens.brand,
-                  width: 16,
+                  width: AppSpacing.md,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppRadius.sm),
                   ),

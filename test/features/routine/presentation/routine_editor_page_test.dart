@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/entities/routine.dart';
 import 'package:heal_setlog/domain/entities/routine_item.dart';
@@ -100,6 +101,40 @@ void main() {
     expect(find.text('벤치 프레스'), findsOneWidget);
     expect(find.text('bench'), findsNothing);
   });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 루틴 편집이 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repository = _MockRoutineRepository();
+      when(
+        () => repository.getItems('routine'),
+      ).thenAnswer((_) async => Ok(<RoutineItem>[_item()]));
+      when(
+        () => repository.getRoutines(),
+      ).thenAnswer((_) async => Ok(<Routine>[_routine()]));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            routineRepositoryProvider.overrideWithValue(repository),
+            exerciseNameProvider('bench').overrideWith((_) async => '벤치 프레스'),
+          ],
+          child: MaterialApp(
+            theme: themeFor(themeId),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const RoutineEditorPage(routineId: 'routine'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 class _FakeExerciseSearch extends ExerciseSearch {

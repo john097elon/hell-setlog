@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/entities/workout_session.dart';
 import 'package:heal_setlog/domain/entities/workout_set.dart';
@@ -190,6 +191,21 @@ void main() {
 
     expect(find.text('스쿼트'), findsOneWidget);
   });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 세트로그가 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await _pumpPage(tester, _MockWorkoutRepository(), session, <WorkoutSet>[
+        recordedSet.copyWith(isCompleted: false, weight: 999, reps: 999),
+      ], themeId: themeId);
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 Future<void> _pumpPage(
@@ -198,6 +214,7 @@ Future<void> _pumpPage(
   WorkoutSession session,
   List<WorkoutSet> sets, {
   ExerciseRepository? exerciseRepository,
+  AppThemeId? themeId,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -214,7 +231,7 @@ Future<void> _pumpPage(
           ),
       ],
       child: MaterialApp(
-        theme: buildAppTheme(),
+        theme: themeId == null ? buildAppTheme() : themeFor(themeId),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const WorkoutPage(),

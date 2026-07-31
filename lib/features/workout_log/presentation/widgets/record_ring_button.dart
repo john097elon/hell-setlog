@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/workout.dart';
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 
 /// A mock recording control with local-only visual state.
@@ -42,6 +43,8 @@ class _RecordRingButtonState extends State<RecordRingButton> {
   @override
   Widget build(BuildContext context) {
     final copy = context.l10n;
+    final t = context.tokens;
+    final recordColor = _isRecording ? t.like : t.brand;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -56,30 +59,36 @@ class _RecordRingButtonState extends State<RecordRingButton> {
               duration: const Duration(milliseconds: 180),
               width: 72,
               height: 72,
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: context.tokens.bg,
+                color: t.bg,
                 shape: BoxShape.circle,
                 border: Border.fromBorderSide(
-                  BorderSide(color: context.tokens.brandLight, width: 3),
+                  BorderSide(color: recordColor, width: 3),
                 ),
               ),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: context.tokens.brand,
-                  borderRadius: BorderRadius.circular(_isRecording ? 12 : 30),
+                  color: recordColor,
+                  shape: _isRecording ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: _isRecording
+                      ? BorderRadius.circular(AppRadius.md)
+                      : null,
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           _isRecording
               ? '${copy.recording} ${_formatElapsedTime()}'
               : copy.tapToRecord,
           key: const Key('recording-status'),
-          style: Theme.of(context).textTheme.labelLarge,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: _isRecording ? t.like : t.text,
+            fontFeatures: kTabularFigures,
+          ),
         ),
       ],
     );

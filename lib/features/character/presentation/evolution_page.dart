@@ -74,7 +74,12 @@ class EvolutionPage extends StatelessWidget {
             SliverFillRemaining(
               hasScrollBody: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  AppSpacing.xxl,
+                  AppSpacing.xl,
+                  AppSpacing.xl,
+                ),
                 child: Column(
                   children: <Widget>[
                     const Spacer(),
@@ -97,11 +102,9 @@ class EvolutionPage extends StatelessWidget {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       kStageNames[newStage],
-                      style: TextStyle(
-                        color: t.brandLight,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: t.brandLight),
                     ),
                     const Spacer(),
                     SizedBox(

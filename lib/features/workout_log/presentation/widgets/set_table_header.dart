@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/formatting/app_format.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_list.dart';
 
 class SetTableHeader extends StatelessWidget {
   const SetTableHeader({this.weightUnit = WeightUnit.kg, super.key});
@@ -10,17 +12,21 @@ class SetTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelMedium?.copyWith(
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
-      fontWeight: FontWeight.w700,
-    );
+    final style = AppText.metricLabel(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         children: <Widget>[
           SizedBox(
-            width: 42,
-            child: Text(context.l10n.setColumn, style: style),
+            width: AppSpacing.xxl,
+            child: Text(
+              context.l10n.setColumn,
+              textAlign: TextAlign.center,
+              style: style,
+            ),
           ),
           Expanded(
             child: Center(
@@ -30,7 +36,7 @@ class SetTableHeader extends StatelessWidget {
           Expanded(
             child: Center(child: Text(context.l10n.reps, style: style)),
           ),
-          const SizedBox(width: 44),
+          const SizedBox(width: 48),
         ],
       ),
     );

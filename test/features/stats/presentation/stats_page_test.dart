@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
+import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/features/stats/application/stats_providers.dart';
 import 'package:heal_setlog/features/stats/presentation/stats_page.dart';
@@ -44,7 +44,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
     await tester.pumpAndSettle();
 
     expect(find.byType(BodyPartSplit), findsOneWidget);
@@ -77,11 +77,37 @@ void main() {
 
     expect(find.byType(BarChart), findsOneWidget);
   });
+
+  for (final themeId in AppThemeId.values) {
+    testWidgets('320px에서 ${themeId.name} 통계 화면이 넘치지 않는다', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 720);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        _app(
+          weekly: <DateTime, double>{
+            DateUtils.dateOnly(DateTime.now()): 1234567,
+          },
+          split: const <MuscleGroup, double>{
+            MuscleGroup.chest: 750,
+            MuscleGroup.back: 250,
+          },
+          themeId: themeId,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 Widget _app({
   required Map<DateTime, double> weekly,
   required Map<MuscleGroup, double> split,
+  AppThemeId themeId = AppThemeId.appleWhite,
 }) => ProviderScope(
   overrides: <Override>[
     weeklyVolumeProvider().overrideWith(
@@ -92,7 +118,7 @@ Widget _app({
     ),
   ],
   child: MaterialApp(
-    theme: buildAppTheme(),
+    theme: themeFor(themeId),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: const StatsPage(),
