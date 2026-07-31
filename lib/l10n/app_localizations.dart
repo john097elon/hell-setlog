@@ -1359,6 +1359,36 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'피드에 공유됨 (mock)'**
   String get workoutSharedMock;
+
+  /// No description provided for @videoLoading.
+  ///
+  /// In ko, this message translates to:
+  /// **'영상 불러오는 중'**
+  String get videoLoading;
+
+  /// No description provided for @videoPlaybackError.
+  ///
+  /// In ko, this message translates to:
+  /// **'영상을 재생할 수 없습니다. URL 또는 코덱을 확인해 주세요.'**
+  String get videoPlaybackError;
+
+  /// No description provided for @videoPlay.
+  ///
+  /// In ko, this message translates to:
+  /// **'재생'**
+  String get videoPlay;
+
+  /// No description provided for @videoPause.
+  ///
+  /// In ko, this message translates to:
+  /// **'일시정지'**
+  String get videoPause;
+
+  /// No description provided for @videoRemainingTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 시간 {time}'**
+  String videoRemainingTime(String time);
 }
 
 class _AppLocalizationsDelegate

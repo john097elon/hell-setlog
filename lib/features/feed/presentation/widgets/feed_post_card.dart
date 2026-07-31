@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:heal_setlog/core/extensions/build_context_x.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 import '../../application/post_providers.dart';
 import '../comment_sheet.dart';
 import '../models/feed_post.dart';
+import '../video_player_page.dart';
 import 'post_actions_sheet.dart';
-import 'package:heal_setlog/core/formatting/app_format.dart';
 
 /// 인스타/스레드형 피드 카드. 미디어(영상·사진)를 히어로로 두고
 /// 그 아래 액션 → 운동 요약 → 캡션 순으로 쌓는다.
@@ -100,6 +102,17 @@ class _FeedPostCardState extends ConsumerState<FeedPostCard> {
     );
   }
 
+  void _openVideo() {
+    final media = post.media;
+    final url = media.url;
+    if (media.kind != FeedMediaKind.video || url == null || url.isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => VideoPlayerPage(mediaUrl: url, isVideo: true),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
@@ -126,6 +139,7 @@ class _FeedPostCardState extends ConsumerState<FeedPostCard> {
             media: post.media,
             location: post.location,
             isLive: post.author.isLive,
+            onTap: (post.media.url?.isNotEmpty ?? false) ? _openVideo : null,
           ),
           const SizedBox(height: 4),
           _Actions(
@@ -297,83 +311,98 @@ class _LevelBadge extends StatelessWidget {
 }
 
 class _Media extends StatelessWidget {
-  const _Media({required this.media, this.location, this.isLive = false});
+  const _Media({
+    required this.media,
+    required this.onTap,
+    this.location,
+    this.isLive = false,
+  });
 
   final FeedMedia media;
+  final VoidCallback? onTap;
   final String? location;
   final bool isLive;
 
   @override
   Widget build(BuildContext context) {
     final isVideo = media.kind == FeedMediaKind.video;
-    return AspectRatio(
-      aspectRatio: isVideo ? 9 / 12 : 4 / 5,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: media.gradient,
+    final canPlay = isVideo && onTap != null;
+    return Semantics(
+      button: canPlay,
+      label: canPlay ? context.l10n.videoPlay : null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: canPlay ? onTap : null,
+        child: AspectRatio(
+          aspectRatio: isVideo ? 9 / 12 : 4 / 5,
+          child: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: media.gradient,
+                  ),
+                ),
+                // 사진 자리: 큰 이모지 대신 절제된 아웃라인 글리프.
+                child: (media.url?.isNotEmpty ?? false) && !isVideo
+                    ? Image.network(
+                        media.url!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const _MediaFallback(),
+                      )
+                    : isVideo
+                    ? null
+                    : const _MediaFallback(),
               ),
-            ),
-            // 사진 자리: 큰 이모지 대신 절제된 아웃라인 글리프.
-            child: (media.url?.isNotEmpty ?? false) && !isVideo
-                ? Image.network(
-                    media.url!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const _MediaFallback(),
-                  )
-                : isVideo
-                ? null
-                : const _MediaFallback(),
+              if (isVideo) const Center(child: _PlayButton()),
+              if (isLive)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: _Pill(
+                    text: 'LIVE',
+                    bg: context.tokens.like,
+                    fg: Colors.white,
+                    icon: Icons.fiber_manual_record,
+                  ),
+                )
+              else if (location != null)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: _Pill(
+                    text: location!,
+                    bg: Colors.white.withValues(alpha: 0.82),
+                    fg: context.tokens.text,
+                    icon: Icons.place_outlined,
+                  ),
+                ),
+              if (isVideo && media.durationLabel != null)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _Pill(
+                    text: media.durationLabel!,
+                    bg: Colors.black.withValues(alpha: 0.4),
+                    fg: Colors.white,
+                  ),
+                ),
+              if (media.count > 1)
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: _Pill(
+                    text: '1/${media.count}',
+                    bg: Colors.black.withValues(alpha: 0.4),
+                    fg: Colors.white,
+                  ),
+                ),
+            ],
           ),
-          if (isVideo) const Center(child: _PlayButton()),
-          if (isLive)
-            Positioned(
-              top: 12,
-              left: 12,
-              child: _Pill(
-                text: 'LIVE',
-                bg: context.tokens.like,
-                fg: Colors.white,
-                icon: Icons.fiber_manual_record,
-              ),
-            )
-          else if (location != null)
-            Positioned(
-              top: 12,
-              left: 12,
-              child: _Pill(
-                text: location!,
-                bg: Colors.white.withValues(alpha: 0.82),
-                fg: context.tokens.text,
-                icon: Icons.place_outlined,
-              ),
-            ),
-          if (isVideo && media.durationLabel != null)
-            Positioned(
-              top: 12,
-              right: 12,
-              child: _Pill(
-                text: media.durationLabel!,
-                bg: Colors.black.withValues(alpha: 0.4),
-                fg: Colors.white,
-              ),
-            ),
-          if (media.count > 1)
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: _Pill(
-                text: '1/${media.count}',
-                bg: Colors.black.withValues(alpha: 0.4),
-                fg: Colors.white,
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -397,23 +426,26 @@ class _PlayButton extends StatelessWidget {
   const _PlayButton();
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 58,
-    height: 58,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.28),
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
-      boxShadow: <BoxShadow>[
-        BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 16),
-      ],
-    ),
-    child: const Padding(
-      padding: EdgeInsets.only(left: 4),
-      child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 34),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      width: 58,
+      height: 58,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: t.surface.withValues(alpha: 0.72),
+        shape: BoxShape.circle,
+        border: Border.all(color: t.borderStrong),
+        boxShadow: <BoxShadow>[
+          BoxShadow(color: t.bg.withValues(alpha: 0.15), blurRadius: 16),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Icon(Icons.play_arrow_rounded, color: t.text, size: 34),
+      ),
+    );
+  }
 }
 
 class _Pill extends StatelessWidget {

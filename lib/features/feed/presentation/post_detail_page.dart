@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/extensions/build_context_x.dart';
 import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
@@ -9,6 +10,7 @@ import '../../../domain/entities/post_comment.dart';
 import '../../../domain/entities/post_reaction.dart';
 import '../../profile/application/profile_providers.dart';
 import '../application/post_providers.dart';
+import 'video_player_page.dart';
 
 /// 게시물 하나를 열어 반응(좋아요)과 댓글을 함께 본다.
 class PostDetailPage extends ConsumerStatefulWidget {
@@ -174,12 +176,29 @@ class _PostSummary extends StatelessWidget {
           width: double.infinity,
           child: DecoratedBox(
             decoration: BoxDecoration(color: t.surface),
-            child: post.mediaUrl.isNotEmpty && !_isVideo
-                ? Image.network(
-                    post.mediaUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _placeholder(t),
-                  )
+            child: post.mediaUrl.isNotEmpty
+                ? _isVideo
+                      ? Semantics(
+                          button: true,
+                          label: context.l10n.videoPlay,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => VideoPlayerPage(
+                                  mediaUrl: post.mediaUrl,
+                                  isVideo: true,
+                                ),
+                              ),
+                            ),
+                            child: _placeholder(t),
+                          ),
+                        )
+                      : Image.network(
+                          post.mediaUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _placeholder(t),
+                        )
                 : _placeholder(t),
           ),
         ),
