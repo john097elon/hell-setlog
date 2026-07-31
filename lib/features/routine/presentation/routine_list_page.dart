@@ -91,6 +91,23 @@ class RoutineListPage extends ConsumerWidget {
     WidgetRef ref,
     Routine routine,
   ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text('‘${routine.name}’ 루틴을 삭제할까요?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
     final result = await ref
         .read(routineEditorControllerProvider)
         .deleteRoutine(routine.id);
@@ -98,7 +115,7 @@ class RoutineListPage extends ConsumerWidget {
     result.when(
       ok: (_) => ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.setDeleted))),
+      ).showSnackBar(const SnackBar(content: Text('루틴을 삭제했어요'))),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),

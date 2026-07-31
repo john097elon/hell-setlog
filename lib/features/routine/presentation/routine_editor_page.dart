@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/extensions/build_context_x.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/routine_item.dart';
+import '../../workout_log/application/exercise_name_provider.dart';
 import '../../workout_log/presentation/widgets/exercise_picker_sheet.dart';
 import '../application/routine_editor_controller.dart';
 import '../application/routine_providers.dart';
@@ -26,6 +28,24 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
     super.initState();
     _routineId = widget.routineId;
     _nameController = TextEditingController();
+    final id = _routineId;
+    if (id != null) _loadName(id);
+  }
+
+  /// 기존 루틴을 열면 이름 칸이 비어 있어 저장이 조용히 무시되던 문제를 막는다.
+  Future<void> _loadName(String routineId) async {
+    final result = await ref.read(routinesProvider.future);
+    if (!mounted) return;
+    result.when(
+      ok: (routines) {
+        for (final routine in routines) {
+          if (routine.id != routineId) continue;
+          _nameController.text = routine.name;
+          break;
+        }
+      },
+      err: (_) {},
+    );
   }
 
   @override
@@ -42,7 +62,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
         : ref.watch(routineItemsProvider(routineId));
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.record),
+        title: const Text('루틴 편집'),
         actions: <Widget>[
           TextButton(onPressed: _save, child: Text(context.l10n.save)),
         ],
@@ -52,7 +72,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
         children: <Widget>[
           TextField(
             controller: _nameController,
-            decoration: InputDecoration(labelText: context.l10n.record),
+            decoration: const InputDecoration(labelText: '루틴 이름'),
           ),
           const SizedBox(height: 16),
           if (items != null)
@@ -83,7 +103,12 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('루틴 이름을 입력해 주세요')));
+      return;
+    }
     final result = await ref
         .read(routineEditorControllerProvider)
         .saveRoutine(routineId: _routineId, name: name);
@@ -118,54 +143,62 @@ class _RoutineItemEditor extends ConsumerWidget {
   final RoutineItem item;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Card(
-    margin: const EdgeInsets.only(bottom: 12),
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(item.exerciseId, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              _NumberField(
-                value: item.targetSets,
-                label: context.l10n.setItem(item.targetSets),
-                onChanged: (value) =>
-                    _update(ref, item.copyWith(targetSets: value)),
-              ),
-              _NumberField(
-                value: item.targetReps,
-                label: context.l10n.completeSet,
-                onChanged: (value) =>
-                    _update(ref, item.copyWith(targetReps: value)),
-              ),
-              _NumberField(
-                value: item.targetWeight,
-                label: context.l10n.sampleSetDetails,
-                onChanged: (value) =>
-                    _update(ref, item.copyWith(targetWeight: value.toDouble())),
-              ),
-              IconButton(
-                onPressed: () =>
-                    ref.read(routineEditorControllerProvider).removeItem(item),
-                icon: const Icon(Icons.delete_outline),
-              ),
-            ],
-          ),
-        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 화면에 UUID가 그대로 보이던 자리. 이름을 못 찾으면 중립 라벨로 둔다.
+    final name =
+        ref.watch(exerciseNameProvider(item.exerciseId)).valueOrNull ?? '종목';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(name, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                _NumberField(
+                  value: item.targetSets,
+                  label: '세트',
+                  onChanged: (value) =>
+                      _update(ref, item.copyWith(targetSets: value)),
+                ),
+                _NumberField(
+                  value: item.targetReps,
+                  label: '횟수',
+                  onChanged: (value) =>
+                      _update(ref, item.copyWith(targetReps: value)),
+                ),
+                _NumberField(
+                  value: item.targetWeight,
+                  label: '무게(kg)',
+                  onChanged: (value) => _update(
+                    ref,
+                    item.copyWith(targetWeight: value.toDouble()),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => ref
+                      .read(routineEditorControllerProvider)
+                      .removeItem(item),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   void _update(WidgetRef ref, RoutineItem item) =>
       ref.read(routineEditorControllerProvider).updateItem(item);
 }
 
-class _NumberField extends StatelessWidget {
+class _NumberField extends StatefulWidget {
   const _NumberField({
     required this.value,
     required this.label,
@@ -176,16 +209,47 @@ class _NumberField extends StatelessWidget {
   final ValueChanged<int> onChanged;
 
   @override
+  State<_NumberField> createState() => _NumberFieldState();
+}
+
+class _NumberFieldState extends State<_NumberField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: '${widget.value.toInt()}',
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // 예전엔 엔터를 눌러야만 반영돼 값이 조용히 사라졌다. 칸을 벗어날 때도 저장한다.
+  void _commit() {
+    final parsed = int.tryParse(_controller.text.trim());
+    if (parsed == null || parsed < 0) {
+      _controller.text = '${widget.value.toInt()}';
+      return;
+    }
+    if (parsed == widget.value) return;
+    widget.onChanged(parsed);
+  }
+
+  @override
   Widget build(BuildContext context) => SizedBox(
     width: 112,
-    child: TextFormField(
-      initialValue: '$value',
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: label),
-      onFieldSubmitted: (text) {
-        final parsed = int.tryParse(text);
-        if (parsed != null && parsed >= 0) onChanged(parsed);
+    child: Focus(
+      onFocusChange: (hasFocus) {
+        if (!hasFocus) _commit();
       },
+      child: TextFormField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+        ],
+        decoration: InputDecoration(labelText: widget.label),
+        onFieldSubmitted: (_) => _commit(),
+      ),
     ),
   );
 }

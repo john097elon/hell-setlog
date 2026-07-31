@@ -10,6 +10,7 @@ import '../../../domain/entities/party_member.dart';
 import '../../../domain/entities/post.dart';
 import '../application/party_providers.dart';
 import 'widgets/party_chat_panel.dart';
+import '../../../core/formatting/app_format.dart';
 
 /// 파티 한 곳의 구성원과 활동을 보여준다.
 class PartyRoomPage extends ConsumerWidget {
@@ -285,7 +286,7 @@ class _Monogram extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    name.isEmpty ? '?' : name.characters.first,
+    initialOf(name),
     style: TextStyle(
       fontSize: 15,
       fontWeight: FontWeight.w700,

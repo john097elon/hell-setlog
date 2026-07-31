@@ -6,6 +6,9 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/workout_set.dart';
 
+/// 사람이 들 수 있는 범위. 오타로 볼륨 통계가 망가지지 않게 잘라 둔다.
+double _clampWeight(double value) => value.clamp(0, 999);
+
 /// 세트 한 줄. 커밋된 세트는 큰 정적 숫자로, 입력 중인 draft는 스텝퍼로 보여준다.
 class SetRow extends StatefulWidget {
   const SetRow({
@@ -114,9 +117,11 @@ class _SetRowState extends State<SetRow> {
                 ? _Stepper(
                     style: numberStyle,
                     onMinus: () => widget.onWeightChanged(
-                      (widget.weight - 2.5).clamp(0, double.infinity),
+                      _clampWeight(widget.weight - 2.5),
                     ),
-                    onPlus: () => widget.onWeightChanged(widget.weight + 2.5),
+                    onPlus: () => widget.onWeightChanged(
+                      _clampWeight(widget.weight + 2.5),
+                    ),
                     controller: _weightController,
                     inputType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -126,7 +131,9 @@ class _SetRowState extends State<SetRow> {
                     ],
                     onChanged: (value) {
                       final parsed = double.tryParse(value);
-                      if (parsed != null) widget.onWeightChanged(parsed);
+                      if (parsed != null) {
+                        widget.onWeightChanged(_clampWeight(parsed));
+                      }
                     },
                     fieldKey: const Key('set-weight-input'),
                   )

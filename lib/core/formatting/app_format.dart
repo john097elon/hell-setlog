@@ -1,4 +1,5 @@
 // 숫자/단위 표시 포맷. 화면 전역에서 일관된 표기를 위해 여기만 쓴다.
+import 'package:characters/characters.dart';
 
 /// 천단위 콤마. `12400` → `"12,400"`.
 String formatInt(num value) {
@@ -31,4 +32,10 @@ String formatCompactNumber(num value) {
   if (v >= 1000000) return '$sign${(v / 1000000).toStringAsFixed(1)}M';
   if (v >= 1000) return '$sign${(v / 1000).toStringAsFixed(1)}K';
   return '$sign${value.round()}';
+}
+
+/// 아바타에 넣을 첫 글자. 이름이 비어 있어도 던지지 않는다.
+String initialOf(String? name) {
+  final trimmed = name?.trim() ?? '';
+  return trimmed.isEmpty ? '?' : trimmed.characters.first;
 }

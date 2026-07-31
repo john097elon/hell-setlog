@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../remote/row_parse.dart';
@@ -269,35 +271,41 @@ class SupabasePartyRepository implements PartyRepository {
     }
   }
 
-  static String _code() => DateTime.now().microsecondsSinceEpoch
-      .toRadixString(36)
-      .toUpperCase()
-      .padLeft(6, '0')
-      .substring(0, 6);
+  // 앞자리가 타임스탬프였던 예전 방식은 같은 시각에 만든 파티끼리 코드가 겹치고
+  // 다음 코드도 추측 가능했다. 헷갈리는 0/O/1/I를 뺀 문자로 무작위 생성한다.
+  static const String _codeAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  static String _code() {
+    final random = Random.secure();
+    return List<String>.generate(
+      6,
+      (_) => _codeAlphabet[random.nextInt(_codeAlphabet.length)],
+    ).join();
+  }
+
   static Party _party(Map<String, Object?> r) => Party(
     id: rowString(r, 'id'),
     ownerId: rowString(r, 'owner_id'),
     name: rowString(r, 'name'),
-    maxMembers: (r['max_members'] as num).toInt(),
-    isPublic: r['is_public'] as bool,
+    maxMembers: rowInt(r, 'max_members') ?? 0,
+    isPublic: rowBool(r, 'is_public'),
     createdAt: rowDate(r, 'created_at'),
-    description: r['description'] as String?,
-    region: r['region'] as String?,
-    focus: r['focus'] as String?,
-    joinCode: r['join_code'] as String?,
+    description: rowStringOrNull(r, 'description'),
+    region: rowStringOrNull(r, 'region'),
+    focus: rowStringOrNull(r, 'focus'),
+    joinCode: rowStringOrNull(r, 'join_code'),
   );
   static PartyMessage _message(Map<String, Object?> r) => PartyMessage(
     id: rowString(r, 'id'),
     partyId: rowString(r, 'party_id'),
     userId: rowString(r, 'user_id'),
-    body: r['body'] as String,
+    body: rowString(r, 'body'),
     createdAt: rowDate(r, 'created_at'),
   );
   static Post _post(Map<String, Object?> r) => Post(
     id: rowString(r, 'id'),
     userId: rowString(r, 'user_id'),
-    caption: r['caption'] as String? ?? '',
-    mediaUrl: r['media_url'] as String,
+    caption: rowString(r, 'caption'),
+    mediaUrl: rowString(r, 'media_url'),
     mediaKind: r['media_kind'] == 'video'
         ? PostMediaKind.video
         : PostMediaKind.photo,

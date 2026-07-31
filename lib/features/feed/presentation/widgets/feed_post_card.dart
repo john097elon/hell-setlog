@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_tokens.dart';
 
 import '../../application/post_providers.dart';
 import '../comment_sheet.dart';
 import '../models/feed_post.dart';
 import 'post_actions_sheet.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 
 /// 인스타/스레드형 피드 카드. 미디어(영상·사진)를 히어로로 두고
 /// 그 아래 액션 → 운동 요약 → 캡션 순으로 쌓는다.
@@ -246,7 +246,7 @@ class _Avatar extends StatelessWidget {
         ),
       ),
       child: Text(
-        name.characters.first,
+        initialOf(name),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,

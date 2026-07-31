@@ -5,6 +5,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/post_comment.dart';
 import '../application/post_providers.dart';
+import '../../../core/formatting/app_format.dart';
 
 /// 게시물 댓글을 읽고 남기는 하단 시트를 연다.
 Future<void> showCommentSheet(BuildContext context, {required String postId}) =>
@@ -186,7 +187,7 @@ class _CommentTile extends StatelessWidget {
               border: Border.all(color: t.border),
             ),
             child: Text(
-              name.characters.first,
+              initialOf(name),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,

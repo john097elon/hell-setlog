@@ -9,6 +9,7 @@ import '../../exercise_db/application/exercise_providers.dart';
 import '../../exercise_db/presentation/exercise_detail_page.dart';
 import '../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
 import '../application/search_providers.dart';
+import '../../../core/formatting/app_format.dart';
 
 /// 사용자와 운동 종목을 한 화면에서 찾는다.
 class SearchPage extends ConsumerStatefulWidget {
@@ -134,7 +135,7 @@ class _UserTile extends StatelessWidget {
         ),
         child: (avatar ?? '').isEmpty
             ? Text(
-                user.nickname.isEmpty ? '?' : user.nickname.characters.first,
+                initialOf(user.nickname),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

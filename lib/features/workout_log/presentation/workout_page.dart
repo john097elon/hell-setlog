@@ -38,8 +38,8 @@ class WorkoutPage extends ConsumerStatefulWidget {
 class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   final Map<String, String> _selectedExerciseNames = <String, String>{};
   final Map<String, Exercise> _selectedExercises = <String, Exercise>{};
-  final Map<String, int> _extraDrafts = <String, int>{};
-  final Map<String, _SetDraft> _drafts = <String, _SetDraft>{};
+  // 종목별 입력 중인 세트 줄. 순서가 곧 화면 순서라 완료된 줄만 빼면 나머지 입력값이 남는다.
+  final Map<String, List<_SetDraft>> _drafts = <String, List<_SetDraft>>{};
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +152,9 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     for (final exerciseId in _selectedExerciseNames.keys) {
       grouped.putIfAbsent(exerciseId, () => <WorkoutSet>[]);
     }
+    for (final exerciseId in _drafts.keys) {
+      grouped.putIfAbsent(exerciseId, () => <WorkoutSet>[]);
+    }
     final entries = grouped.entries.toList(growable: false);
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
@@ -195,13 +198,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
             equipment: exercise?.equipment ?? Equipment.other,
             thumbnailUrl: exercise?.thumbnailUrl,
             setRows: _rowsFor(session, entry.key, entry.value),
-            onAddSet: () => setState(() {
-              _extraDrafts.update(
-                entry.key,
-                (count) => count + 1,
-                ifAbsent: () => 1,
-              );
-            }),
+            onAddSet: () => setState(() => _addDraft(entry.key, entry.value)),
           ),
         );
       },
@@ -228,16 +225,13 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         ),
       );
     }
-    final count = _extraDrafts[exerciseId] ?? 0;
-    final prefill = prefillForExercise(sets, exerciseId);
-    for (var index = 0; index < count; index++) {
-      final key = '$exerciseId-$index';
-      final draft = _drafts.putIfAbsent(
-        key,
-        () => _SetDraft(prefill.weight, prefill.reps),
-      );
+    final drafts = _drafts[exerciseId] ?? const <_SetDraft>[];
+    for (var index = 0; index < drafts.length; index++) {
+      final draft = drafts[index];
       rows.add(
         SetRow(
+          // 줄이 사라져도 입력값이 섞이지 않도록 draft 객체를 키로 쓴다.
+          key: ObjectKey(draft),
           index: sets.length + index,
           weight: draft.weight,
           reps: draft.reps,
@@ -250,14 +244,21 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     return rows;
   }
 
+  void _addDraft(String exerciseId, List<WorkoutSet> sets) {
+    final prefill = prefillForExercise(sets, exerciseId);
+    _drafts
+        .putIfAbsent(exerciseId, () => <_SetDraft>[])
+        .add(_SetDraft(prefill.weight, prefill.reps));
+  }
+
   void _pickExercise(List<WorkoutSet> sets) =>
       showExercisePickerSheet(context, (Exercise exercise) {
         _selectedExerciseNames[exercise.id] = exercise.nameKo;
         _selectedExercises[exercise.id] = exercise;
-        final prefill = prefillForExercise(sets, exercise.id);
-        _drafts['${exercise.id}-0'] = _SetDraft(prefill.weight, prefill.reps);
         // 종목 추가 시 기록할 첫 세트 한 줄을 보여준다.
-        _extraDrafts[exercise.id] = 1;
+        if (_drafts[exercise.id]?.isEmpty ?? true) {
+          _addDraft(exercise.id, sets);
+        }
         setState(() {});
       });
 
@@ -276,12 +277,10 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         );
     if (!mounted) return;
     result.when(
-      ok: (_) => setState(() {
-        _drafts.removeWhere((_, value) => identical(value, draft));
-        // 완료된 세트는 커밋되어 목록에 남으므로 draft 한 줄을 줄인다.
-        final remaining = (_extraDrafts[exerciseId] ?? 1) - 1;
-        _extraDrafts[exerciseId] = remaining < 0 ? 0 : remaining;
-      }),
+      // 완료된 세트는 커밋되어 목록에 남으므로 해당 draft 한 줄만 걷어낸다.
+      ok: (_) => setState(
+        () => _drafts[exerciseId]?.removeWhere((row) => identical(row, draft)),
+      ),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),
@@ -337,6 +336,12 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     if (!mounted) return;
     result.when(
       ok: (_) {
+        // 다음 세션에 지난 종목·입력 줄이 남아 보이지 않게 화면 상태를 비운다.
+        setState(() {
+          _selectedExerciseNames.clear();
+          _selectedExercises.clear();
+          _drafts.clear();
+        });
         ref.invalidate(activeSessionProvider);
         showShareWorkoutSheet(
           context,

@@ -11,6 +11,7 @@ import '../../../domain/entities/post.dart';
 import '../../../domain/entities/user_profile.dart';
 import '../../auth/application/auth_service.dart';
 import '../application/profile_providers.dart';
+import '../../../core/formatting/app_format.dart';
 
 /// The signed-in user's profile, avatar editor, and personal post grid.
 class MyProfilePage extends ConsumerStatefulWidget {
@@ -253,7 +254,7 @@ class _Avatar extends StatelessWidget {
                   : profile.avatarUrl?.isNotEmpty == true
                   ? null
                   : Text(
-                      profile.nickname.characters.first,
+                      initialOf(profile.nickname),
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.w700,

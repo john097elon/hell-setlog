@@ -5,6 +5,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/app_notification.dart';
 import '../application/notification_providers.dart';
+import '../../../core/formatting/app_format.dart';
 
 /// 좋아요·댓글·팔로우·파티 참여 알림을 모아 보여준다.
 class NotificationsPage extends ConsumerStatefulWidget {
@@ -65,7 +66,9 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final actor = item.actorName ?? '회원';
+    // 닉네임이 빈 문자열로 오면 characters.first가 던지므로 여기서 막는다.
+    final name = item.actorName?.trim() ?? '';
+    final actor = name.isEmpty ? '회원' : name;
     final avatar = item.actorAvatarUrl;
     return Container(
       color: item.isUnread ? t.brand.withValues(alpha: 0.04) : null,
@@ -82,7 +85,7 @@ class _NotificationTile extends StatelessWidget {
           ),
           child: (avatar ?? '').isEmpty
               ? Text(
-                  actor.characters.first,
+                  initialOf(actor),
                   style: TextStyle(fontWeight: FontWeight.w700, color: t.text),
                 )
               : Image.network(

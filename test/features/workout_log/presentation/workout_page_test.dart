@@ -84,6 +84,84 @@ void main() {
     verify(() => workoutRepository.completeSet('draft')).called(1);
   });
 
+  testWidgets('앞 세트를 완료해도 뒤 세트에 입력한 값이 남는다', (tester) async {
+    final workoutRepository = _MockWorkoutRepository();
+    final added = recordedSet.copyWith(id: 'draft', isCompleted: false);
+    when(
+      () => workoutRepository.addSet(
+        sessionId: any(named: 'sessionId'),
+        exerciseId: any(named: 'exerciseId'),
+        weight: any(named: 'weight'),
+        reps: any(named: 'reps'),
+        rpe: any(named: 'rpe'),
+        isWarmup: any(named: 'isWarmup'),
+        restSeconds: any(named: 'restSeconds'),
+      ),
+    ).thenAnswer((_) async => Ok(added));
+    when(
+      () => workoutRepository.completeSet(
+        any(),
+        completed: any(named: 'completed'),
+      ),
+    ).thenAnswer((_) async => Ok(added.copyWith(isCompleted: true)));
+    await _pumpPage(tester, workoutRepository, session, [recordedSet]);
+
+    await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
+    await tester.pump();
+
+    final weightFields = find.byKey(const Key('set-weight-input'));
+    expect(weightFields, findsNWidgets(2));
+    await tester.enterText(weightFields.last, '100');
+    await tester.pump();
+
+    // 첫 draft 줄 완료. 기록된 세트가 index 0이므로 draft는 1번부터다.
+    await tester.tap(find.byKey(const Key('complete-set')).at(1));
+    await tester.pumpAndSettle();
+
+    final remaining = tester.widget<TextField>(
+      find.byKey(const Key('set-weight-input')),
+    );
+    expect(remaining.controller?.text, '100');
+  });
+
+  testWidgets('운동을 끝내면 추가했던 종목이 다음 세션에 남지 않는다', (tester) async {
+    final workoutRepository = _MockWorkoutRepository();
+    final exerciseRepository = _MockExerciseRepository();
+    const squat = Exercise(
+      id: 'squat-id',
+      name: 'Squat',
+      nameKo: '스쿼트',
+      muscleGroup: MuscleGroup.legs,
+      equipment: Equipment.barbell,
+    );
+    when(
+      () => exerciseRepository.search(
+        query: any(named: 'query'),
+        muscleGroup: any(named: 'muscleGroup'),
+        equipment: any(named: 'equipment'),
+      ),
+    ).thenAnswer((_) async => const Ok([squat]));
+    when(
+      () => workoutRepository.endSession(any()),
+    ).thenAnswer((_) async => Ok(session));
+    await _pumpPage(tester, workoutRepository, session, [
+      recordedSet,
+    ], exerciseRepository: exerciseRepository);
+
+    await tester.tap(find.byKey(const Key('add-exercise')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('스쿼트'));
+    await tester.pumpAndSettle();
+    expect(find.text('스쿼트'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('finish-workout')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('스쿼트'), findsNothing);
+  });
+
   testWidgets('adds an exercise through the picker', (tester) async {
     final workoutRepository = _MockWorkoutRepository();
     final exerciseRepository = _MockExerciseRepository();
