@@ -1,5 +1,5 @@
 /// 알림 종류. 문구는 화면에서 종류에 맞춰 만든다.
-enum NotificationKind { like, comment, follow, partyJoin, unknown }
+enum NotificationKind { like, comment, follow, partyJoin, evolution, unknown }
 
 /// 사용자에게 도착한 알림 한 건.
 class AppNotification {
@@ -36,5 +36,6 @@ NotificationKind notificationKindFrom(String? raw) => switch (raw) {
   'comment' => NotificationKind.comment,
   'follow' => NotificationKind.follow,
   'party_join' => NotificationKind.partyJoin,
+  'evolution' => NotificationKind.evolution,
   _ => NotificationKind.unknown,
 };

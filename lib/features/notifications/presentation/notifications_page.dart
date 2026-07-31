@@ -141,6 +141,7 @@ class _NotificationTile extends StatelessWidget {
     NotificationKind.comment => '댓글을 남겼습니다.',
     NotificationKind.follow => '회원님을 팔로우합니다.',
     NotificationKind.partyJoin => '파티에 참여했습니다.',
+    NotificationKind.evolution => '캐릭터가 진화했습니다.',
     NotificationKind.unknown => '활동을 남겼습니다.',
   };
 
