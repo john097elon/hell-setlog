@@ -232,5 +232,17 @@
   "recording": "녹화 중",
   "shareCaptionHint": "운동 소감을 남겨보세요",
   "shareToFeed": "피드에 공유",
-  "workoutSharedMock": "피드에 공유됨 (mock)"
+  "workoutSharedMock": "피드에 공유됨 (mock)",
+  "videoLoading": "영상 불러오는 중",
+  "videoPlaybackError": "영상을 재생할 수 없습니다. URL 또는 코덱을 확인해 주세요.",
+  "videoPlay": "재생",
+  "videoPause": "일시정지",
+  "videoRemainingTime": "남은 시간 {time}",
+  "@videoRemainingTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

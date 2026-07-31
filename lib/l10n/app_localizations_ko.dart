@@ -658,4 +658,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get workoutSharedMock => '피드에 공유됨 (mock)';
+
+  @override
+  String get videoLoading => '영상 불러오는 중';
+
+  @override
+  String get videoPlaybackError => '영상을 재생할 수 없습니다. URL 또는 코덱을 확인해 주세요.';
+
+  @override
+  String get videoPlay => '재생';
+
+  @override
+  String get videoPause => '일시정지';
+
+  @override
+  String videoRemainingTime(String time) {
+    return '남은 시간 $time';
+  }
 }
