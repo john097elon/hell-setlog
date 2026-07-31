@@ -135,8 +135,16 @@ class StatsRepositoryImpl implements StatsRepository {
     }
   }
 
-  DateTime _cutoff(int days) =>
-      DateTime.now().subtract(Duration(days: days - 1));
+  // 날짜 단위 집계라 자정 기준으로 잘라야 첫날 오전 기록이 빠지지 않는다.
+  DateTime _cutoff(int days) {
+    final now = DateTime.now();
+    return DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: days - 1));
+  }
+
   double _max(double left, double right) => left > right ? left : right;
   bool _isWorkingSet(WorkoutSet set) =>
       set.isCompleted && !set.isWarmup && set.deletedAt == null;

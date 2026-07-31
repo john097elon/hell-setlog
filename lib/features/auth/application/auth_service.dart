@@ -10,7 +10,11 @@ abstract class AuthService {
     required String password,
   });
 
-  Future<void> signUp({required String email, required String password});
+  Future<void> signUp({
+    required String email,
+    required String password,
+    String? nickname,
+  });
 
   Future<void> signOut();
 
@@ -43,8 +47,19 @@ class SupabaseAuthService implements AuthService {
   Future<void> signOut() => _client.auth.signOut();
 
   @override
-  Future<void> signUp({required String email, required String password}) async {
-    await _client.auth.signUp(email: email, password: password);
+  Future<void> signUp({
+    required String email,
+    required String password,
+    String? nickname,
+  }) async {
+    // 닉네임을 사용자 메타데이터로 넘겨야 프로필 생성 때 쓸 수 있다.
+    await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: (nickname == null || nickname.isEmpty)
+          ? null
+          : <String, Object?>{'nickname': nickname},
+    );
   }
 }
 
@@ -71,6 +86,7 @@ class LocalStubAuthService implements AuthService {
   Future<void> signUp({
     required String email,
     required String password,
+    String? nickname,
   }) async {}
 }
 

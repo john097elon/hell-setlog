@@ -17,4 +17,18 @@ class Party {
   final int maxMembers, memberCount;
   final bool isPublic;
   final DateTime createdAt;
+
+  Party copyWith({int? memberCount}) => Party(
+    id: id,
+    ownerId: ownerId,
+    name: name,
+    maxMembers: maxMembers,
+    isPublic: isPublic,
+    createdAt: createdAt,
+    description: description,
+    region: region,
+    focus: focus,
+    joinCode: joinCode,
+    memberCount: memberCount ?? this.memberCount,
+  );
 }

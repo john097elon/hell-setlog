@@ -2,6 +2,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 카메라·마이크는 촬영에만 쓴다. 없다고 설치 대상에서 빠지면 안 된다. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <application
         android:label="헬셋로그"
         android:name="${applicationName}"

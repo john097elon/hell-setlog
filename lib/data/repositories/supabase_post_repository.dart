@@ -17,6 +17,8 @@ import '../../domain/repositories/post_repository.dart';
 class SupabasePostRepository implements PostRepository {
   SupabasePostRepository(this._client, {this._uuid = const Uuid()});
 
+  static const String _mediaBucket = 'post-media';
+
   final SupabaseClient? _client;
   final Uuid _uuid;
 
@@ -104,8 +106,8 @@ class SupabasePostRepository implements PostRepository {
         final fileName =
             '${_uuid.v4()}.${extension.isEmpty ? 'jpg' : extension}';
         final storagePath = '$userId/$fileName';
-        await client.storage.from('post-media').upload(storagePath, media);
-        mediaUrl = client.storage.from('post-media').getPublicUrl(storagePath);
+        await client.storage.from(_mediaBucket).upload(storagePath, media);
+        mediaUrl = client.storage.from(_mediaBucket).getPublicUrl(storagePath);
       }
       final row = Map<String, Object?>.from(
         await client
@@ -234,7 +236,7 @@ class SupabasePostRepository implements PostRepository {
     try {
       final post = await client
           .from('posts')
-          .select('id')
+          .select('id, media_url')
           .eq('id', postId)
           .eq('user_id', userId)
           .maybeSingle();
@@ -246,6 +248,17 @@ class SupabasePostRepository implements PostRepository {
           .delete()
           .eq('id', postId)
           .eq('user_id', userId);
+      // 행만 지우면 공개 URL로 사진이 계속 열린다. 저장소 파일도 함께 지운다.
+      final storagePath = _storagePathOf(
+        rowString(Map<String, Object?>.from(post), 'media_url'),
+      );
+      if (storagePath != null) {
+        try {
+          await client.storage.from(_mediaBucket).remove(<String>[storagePath]);
+        } on Exception {
+          // 파일 정리 실패가 삭제 자체를 되돌리지는 않는다.
+        }
+      }
       return const Ok(null);
     } on Exception catch (error) {
       return Err(DatabaseFailure('게시물을 삭제하지 못했습니다. $error'));
@@ -434,6 +447,18 @@ class SupabasePostRepository implements PostRepository {
     return {
       for (final row in rows as List) (row as Map)['blocked_id'] as String,
     };
+  }
+
+  /// 공개 URL에서 버킷 뒤의 저장 경로만 떼어낸다. 다른 형식이면 건드리지 않는다.
+  static String? _storagePathOf(String publicUrl) {
+    if (publicUrl.isEmpty) return null;
+    final marker = '/$_mediaBucket/';
+    final index = publicUrl.indexOf(marker);
+    if (index < 0) return null;
+    final path = Uri.decodeComponent(
+      publicUrl.substring(index + marker.length).split('?').first,
+    );
+    return path.isEmpty ? null : path;
   }
 
   static Post _post(Map<String, Object?> row) => Post(

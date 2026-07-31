@@ -62,6 +62,27 @@ void main() {
     expect(await repository.watchSets(session.id).first, isEmpty);
   });
 
+  test('삭제한 세트를 되살리면 목록에 다시 나타난다', () async {
+    final session = _session(await repository.startSession());
+    final created = _set(
+      await repository.addSet(
+        sessionId: session.id,
+        exerciseId: 'bench',
+        weight: 100,
+        reps: 5,
+      ),
+    );
+    await repository.deleteSet(created.id);
+    expect(await repository.watchSets(session.id).first, isEmpty);
+
+    // 스낵바의 되돌리기가 하는 일. deletedAt을 실제로 비워야 한다.
+    await repository.updateSet(created.copyWith(clearDeletedAt: true));
+
+    final restored = await repository.watchSets(session.id).first;
+    expect(restored.length, 1);
+    expect(restored.single.deletedAt, isNull);
+  });
+
   test('ends with completed working-set volume', () async {
     final session = _session(await repository.startSession());
     final working = _set(

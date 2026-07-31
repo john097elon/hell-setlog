@@ -19,12 +19,14 @@ class RegisterPage extends ConsumerStatefulWidget {
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _nicknameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
+    _nicknameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -43,6 +45,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           .signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            nickname: _nicknameController.text.trim(),
           );
       if (!mounted) return;
       if (ref.read(authServiceProvider).currentUserId != null) {
@@ -105,6 +108,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
+                      controller: _nicknameController,
                       decoration: InputDecoration(labelText: copy.nickname),
                       validator: _required,
                     ),

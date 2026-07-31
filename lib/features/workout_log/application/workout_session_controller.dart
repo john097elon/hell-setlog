@@ -81,7 +81,7 @@ class WorkoutSessionController {
       _repository.deleteSet(setId);
 
   Future<Result<WorkoutSet, Failure>> restoreSet(WorkoutSet set) =>
-      _repository.updateSet(set.copyWith(deletedAt: null));
+      _repository.updateSet(set.copyWith(clearDeletedAt: true));
 }
 
 /// Values used for the next set row, copied from the most recent set.

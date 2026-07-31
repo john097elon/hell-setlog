@@ -11,6 +11,7 @@ import 'package:heal_setlog/features/settings/presentation/widgets/setting_row.d
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_section.dart';
 import 'package:heal_setlog/features/settings/presentation/widgets/setting_toggle.dart';
 import 'package:heal_setlog/features/auth/application/auth_service.dart';
+import 'package:heal_setlog/features/auth/application/session_controller.dart';
 import 'package:heal_setlog/features/help/presentation/help_page.dart';
 
 /// In-memory settings and profile mock shown from the profile tab.
@@ -162,7 +163,7 @@ class SettingsPage extends ConsumerWidget {
                 SettingRow(
                   title: copy.settingsLogout,
                   onTap: () async {
-                    await authService.signOut();
+                    await ref.read(sessionControllerProvider).signOut();
                     if (context.mounted) context.go('/login');
                   },
                 ),

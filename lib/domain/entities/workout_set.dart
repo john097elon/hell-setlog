@@ -50,6 +50,8 @@ class WorkoutSet {
     DateTime? updatedAt,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
+    // 삭제 취소는 deletedAt을 실제로 비워야 한다. `deletedAt: null`만으로는 지워지지 않는다.
+    bool clearDeletedAt = false,
   }) => WorkoutSet(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -63,7 +65,7 @@ class WorkoutSet {
     restSeconds: restSeconds ?? this.restSeconds,
     completedAt: completedAt ?? this.completedAt,
     updatedAt: updatedAt ?? this.updatedAt,
-    deletedAt: deletedAt ?? this.deletedAt,
+    deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     syncStatus: syncStatus ?? this.syncStatus,
   );
 }

@@ -34,7 +34,12 @@ class SupabaseProfileRepository implements ProfileRepository {
           .eq('user_id', user.id)
           .maybeSingle();
       if (row != null) return Ok(_profile(Map<String, Object?>.from(row)));
-      final nickname = user.email?.split('@').first ?? '회원';
+      // 가입 때 입력한 닉네임을 우선 쓰고, 없을 때만 이메일 앞부분으로 채운다.
+      final signUpNickname = (user.userMetadata?['nickname'] as String?)
+          ?.trim();
+      final nickname = (signUpNickname?.isNotEmpty ?? false)
+          ? signUpNickname!
+          : (user.email?.split('@').first ?? '회원');
       final created = await client
           .from('profiles')
           .upsert({'user_id': user.id, 'nickname': nickname})

@@ -72,6 +72,7 @@ class _SignedInAuthService implements AuthService {
   Future<void> signUp({
     required String email,
     required String password,
+    String? nickname,
   }) async {}
 }
 

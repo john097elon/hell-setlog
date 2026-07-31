@@ -49,7 +49,20 @@ class SupabasePartyRepository implements PartyRepository {
           )
           .map(_party)
           .toList();
-      return Ok(values);
+      // 목록에 항상 0명으로 뜨던 자리. 인원수를 한 번의 질의로 모아 채운다.
+      final counts = await _memberCounts(
+        c,
+        values.map((party) => party.id).toList(growable: false),
+      );
+      return Ok(
+        values
+            .map(
+              (party) => party.copyWith(
+                memberCount: counts[party.id] ?? party.memberCount,
+              ),
+            )
+            .toList(growable: false),
+      );
     } on Exception catch (e) {
       return Err(DatabaseFailure('$e'));
     }
@@ -280,6 +293,30 @@ class SupabasePartyRepository implements PartyRepository {
       6,
       (_) => _codeAlphabet[random.nextInt(_codeAlphabet.length)],
     ).join();
+  }
+
+  /// 파티별 인원수. 정책상 읽을 수 없는 파티는 결과에서 빠진다.
+  static Future<Map<String, int>> _memberCounts(
+    SupabaseClient client,
+    List<String> partyIds,
+  ) async {
+    if (partyIds.isEmpty) return <String, int>{};
+    try {
+      final rows = rowList(
+        await client
+            .from('party_members')
+            .select('party_id')
+            .inFilter('party_id', partyIds),
+      );
+      final counts = <String, int>{};
+      for (final row in rows) {
+        final id = rowString(row, 'party_id');
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+      return counts;
+    } on Exception {
+      return <String, int>{};
+    }
   }
 
   static Party _party(Map<String, Object?> r) => Party(

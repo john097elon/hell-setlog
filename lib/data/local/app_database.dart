@@ -63,6 +63,18 @@ class AppDatabase extends _$AppDatabase {
       }
     },
   );
+
+  /// 로그아웃 시 이 기기에 남은 개인 기록을 지운다. 계정이 바뀌어도 로컬 DB는
+  /// 그대로 남아 다음 사용자가 이전 사용자의 루틴과 운동을 보게 되기 때문이다.
+  /// 기본 제공 종목(seed)은 남기고 사용자가 만든 종목만 지운다.
+  Future<void> clearUserData() => transaction(() async {
+    await delete(workoutSets).go();
+    await delete(workoutSessions).go();
+    await delete(routineItems).go();
+    await delete(routines).go();
+    await delete(personalRecords).go();
+    await (delete(exercises)..where((row) => row.isCustom.equals(true))).go();
+  });
 }
 
 LazyDatabase _openConnection() => LazyDatabase(() async {
