@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
+import '../../domain/entities/character_identity.dart';
 import '../../domain/entities/party.dart';
 import '../../domain/entities/party_member.dart';
 import '../../domain/entities/party_mission.dart';
@@ -173,7 +174,9 @@ class SupabasePartyRepository implements PartyRepository {
     try {
       final rows = await c
           .from('party_members')
-          .select('user_id,role,joined_at,profiles(nickname,avatar_url)')
+          .select(
+            'user_id,role,joined_at,profiles(nickname,avatar_url,character_name,character_species,character_level,character_stage)',
+          )
           .eq('party_id', partyId);
       return Ok(
         rowList(rows).map((m) {
@@ -189,6 +192,22 @@ class SupabasePartyRepository implements PartyRepository {
                 : rowStringOrNull(profile, 'avatar_url'),
             role: rowString(m, 'role', fallback: 'member'),
             joinedAt: rowDate(m, 'joined_at'),
+            characterName: profile == null
+                ? null
+                : rowStringOrNull(profile, 'character_name'),
+            characterSpecies: profile == null
+                ? null
+                : (rowStringOrNull(profile, 'character_species') == null
+                      ? null
+                      : speciesFrom(
+                          rowStringOrNull(profile, 'character_species'),
+                        )),
+            characterLevel: profile == null
+                ? null
+                : rowInt(profile, 'character_level'),
+            characterStage: profile == null
+                ? null
+                : rowInt(profile, 'character_stage'),
           );
         }).toList(),
       );
@@ -393,6 +412,53 @@ class SupabasePartyRepository implements PartyRepository {
       return const Ok(null);
     } on Exception catch (e) {
       return Err(DatabaseFailure('파티에 기록을 남기지 못했습니다: $e'));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> updateWeeklyGoal(
+    String partyId,
+    int? goalSessions,
+  ) async {
+    final c = _client;
+    final u = _userId;
+    if (c == null || u == null) return Err(_authFailure);
+    try {
+      // 목표 변경은 파티장만 할 수 있다. RLS가 다시 막아 준다.
+      await c
+          .from('parties')
+          .update(<String, Object?>{'weekly_goal': goalSessions})
+          .eq('id', partyId)
+          .eq('owner_id', u);
+      return const Ok(null);
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('목표를 저장하지 못했습니다: $e'));
+    }
+  }
+
+  /// 내 캐릭터 성장 수치를 프로필에 남긴다. 파티원이 보기 위한 값이다.
+  @override
+  Future<Result<void, Failure>> publishCharacterStats({
+    required int level,
+    required int stage,
+    required int xp,
+  }) async {
+    final c = _client;
+    final u = _userId;
+    if (c == null || u == null) return Err(_authFailure);
+    try {
+      await c
+          .from('profiles')
+          .update(<String, Object?>{
+            'character_level': level,
+            'character_stage': stage,
+            'character_xp': xp,
+            'character_updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('user_id', u);
+      return const Ok(null);
+    } on Exception catch (e) {
+      return Err(DatabaseFailure('$e'));
     }
   }
 

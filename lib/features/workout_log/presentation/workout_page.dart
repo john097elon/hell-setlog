@@ -428,9 +428,19 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   /// 내가 속한 파티들에 이번 운동을 남긴다. 실패해도 종료를 막지 않는다.
   Future<void> _recordToParties(String sessionId, double volume, int xp) async {
     try {
-      await ref
-          .read(partyRepositoryProvider)
-          .recordActivity(sessionId: sessionId, volumeKg: volume, xp: xp);
+      final repository = ref.read(partyRepositoryProvider);
+      await repository.recordActivity(
+        sessionId: sessionId,
+        volumeKg: volume,
+        xp: xp,
+      );
+      // 파티원이 내 캐릭터를 볼 수 있게 성장 수치도 올린다.
+      final growth = await ref.read(characterGrowthProvider.future);
+      await repository.publishCharacterStats(
+        level: growth.totalLevel,
+        stage: growth.evolutionStage,
+        xp: growth.totalXp,
+      );
       ref.invalidate(myPartiesProvider);
     } on Object {
       // 네트워크가 없으면 다음 기회에 올린다.

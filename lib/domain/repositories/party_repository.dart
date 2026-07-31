@@ -28,6 +28,21 @@ abstract class PartyRepository {
         const Err(DatabaseFailure('미션을 불러올 수 없습니다')),
       );
 
+  /// 파티 주간 목표를 정한다. null이면 인원수 기준 자동값으로 돌아간다.
+  Future<Result<void, Failure>> updateWeeklyGoal(
+    String partyId,
+    int? goalSessions,
+  ) => Future<Result<void, Failure>>.value(
+    const Err(DatabaseFailure('목표를 저장할 수 없습니다')),
+  );
+
+  /// 파티원에게 보여줄 내 캐릭터 수치를 올린다.
+  Future<Result<void, Failure>> publishCharacterStats({
+    required int level,
+    required int stage,
+    required int xp,
+  }) => Future<Result<void, Failure>>.value(const Ok(null));
+
   /// 끝낸 운동을 내가 속한 파티들에 기록한다. 이미 올린 세션은 무시된다.
   Future<Result<void, Failure>> recordActivity({
     required String sessionId,
