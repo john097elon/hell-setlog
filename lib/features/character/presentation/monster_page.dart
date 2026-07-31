@@ -1,253 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:heal_setlog/core/extensions/build_context_x.dart';
-import 'package:heal_setlog/core/formatting/app_format.dart';
-import 'package:heal_setlog/core/theme/app_theme.dart';
-import 'package:heal_setlog/core/theme/app_tokens.dart';
-import 'package:heal_setlog/core/widgets/app_states.dart';
-import 'package:heal_setlog/domain/entities/exercise.dart';
-import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
-import 'package:heal_setlog/features/character/application/character_providers.dart';
-import 'package:heal_setlog/features/character/presentation/models/monster_view_data.dart';
-import 'package:heal_setlog/features/character/presentation/widgets/monster_stat_grid.dart';
 
-const _muscleGroups = <MuscleGroup>[
-  MuscleGroup.chest,
-  MuscleGroup.back,
-  MuscleGroup.shoulders,
-  MuscleGroup.legs,
-  MuscleGroup.arms,
-  MuscleGroup.core,
-];
-const _muscleLabels = <MuscleGroup, String>{
-  MuscleGroup.chest: '가슴',
-  MuscleGroup.back: '등',
-  MuscleGroup.shoulders: '어깨',
-  MuscleGroup.legs: '하체',
-  MuscleGroup.arms: '팔',
-  MuscleGroup.core: '코어',
-};
-const _stageNames = <String>['새싹 냥', '튼튼 냥', '근육 냥', '타이탄 냥', '냥관왕'];
-const _stageAssets = <String>[
-  'assets/character/stage1_nyaongi.png',
-  'assets/character/stage2_geunnyangi.png',
-  'assets/character/stage3_musclecat.png',
-  'assets/character/stage4_titannyang.png',
-  'assets/character/stage5_nyagwanwang.png',
-];
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_states.dart';
+import '../../../domain/usecases/calculate_character_growth.dart';
+import '../application/character_providers.dart';
+import 'widgets/growth_view.dart';
 
-/// Displays character evolution derived from locally recorded workouts.
-class MonsterPage extends StatelessWidget {
-  const MonsterPage({this.data = monsterMockViewData, super.key});
-
-  final MonsterViewData data;
+/// 기록한 운동에서 자란 캐릭터를 보여준다.
+class MonsterPage extends ConsumerWidget {
+  const MonsterPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    try {
-      ProviderScope.containerOf(context, listen: false);
-      return Consumer(
-        builder: (context, ref, _) {
-          final volumes = ref.watch(characterVolumesProvider);
-          return Scaffold(
-            body: volumes.when(
-              data: (data) => data.values.every((volume) => volume == 0)
-                  ? const _EmptyCharacter()
-                  : _GrowthContent(growth: calculateCharacterGrowth(data)),
-              loading: () => const AppLoading(),
-              error: (_, _) => const _CharacterError(),
-            ),
-          );
-        },
-      );
-    } on StateError {
-      return _LegacyMonster(data: data);
-    }
-  }
-}
-
-class _LegacyMonster extends StatelessWidget {
-  const _LegacyMonster({required this.data});
-
-  final MonsterViewData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final copy = context.l10n;
-    final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      children: <Widget>[
-        Text(copy.monsterMockName, style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          '${copy.level} ${data.level} · ${_bodyTypeLabel(context, data.bodyType)}',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: context.tokens.mutedText,
-          ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final growth = ref.watch(characterGrowthProvider);
+    return Scaffold(
+      backgroundColor: context.tokens.bg,
+      body: growth.when(
+        loading: () => const AppLoading(),
+        error: (_, _) => const AppEmptyState(
+          icon: Icons.pets_rounded,
+          title: '캐릭터 정보를 불러오지 못했습니다',
         ),
-        const SizedBox(height: AppSpacing.xl),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Center(
-              child: Image.asset(
-                data.stageAssetPath,
-                width: 192,
-                height: 192,
-                filterQuality: FilterQuality.none,
-                isAntiAlias: false,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(copy.monsterExperience, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: LinearProgressIndicator(
-                value: data.experienceProgress,
-                minHeight: 10,
-                color: context.tokens.brand,
-                backgroundColor: context.tokens.surface,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Text(
-              '${formatInt(data.experience)} / ${formatInt(data.experienceMaximum)}',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontFeatures: kTabularFigures,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        MonsterStatGrid(
-          stats: data.stats,
-          labelFor: (kind) => switch (kind) {
-            MonsterStatKind.arm => copy.monsterStatArm,
-            MonsterStatKind.leg => copy.monsterStatLeg,
-            MonsterStatKind.core => copy.monsterStatCore,
-            MonsterStatKind.endure => copy.monsterStatEndure,
-          },
-        ),
-      ],
+        data: (value) => value.totalXp == 0
+            ? const _EmptyCharacter()
+            : _GrowthContent(growth: value),
+      ),
     );
   }
-
-  String _bodyTypeLabel(BuildContext context, MonsterBodyType bodyType) =>
-      switch (bodyType) {
-        MonsterBodyType.upper => context.l10n.monsterBodyTypeUpper,
-        MonsterBodyType.lower => context.l10n.monsterBodyTypeLower,
-        MonsterBodyType.balanced => context.l10n.monsterBodyTypeBalanced,
-      };
 }
 
-class _GrowthContent extends StatelessWidget {
+class _GrowthContent extends ConsumerWidget {
   const _GrowthContent({required this.growth});
 
   final CharacterGrowth growth;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      children: <Widget>[
-        Text('캐릭터 성장', style: theme.textTheme.headlineMedium),
-        const SizedBox(height: AppSpacing.xl),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              children: <Widget>[
-                Image.asset(
-                  _stageAssets[growth.evolutionStage],
-                  width: 192,
-                  height: 192,
-                  filterQuality: FilterQuality.none,
-                  errorBuilder: (_, _, _) => Icon(
-                    Icons.fitness_center_rounded,
-                    size: 96,
-                    color: context.tokens.brand,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  _stageNames[growth.evolutionStage],
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '합산 레벨 ${growth.totalLevel}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontFeatures: kTabularFigures,
-                  ),
-                ),
-              ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tokens;
+    final seenLevel = ref.watch(seenCharacterLevelProvider).valueOrNull;
+    // 지난번에 본 레벨보다 올랐으면 한 번만 축하한다.
+    final gained = seenLevel == null ? 0 : growth.totalLevel - seenLevel;
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref
+          ..invalidate(characterVolumesProvider)
+          ..invalidate(characterWeeklyVolumesProvider);
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        children: <Widget>[
+          if (gained > 0)
+            LevelUpBanner(
+              gainedLevels: gained,
+              onDismiss: () => markCharacterLevelSeen(ref, growth.totalLevel),
+            ),
+          CharacterHero(growth: growth),
+          const SizedBox(height: AppSpacing.lg),
+          WeeklyGrowthStrip(growth: growth),
+          const SizedBox(height: AppSpacing.xxl),
+          Text(
+            '부위별 성장',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+              color: t.text,
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        Text('부위별 레벨', style: theme.textTheme.titleLarge),
-        const SizedBox(height: AppSpacing.md),
-        ..._muscleGroups.map(
-          (muscleGroup) => _MuscleLevelBar(
-            label: _muscleLabels[muscleGroup]!,
-            level: growth.levels[muscleGroup]!,
+          const SizedBox(height: AppSpacing.md),
+          for (final muscle in growth.muscles) MuscleGrowthBar(muscle: muscle),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '완료한 세트의 볼륨 100kg마다 1XP를 얻어요. 준비 세트는 빠집니다.',
+            style: TextStyle(fontSize: 12.5, color: t.faintText, height: 1.5),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          growth.nextEvolutionThreshold == null
-              ? '최고 단계에 도달했습니다'
-              : '다음 진화까지 레벨 ${growth.levelsUntilNextEvolution}',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: context.tokens.mutedText,
-            fontFeatures: kTabularFigures,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-}
-
-class _MuscleLevelBar extends StatelessWidget {
-  const _MuscleLevelBar({required this.label, required this.level});
-
-  final String label;
-  final int level;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Text(label, style: Theme.of(context).textTheme.titleMedium),
-            const Spacer(),
-            Text(
-              'Lv. $level',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontFeatures: kTabularFigures),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        LinearProgressIndicator(
-          value: level / 99,
-          minHeight: AppSpacing.sm,
-          color: context.tokens.brand,
-          backgroundColor: context.tokens.surface,
-        ),
-      ],
-    ),
-  );
 }
 
 class _EmptyCharacter extends StatelessWidget {
@@ -255,15 +87,8 @@ class _EmptyCharacter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const AppEmptyState(
-    icon: Icons.fitness_center_rounded,
-    title: '운동을 기록하면 캐릭터가 성장합니다',
+    icon: Icons.pets_rounded,
+    title: '운동을 기록하면 캐릭터가 자랍니다',
+    message: '세트를 완료할 때마다 부위별 경험치가 쌓여요.',
   );
-}
-
-class _CharacterError extends StatelessWidget {
-  const _CharacterError();
-
-  @override
-  Widget build(BuildContext context) =>
-      const Center(child: Text('캐릭터 성장 정보를 불러오지 못했습니다'));
 }

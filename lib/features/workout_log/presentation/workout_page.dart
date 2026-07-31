@@ -7,6 +7,8 @@ import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/exercise.dart';
+import '../../../domain/entities/personal_record.dart';
+import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../../domain/entities/routine.dart';
 import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
@@ -350,6 +352,19 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     );
   }
 
+  /// 이번 세션에서 세운 기록 중 대표 하나를 문구로 만든다.
+  String _prLabel(List<PersonalRecord> records) {
+    final oneRm = records.where((record) => record.type == PrType.oneRm);
+    final best = (oneRm.isNotEmpty ? oneRm : records).reduce(
+      (a, b) => a.value >= b.value ? a : b,
+    );
+    return switch (best.type) {
+      PrType.oneRm => '1RM ${formatWeight(best.value)}kg 신기록',
+      PrType.volume => '볼륨 ${formatWeight(best.value)}kg 신기록',
+      PrType.reps => '${best.value.round()}회 신기록',
+    };
+  }
+
   Future<void> _end(WorkoutSession session) async {
     // 종료 전 지표를 계산해 공유 시트에 넘긴다.
     final sets =
@@ -371,34 +386,55 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         .read(workoutSessionControllerProvider)
         .endSession(session.id);
     if (!mounted) return;
-    result.when(
-      ok: (_) {
-        // 다음 세션에 지난 종목·입력 줄이 남아 보이지 않게 화면 상태를 비운다.
-        setState(() {
-          _selectedExerciseNames.clear();
-          _selectedExercises.clear();
-          _drafts.clear();
-        });
-        ref
-          ..invalidate(activeSessionProvider)
-          // 종료했는데 통계와 캐릭터가 이전 값 그대로였다.
-          ..invalidate(weeklyVolumeProvider)
-          ..invalidate(bodyPartSplitProvider)
-          ..invalidate(characterVolumesProvider);
-        showShareWorkoutSheet(
-          context,
-          data: ShareViewData(
-            workoutTags: tags,
-            sessionId: session.id,
-            volumeKg: volume > 0 ? volume : null,
-            durationMin: minutes > 0 ? minutes : null,
-          ),
-        );
-      },
-      err: (failure) => ScaffoldMessenger.of(
+    final failure = result.when(ok: (_) => null, err: (value) => value);
+    if (failure != null) {
+      ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message))),
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
+    // 다음 세션에 지난 종목·입력 줄이 남아 보이지 않게 화면 상태를 비운다.
+    setState(() {
+      _selectedExerciseNames.clear();
+      _selectedExercises.clear();
+      _drafts.clear();
+    });
+    ref
+      ..invalidate(activeSessionProvider)
+      // 종료했는데 통계와 캐릭터가 이전 값 그대로였다.
+      ..invalidate(weeklyVolumeProvider)
+      ..invalidate(bodyPartSplitProvider)
+      ..invalidate(characterVolumesProvider)
+      ..invalidate(characterWeeklyVolumesProvider);
+    final prLabel = await _updatePersonalRecords(session.id);
+    if (!mounted) return;
+    final xp = xpForVolume(volume);
+    showShareWorkoutSheet(
+      context,
+      data: ShareViewData(
+        workoutTags: tags,
+        sessionId: session.id,
+        volumeKg: volume > 0 ? volume : null,
+        durationMin: minutes > 0 ? minutes : null,
+        prLabel: prLabel,
+        xp: xp > 0 ? xp : null,
+      ),
     );
+  }
+
+  /// 개인 기록을 갱신하고 대표 기록 문구를 돌려준다. 실패해도 종료를 막지 않는다.
+  Future<String?> _updatePersonalRecords(String sessionId) async {
+    try {
+      final records = await ref
+          .read(statsRepositoryProvider)
+          .updateRecordsForSession(sessionId);
+      return records.when(
+        ok: (values) => values.isEmpty ? null : _prLabel(values),
+        err: (_) => null,
+      );
+    } on Object {
+      return null;
+    }
   }
 }
 

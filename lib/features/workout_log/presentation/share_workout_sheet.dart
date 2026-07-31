@@ -51,6 +51,8 @@ class _ShareWorkoutSheetState extends ConsumerState<_ShareWorkoutSheet> {
           sessionId: widget.data.sessionId,
           volumeKg: widget.data.volumeKg,
           durationMin: widget.data.durationMin,
+          prLabel: widget.data.prLabel,
+          xp: widget.data.xp,
         );
     if (!mounted) return;
     setState(() => _sharing = false);
