@@ -474,6 +474,9 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       PrType.volume =>
         '볼륨 ${formatWeightWithUnit(best.value, unit: weightUnit)} 신기록',
       PrType.reps => '${best.value.round()}회 신기록',
+      PrType.distance => '${formatDistance(best.value)} 신기록',
+      PrType.duration => '${formatDuration(best.value.round())} 신기록',
+      PrType.speed => '페이스 ${formatPace(best.value)} 신기록',
     };
   }
 

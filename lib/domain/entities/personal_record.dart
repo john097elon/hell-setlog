@@ -1,6 +1,20 @@
 import 'workout_set.dart';
 
-enum PrType { oneRm, volume, reps }
+/// 개인 기록 종류. 종목에 따라 세우는 기록이 다르다.
+///
+/// 페이스는 낮을수록 좋아서 그대로 비교하면 최고 기록이 뒤집힌다. 그래서
+/// 속도(m/s)로 저장하고 화면에서만 페이스로 바꿔 보여준다.
+enum PrType { oneRm, volume, reps, distance, duration, speed }
+
+/// 화면에 쓰는 기록 이름.
+String prTypeLabel(PrType type) => switch (type) {
+  PrType.oneRm => '1RM',
+  PrType.volume => '볼륨',
+  PrType.reps => '최고 횟수',
+  PrType.distance => '최장 거리',
+  PrType.duration => '최장 시간',
+  PrType.speed => '최고 속도',
+};
 
 class PersonalRecord {
   const PersonalRecord({

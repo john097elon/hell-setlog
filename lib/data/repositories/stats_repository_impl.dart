@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
+import '../../domain/entities/discipline.dart';
 import '../../domain/entities/exercise.dart';
 import '../../domain/entities/personal_record.dart';
 import '../../domain/entities/workout_session.dart';
@@ -93,19 +94,17 @@ class StatsRepositoryImpl implements StatsRepository {
         byExercise.putIfAbsent(set.exerciseId, () => []).add(set);
       }
       final created = <PersonalRecord>[];
+      final exercises = await _dao.exercisesForIds(byExercise.keys);
+      final disciplines = <String, Discipline>{
+        for (final exercise in exercises)
+          exercise.id: Discipline.values[exercise.discipline],
+      };
       for (final entry in byExercise.entries) {
-        final values = <PrType, double>{
-          PrType.oneRm: entry.value
-              .map((set) => calculateOneRepMax(set.weight, set.reps).value)
-              .reduce(_max),
-          PrType.volume: entry.value.fold(
-            0,
-            (volume, set) => volume + set.weight * set.reps,
-          ),
-          PrType.reps: entry.value
-              .map((set) => set.reps.toDouble())
-              .reduce(_max),
-        };
+        final values = _recordValues(
+          disciplines[entry.key] ?? Discipline.strength,
+          entry.value,
+        );
+        if (values.isEmpty) continue;
         for (final value in values.entries) {
           final existing = await _dao.highestRecord(
             userId: session.userId,
@@ -146,6 +145,54 @@ class StatsRepositoryImpl implements StatsRepository {
   }
 
   double _max(double left, double right) => left > right ? left : right;
+
+  /// 종목이 세울 수 있는 기록만 계산한다. 러닝에 1RM은 의미가 없다.
+  Map<PrType, double> _recordValues(
+    Discipline discipline,
+    List<WorkoutSet> sets,
+  ) {
+    switch (trackingModeOf(discipline)) {
+      case TrackingMode.setsReps:
+        return <PrType, double>{
+          PrType.oneRm: sets
+              .map((set) => calculateOneRepMax(set.weight, set.reps).value)
+              .reduce(_max),
+          PrType.volume: sets.fold(
+            0,
+            (volume, set) => volume + set.weight * set.reps,
+          ),
+          PrType.reps: sets.map((set) => set.reps.toDouble()).reduce(_max),
+        };
+      case TrackingMode.distanceDuration:
+        final distances = sets
+            .map((set) => set.distanceMeters ?? 0)
+            .where((value) => value > 0);
+        final durations = sets
+            .map((set) => (set.durationSeconds ?? 0).toDouble())
+            .where((value) => value > 0);
+        // 페이스는 낮을수록 좋아서 속도로 뒤집어 저장한다.
+        final speeds = sets
+            .where(
+              (set) =>
+                  (set.distanceMeters ?? 0) > 0 &&
+                  (set.durationSeconds ?? 0) > 0,
+            )
+            .map((set) => set.distanceMeters! / set.durationSeconds!);
+        return <PrType, double>{
+          if (distances.isNotEmpty) PrType.distance: distances.reduce(_max),
+          if (durations.isNotEmpty) PrType.duration: durations.reduce(_max),
+          if (speeds.isNotEmpty) PrType.speed: speeds.reduce(_max),
+        };
+      case TrackingMode.durationIntensity:
+        final durations = sets
+            .map((set) => (set.durationSeconds ?? 0).toDouble())
+            .where((value) => value > 0);
+        return <PrType, double>{
+          if (durations.isNotEmpty) PrType.duration: durations.reduce(_max),
+        };
+    }
+  }
+
   bool _isWorkingSet(WorkoutSet set) =>
       set.isCompleted && !set.isWarmup && set.deletedAt == null;
 

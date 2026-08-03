@@ -44,6 +44,10 @@ class ExerciseDao extends DatabaseAccessor<AppDatabase>
     exercises,
   )..where((table) => table.id.equals(id))).getSingleOrNull();
 
+  /// 사용자가 만든 종목만 지운다. 호출 쪽에서 기본 종목인지 먼저 본다.
+  Future<void> deleteById(String id) =>
+      (delete(exercises)..where((table) => table.id.equals(id))).go();
+
   Future<void> insertAll(List<ExercisesCompanion> values) =>
       batch((batch) => batch.insertAll(exercises, values));
 }

@@ -75,6 +75,18 @@ void main() {
 }
 
 class _ExerciseRepository implements ExerciseRepository {
+  @override
+  Future<Result<Exercise, Failure>> createCustom({
+    required String nameKo,
+    required Discipline discipline,
+    MuscleGroup muscleGroup = MuscleGroup.fullBody,
+    Equipment equipment = Equipment.other,
+  }) async => const Err(NotFoundFailure());
+
+  @override
+  Future<Result<void, Failure>> deleteCustom(String id) async =>
+      const Err(NotFoundFailure());
+
   const _ExerciseRepository();
 
   static const _items = <Exercise>[

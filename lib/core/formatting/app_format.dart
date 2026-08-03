@@ -69,3 +69,34 @@ String formatRelativeTime(DateTime time, {DateTime? now}) {
   if (diff.inDays < 7) return '${diff.inDays}일 전';
   return '${time.month}월 ${time.day}일';
 }
+
+/// 거리(m)를 사람이 읽는 문구로. 1km 미만은 m로 둔다.
+String formatDistance(double meters) {
+  if (meters <= 0) return '0m';
+  if (meters < 1000) return '${meters.round()}m';
+  final km = meters / 1000;
+  final rounded = (km * 10).round() / 10;
+  return rounded == rounded.roundToDouble()
+      ? '${formatInt(rounded)}km'
+      : '${rounded.toStringAsFixed(1)}km';
+}
+
+/// 시간(초)을 사람이 읽는 문구로. 한 시간이 넘으면 시간까지 보여준다.
+String formatDuration(int seconds) {
+  if (seconds <= 0) return '0분';
+  final hours = seconds ~/ 3600;
+  final minutes = (seconds % 3600) ~/ 60;
+  if (hours <= 0) return '$minutes분';
+  return minutes == 0 ? '$hours시간' : '$hours시간 $minutes분';
+}
+
+/// 속도(m/s)를 달리기 페이스(분'초"/km)로 바꾼다. 페이스는 낮을수록 빠르다.
+String formatPace(double metersPerSecond) {
+  if (metersPerSecond <= 0) return '-';
+  final secondsPerKm = 1000 / metersPerSecond;
+  final minutes = secondsPerKm ~/ 60;
+  final seconds = (secondsPerKm % 60).round();
+  final normalizedMinutes = seconds == 60 ? minutes + 1 : minutes;
+  final normalizedSeconds = seconds == 60 ? 0 : seconds;
+  return "$normalizedMinutes'${normalizedSeconds.toString().padLeft(2, '0')}\"/km";
+}
