@@ -205,6 +205,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsBodyPartSplit => '부위별 볼륨';
 
   @override
+  String get statsDisciplineActivity => '종목별 기록';
+
+  @override
+  String statsRecordCount(int count) {
+    return '$count개';
+  }
+
+  @override
   String get statsNoData => '아직 기록된 운동이 없어요';
 
   @override
@@ -245,6 +253,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get muscleOther => '기타';
+
+  @override
+  String get searchDisciplineFilter => '갈래';
+
+  @override
+  String get searchMuscleFilter => '근육군';
+
+  @override
+  String get filterAll => '전체';
 
   @override
   String get myParties => '내 파티';

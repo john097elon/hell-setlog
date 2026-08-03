@@ -478,6 +478,18 @@ abstract class AppLocalizations {
   /// **'부위별 볼륨'**
   String get statsBodyPartSplit;
 
+  /// No description provided for @statsDisciplineActivity.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목별 기록'**
+  String get statsDisciplineActivity;
+
+  /// No description provided for @statsRecordCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개'**
+  String statsRecordCount(int count);
+
   /// No description provided for @statsNoData.
   ///
   /// In ko, this message translates to:
@@ -561,6 +573,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'기타'**
   String get muscleOther;
+
+  /// No description provided for @searchDisciplineFilter.
+  ///
+  /// In ko, this message translates to:
+  /// **'갈래'**
+  String get searchDisciplineFilter;
+
+  /// No description provided for @searchMuscleFilter.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육군'**
+  String get searchMuscleFilter;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get filterAll;
 
   /// No description provided for @myParties.
   ///

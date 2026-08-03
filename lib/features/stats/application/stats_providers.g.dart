@@ -303,5 +303,149 @@ class _BodyPartSplitProviderElement
   int get days => (origin as BodyPartSplitProvider).days;
 }
 
+String _$weeklyDisciplineCountsHash() =>
+    r'98bde82df6dad6f52cfeebc482d60b24c478f2b2';
+
+/// Counts completed weekly records by discipline, including non-weight sports.
+///
+/// Copied from [weeklyDisciplineCounts].
+@ProviderFor(weeklyDisciplineCounts)
+const weeklyDisciplineCountsProvider = WeeklyDisciplineCountsFamily();
+
+/// Counts completed weekly records by discipline, including non-weight sports.
+///
+/// Copied from [weeklyDisciplineCounts].
+class WeeklyDisciplineCountsFamily
+    extends Family<AsyncValue<Result<Map<Discipline, int>, Failure>>> {
+  /// Counts completed weekly records by discipline, including non-weight sports.
+  ///
+  /// Copied from [weeklyDisciplineCounts].
+  const WeeklyDisciplineCountsFamily();
+
+  /// Counts completed weekly records by discipline, including non-weight sports.
+  ///
+  /// Copied from [weeklyDisciplineCounts].
+  WeeklyDisciplineCountsProvider call({int days = 7}) {
+    return WeeklyDisciplineCountsProvider(days: days);
+  }
+
+  @override
+  WeeklyDisciplineCountsProvider getProviderOverride(
+    covariant WeeklyDisciplineCountsProvider provider,
+  ) {
+    return call(days: provider.days);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'weeklyDisciplineCountsProvider';
+}
+
+/// Counts completed weekly records by discipline, including non-weight sports.
+///
+/// Copied from [weeklyDisciplineCounts].
+class WeeklyDisciplineCountsProvider
+    extends AutoDisposeFutureProvider<Result<Map<Discipline, int>, Failure>> {
+  /// Counts completed weekly records by discipline, including non-weight sports.
+  ///
+  /// Copied from [weeklyDisciplineCounts].
+  WeeklyDisciplineCountsProvider({int days = 7})
+    : this._internal(
+        (ref) => weeklyDisciplineCounts(
+          ref as WeeklyDisciplineCountsRef,
+          days: days,
+        ),
+        from: weeklyDisciplineCountsProvider,
+        name: r'weeklyDisciplineCountsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$weeklyDisciplineCountsHash,
+        dependencies: WeeklyDisciplineCountsFamily._dependencies,
+        allTransitiveDependencies:
+            WeeklyDisciplineCountsFamily._allTransitiveDependencies,
+        days: days,
+      );
+
+  WeeklyDisciplineCountsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.days,
+  }) : super.internal();
+
+  final int days;
+
+  @override
+  Override overrideWith(
+    FutureOr<Result<Map<Discipline, int>, Failure>> Function(
+      WeeklyDisciplineCountsRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: WeeklyDisciplineCountsProvider._internal(
+        (ref) => create(ref as WeeklyDisciplineCountsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        days: days,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Result<Map<Discipline, int>, Failure>>
+  createElement() {
+    return _WeeklyDisciplineCountsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is WeeklyDisciplineCountsProvider && other.days == days;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, days.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin WeeklyDisciplineCountsRef
+    on AutoDisposeFutureProviderRef<Result<Map<Discipline, int>, Failure>> {
+  /// The parameter `days` of this provider.
+  int get days;
+}
+
+class _WeeklyDisciplineCountsProviderElement
+    extends
+        AutoDisposeFutureProviderElement<Result<Map<Discipline, int>, Failure>>
+    with WeeklyDisciplineCountsRef {
+  _WeeklyDisciplineCountsProviderElement(super.provider);
+
+  @override
+  int get days => (origin as WeeklyDisciplineCountsProvider).days;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

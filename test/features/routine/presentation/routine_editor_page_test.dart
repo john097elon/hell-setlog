@@ -5,6 +5,7 @@ import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/entities/routine.dart';
 import 'package:heal_setlog/domain/entities/routine_item.dart';
@@ -143,6 +144,7 @@ class _FakeExerciseSearch extends ExerciseSearch {
     String? query,
     MuscleGroup? muscleGroup,
     Equipment? equipment,
+    Discipline? discipline,
   }) async => const Ok(<Exercise>[
     Exercise(
       id: 'bench',

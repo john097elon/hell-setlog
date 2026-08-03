@@ -18,14 +18,14 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('seeds 60 exercises with Korean names', () async {
+  test('seeds 88 exercises with Korean names', () async {
     final result = await repository.getAll();
 
     final exercises = result.when(
       ok: (value) => value,
       err: (_) => <Exercise>[],
     );
-    expect(exercises, hasLength(60));
+    expect(exercises, hasLength(88));
     expect(exercises.every((exercise) => exercise.nameKo.isNotEmpty), isTrue);
   });
 
@@ -60,7 +60,7 @@ void main() {
   test('search without filters returns all exercises', () async {
     final result = await repository.search();
 
-    expect(_names(result), hasLength(60));
+    expect(_names(result), hasLength(88));
   });
 
   test('missing id returns NotFoundFailure', () async {

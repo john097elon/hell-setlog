@@ -5,13 +5,14 @@ import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/widgets/app_list.dart';
 import 'package:heal_setlog/core/widgets/app_screen.dart';
 import 'package:heal_setlog/core/widgets/app_states.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/features/settings/application/settings_controller.dart';
 import 'package:heal_setlog/features/stats/application/stats_providers.dart';
 import 'package:heal_setlog/features/stats/presentation/widgets/body_part_split.dart';
 import 'package:heal_setlog/features/stats/presentation/widgets/summary_row.dart';
 import 'package:heal_setlog/features/stats/presentation/widgets/weekly_volume_chart.dart';
 
-/// 운동 기록을 주간 볼륨과 근육군 비중으로 표시한다.
+/// 운동 기록을 종목별 기록 수와 웨이트 통계로 표시한다.
 class StatsPage extends ConsumerWidget {
   const StatsPage({this.embedded = false, super.key});
 
@@ -26,21 +27,14 @@ class StatsPage extends ConsumerWidget {
       data: (result) => result.when(
         ok: (volumes) => AppScreen(
           title: title,
-          slivers: volumes.isEmpty
-              ? const <Widget>[
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyStats(),
-                  ),
-                ]
-              : <Widget>[
-                  SliverToBoxAdapter(
-                    child: AppPagePadding(
-                      top: AppSpacing.sm,
-                      child: _StatsContent(volumes: volumes),
-                    ),
-                  ),
-                ],
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: AppPagePadding(
+                top: AppSpacing.sm,
+                child: _StatsContent(volumes: volumes),
+              ),
+            ),
+          ],
         ),
         err: (_) => AppScreen(
           title: title,
@@ -73,8 +67,34 @@ class _StatsContent extends ConsumerWidget {
   final Map<DateTime, double> volumes;
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(weeklyDisciplineCountsProvider())
+      .when(
+        data: (result) => result.when(
+          ok: (counts) => _StatsSections(volumes: volumes, counts: counts),
+          err: (_) => volumes.values.any((value) => value > 0)
+              ? _StatsSections(volumes: volumes, counts: const {})
+              : const _StatsError(),
+        ),
+        loading: () => const _StatsSkeleton(),
+        error: (_, _) => volumes.values.any((value) => value > 0)
+            ? _StatsSections(volumes: volumes, counts: const {})
+            : const _StatsError(),
+      );
+}
+
+class _StatsSections extends ConsumerWidget {
+  const _StatsSections({required this.volumes, required this.counts});
+
+  final Map<DateTime, double> volumes;
+  final Map<Discipline, int> counts;
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bodyPart = ref.watch(bodyPartSplitProvider());
+    final hasVolume = volumes.values.any((value) => value > 0);
+    if (!hasVolume && counts.isEmpty) return const _EmptyStats();
+
+    final bodyPart = hasVolume ? ref.watch(bodyPartSplitProvider()) : null;
     final weightUnit = ref.watch(
       settingsControllerProvider.select((state) => state.weightUnit),
     );
@@ -83,58 +103,73 @@ class _StatsContent extends ConsumerWidget {
       (sum, value) => sum + value,
     );
     final workoutDays = volumes.values.where((value) => value > 0).length;
+    final activity = counts.entries.toList()
+      ..sort((left, right) => right.value.compareTo(left.value));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.xs),
-          child: Text(
-            context.l10n.statsThisWeek,
-            style: AppText.sectionLabel(context),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        SummaryRow(
-          workoutDays: workoutDays,
-          totalVolume: totalVolume,
-          weightUnit: weightUnit,
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        AppSection(
-          title: context.l10n.statsWeeklyVolume,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.xl,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
-              child: WeeklyVolumeChart(volumes: volumes),
+        if (hasVolume) ...<Widget>[
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.xs),
+            child: Text(
+              context.l10n.statsThisWeek,
+              style: AppText.sectionLabel(context),
             ),
-          ],
-        ),
-        bodyPart.when(
-          data: (result) => result.when(
-            ok: (split) => split.isEmpty
-                ? const _EmptyStats()
-                : AppSection(
-                    title: context.l10n.statsBodyPartSplit,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        child: BodyPartSplit(volumes: split),
-                      ),
-                    ],
-                  ),
-            err: (_) => const _StatsError(compact: true),
           ),
-          loading: () => const Padding(
-            padding: EdgeInsets.only(bottom: AppSpacing.xl),
-            child: AppSkeleton(height: 140, radius: AppRadius.md),
+          const SizedBox(height: AppSpacing.sm),
+          SummaryRow(
+            workoutDays: workoutDays,
+            totalVolume: totalVolume,
+            weightUnit: weightUnit,
           ),
-          error: (_, _) => const _StatsError(compact: true),
-        ),
+          const SizedBox(height: AppSpacing.xl),
+          AppSection(
+            title: context.l10n.statsWeeklyVolume,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xl,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: WeeklyVolumeChart(volumes: volumes),
+              ),
+            ],
+          ),
+          bodyPart!.when(
+            data: (result) => result.when(
+              ok: (split) => split.isEmpty
+                  ? const SizedBox.shrink()
+                  : AppSection(
+                      title: context.l10n.statsBodyPartSplit,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: BodyPartSplit(volumes: split),
+                        ),
+                      ],
+                    ),
+              err: (_) => const _StatsError(compact: true),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.only(bottom: AppSpacing.xl),
+              child: AppSkeleton(height: 140, radius: AppRadius.md),
+            ),
+            error: (_, _) => const _StatsError(compact: true),
+          ),
+        ],
+        if (activity.isNotEmpty)
+          AppSection(
+            title: context.l10n.statsDisciplineActivity,
+            children: <Widget>[
+              for (final entry in activity)
+                AppRow(
+                  title: disciplineLabel(entry.key),
+                  value: context.l10n.statsRecordCount(entry.value),
+                ),
+            ],
+          ),
       ],
     );
   }

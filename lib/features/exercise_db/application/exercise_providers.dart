@@ -4,6 +4,7 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../../data/local/app_database.dart' hide Exercise;
 import '../../../data/repositories/exercise_repository_impl.dart';
+import '../../../domain/entities/discipline.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/repositories/exercise_repository.dart';
 
@@ -34,12 +35,23 @@ class ExerciseSearch extends _$ExerciseSearch {
     String? query,
     MuscleGroup? muscleGroup,
     Equipment? equipment,
+    Discipline? discipline,
   }) async {
     final repository = await ref.watch(exerciseRepositoryProvider.future);
-    return repository.search(
+    final result = await repository.search(
       query: query,
       muscleGroup: muscleGroup,
       equipment: equipment,
+    );
+    return result.when(
+      ok: (items) => Ok(
+        discipline == null
+            ? items
+            : items
+                  .where((exercise) => exercise.discipline == discipline)
+                  .toList(growable: false),
+      ),
+      err: (failure) => Err(failure),
     );
   }
 }

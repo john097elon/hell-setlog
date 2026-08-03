@@ -3,17 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/extensions/build_context_x.dart';
+import '../../../core/formatting/app_format.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_list.dart';
 import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
+import '../../../domain/entities/discipline.dart';
+import '../../../domain/entities/exercise.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 import '../../exercise_db/presentation/exercise_detail_page.dart';
 import '../../exercise_db/presentation/widgets/exercise_thumbnail.dart';
-import '../application/search_providers.dart';
-import '../../../core/formatting/app_format.dart';
 import '../../profile/presentation/user_profile_page.dart';
+import '../application/search_providers.dart';
 
 /// 사용자와 운동 종목을 한 화면에서 찾는다.
 class SearchPage extends ConsumerStatefulWidget {
@@ -172,56 +175,153 @@ class _UserTile extends StatelessWidget {
   }
 }
 
-class _ExerciseResults extends ConsumerWidget {
+class _ExerciseResults extends ConsumerStatefulWidget {
   const _ExerciseResults({required this.query});
 
   final String query;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ExerciseResults> createState() => _ExerciseResultsState();
+}
+
+class _ExerciseResultsState extends ConsumerState<_ExerciseResults> {
+  String _disciplineKey = '';
+  String _muscleGroupKey = '';
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.tokens;
-    return ref
-        .watch(exerciseSearchProvider(query: query))
-        .when(
-          loading: () => const AppLoading(),
-          error: (_, _) => Center(
-            child: Text('검색에 실패했습니다.', style: TextStyle(color: t.mutedText)),
+    final discipline = _disciplineKey.isEmpty
+        ? null
+        : Discipline.values.byName(_disciplineKey);
+    final muscleGroup = _muscleGroupKey.isEmpty
+        ? null
+        : MuscleGroup.values.byName(_muscleGroupKey);
+    final showMuscleFilter =
+        discipline == null || discipline == Discipline.strength;
+    final results = ref.watch(
+      exerciseSearchProvider(
+        query: widget.query,
+        discipline: discipline,
+        muscleGroup: showMuscleFilter ? muscleGroup : null,
+      ),
+    );
+    return Column(
+      children: <Widget>[
+        AppPagePadding(
+          top: AppSpacing.sm,
+          child: AppSection(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: DropdownButtonFormField<String>(
+                  initialValue: _disciplineKey,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.searchDisciplineFilter,
+                  ),
+                  items: <DropdownMenuItem<String>>[
+                    DropdownMenuItem(
+                      value: '',
+                      child: Text(context.l10n.filterAll),
+                    ),
+                    for (final item in Discipline.values)
+                      DropdownMenuItem(
+                        value: disciplineKey(item),
+                        child: Text(disciplineLabel(item)),
+                      ),
+                  ],
+                  onChanged: (value) => setState(() {
+                    _disciplineKey = value ?? '';
+                    if (_disciplineKey.isNotEmpty &&
+                        _disciplineKey != disciplineKey(Discipline.strength)) {
+                      _muscleGroupKey = '';
+                    }
+                  }),
+                ),
+              ),
+              if (showMuscleFilter)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _muscleGroupKey,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.searchMuscleFilter,
+                    ),
+                    items: <DropdownMenuItem<String>>[
+                      DropdownMenuItem(
+                        value: '',
+                        child: Text(context.l10n.filterAll),
+                      ),
+                      for (final item in MuscleGroup.values)
+                        DropdownMenuItem(
+                          value: item.name,
+                          child: Text(_muscleGroupLabel(context, item)),
+                        ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _muscleGroupKey = value ?? ''),
+                  ),
+                ),
+            ],
           ),
-          data: (result) => result.when(
-            ok: (items) => items.isEmpty
-                ? const AppEmptyState(
-                    icon: Icons.fitness_center_outlined,
-                    title: '종목을 찾지 못했습니다',
-                    message: '다른 이름으로 검색해 보세요.',
-                  )
-                : ListView.builder(
-                    itemCount: 1,
-                    itemBuilder: (context, _) => AppPagePadding(
-                      top: AppSpacing.sm,
-                      child: AppSection(
-                        children: <Widget>[
-                          for (final item in items)
-                            AppRow(
-                              leading: ExerciseThumbnail(
-                                equipment: item.equipment,
-                                thumbnailUrl: item.thumbnailUrl,
-                                size: 26,
-                              ),
-                              title: item.nameKo,
-                              subtitle: equipmentLabelKo(item.equipment),
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      ExerciseDetailPage(exerciseId: item.id),
+        ),
+        Expanded(
+          child: results.when(
+            loading: () => const AppLoading(),
+            error: (_, _) => Center(
+              child: Text('검색에 실패했습니다.', style: TextStyle(color: t.mutedText)),
+            ),
+            data: (result) => result.when(
+              ok: (items) => items.isEmpty
+                  ? const AppEmptyState(
+                      icon: Icons.fitness_center_outlined,
+                      title: '종목을 찾지 못했습니다',
+                      message: '다른 이름으로 검색해 보세요.',
+                    )
+                  : ListView.builder(
+                      itemCount: 1,
+                      itemBuilder: (context, _) => AppPagePadding(
+                        child: AppSection(
+                          children: <Widget>[
+                            for (final item in items)
+                              AppRow(
+                                leading: ExerciseThumbnail(
+                                  equipment: item.equipment,
+                                  thumbnailUrl: item.thumbnailUrl,
+                                  size: 26,
+                                ),
+                                title: item.nameKo,
+                                subtitle: disciplineLabel(item.discipline),
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        ExerciseDetailPage(exerciseId: item.id),
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-            err: (failure) => Center(child: Text(failure.message)),
+              err: (failure) => Center(child: Text(failure.message)),
+            ),
           ),
-        );
+        ),
+      ],
+    );
   }
+
+  String _muscleGroupLabel(BuildContext context, MuscleGroup group) =>
+      switch (group) {
+        MuscleGroup.chest => context.l10n.muscleChest,
+        MuscleGroup.back => context.l10n.muscleBack,
+        MuscleGroup.shoulders => context.l10n.muscleShoulders,
+        MuscleGroup.legs => context.l10n.muscleLegs,
+        MuscleGroup.arms => context.l10n.muscleArms,
+        MuscleGroup.core => context.l10n.muscleCore,
+        MuscleGroup.fullBody => context.l10n.muscleFullBody,
+        MuscleGroup.other => context.l10n.muscleOther,
+      };
 }
