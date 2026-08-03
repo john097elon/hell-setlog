@@ -4,6 +4,7 @@ import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/app_screen.dart';
+import '../../../../domain/entities/character_attribute.dart';
 import '../../../../domain/entities/character_identity.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../../domain/usecases/calculate_character_growth.dart';
@@ -26,12 +27,6 @@ const Map<MuscleGroup, String> kMuscleLabels = <MuscleGroup, String>{
   MuscleGroup.legs: '하체',
   MuscleGroup.arms: '팔',
   MuscleGroup.core: '코어',
-};
-
-String balanceLabel(BodyBalance balance) => switch (balance) {
-  BodyBalance.upper => '상체 중심',
-  BodyBalance.lower => '하체 중심',
-  BodyBalance.balanced => '균형 잡힘',
 };
 
 /// 캐릭터 카드. 단계 아트, 이름, 다음 진화까지의 진행률.
@@ -79,9 +74,14 @@ class CharacterHero extends StatelessWidget {
             style: TextStyle(fontSize: 12.5, color: t.faintText),
           ),
           const SizedBox(height: AppSpacing.sm),
+          // 요즘 가장 많이 한 종목에서 온 칭호.
           Text(
-            balanceLabel(growth.balance),
-            style: TextStyle(color: t.mutedText, fontWeight: FontWeight.w600),
+            'Lv. ${growth.totalLevel} · ${growth.title}',
+            style: TextStyle(
+              color: t.mutedText,
+              fontWeight: FontWeight.w600,
+              fontFeatures: kTabularFigures,
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           ClipRRect(
@@ -136,9 +136,9 @@ class WeeklyGrowthStrip extends StatelessWidget {
 
 /// 부위별 레벨과 다음 레벨까지의 진행률.
 class MuscleGrowthBar extends StatelessWidget {
-  const MuscleGrowthBar({required this.muscle, super.key});
+  const MuscleGrowthBar({required this.growth, super.key});
 
-  final MuscleGrowth muscle;
+  final AttributeGrowth growth;
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +155,7 @@ class MuscleGrowthBar extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  kMuscleLabels[muscle.group] ?? '기타',
+                  attributeLabel(growth.attribute),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -165,7 +165,7 @@ class MuscleGrowthBar extends StatelessWidget {
                 ),
               ),
               Text(
-                'Lv. ${muscle.level}',
+                'Lv. ${growth.level}',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -179,7 +179,7 @@ class MuscleGrowthBar extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.sm),
             child: LinearProgressIndicator(
-              value: muscle.progress,
+              value: growth.progress,
               minHeight: 8,
               color: t.brand,
               backgroundColor: t.surface,
@@ -187,9 +187,9 @@ class MuscleGrowthBar extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            muscle.xpForNextLevel == 0
+            growth.xpForNextLevel == 0
                 ? '최고 레벨'
-                : '${muscle.xpIntoLevel} / ${muscle.xpForNextLevel} XP',
+                : '${growth.xpIntoLevel} / ${growth.xpForNextLevel} XP',
             style: TextStyle(
               fontSize: 11.5,
               color: t.faintText,

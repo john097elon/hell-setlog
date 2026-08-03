@@ -1,3 +1,5 @@
+import 'discipline.dart';
+
 /// 근육군 필터 그룹의 기준.
 enum MuscleGroup { chest, back, shoulders, legs, arms, core, fullBody, other }
 
@@ -21,6 +23,7 @@ class Exercise {
     required this.nameKo,
     required this.muscleGroup,
     required this.equipment,
+    this.discipline = Discipline.strength,
     this.isCustom = false,
     this.thumbnailUrl,
   });
@@ -30,6 +33,9 @@ class Exercise {
   final String nameKo;
   final MuscleGroup muscleGroup;
   final Equipment equipment;
+
+  /// 어떤 운동 갈래인지. 기록 입력판과 캐릭터 능력치가 여기서 갈린다.
+  final Discipline discipline;
   final bool isCustom;
   final String? thumbnailUrl;
 }

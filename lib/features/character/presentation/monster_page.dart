@@ -185,15 +185,15 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
                 WeeklyGrowthStrip(growth: widget.growth),
                 const SizedBox(height: AppSpacing.xl),
                 AppSection(
-                  title: '부위별 성장',
+                  title: '능력치',
                   footer:
                       '완료한 세트의 볼륨 '
                       '${formatWeightWithUnit(100, unit: weightUnit)}마다 1XP를 얻어요. '
                       '준비 세트는 빠집니다.\n'
                       '${traitCopy(widget.identity.trait).detail}.',
                   children: <Widget>[
-                    for (final muscle in widget.growth.muscles)
-                      MuscleGrowthBar(muscle: muscle),
+                    for (final item in widget.growth.attributes)
+                      MuscleGrowthBar(growth: item),
                   ],
                 ),
                 OutlinedButton.icon(

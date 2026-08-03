@@ -11,6 +11,9 @@ class WorkoutSets extends Table {
   BoolColumn get isWarmup => boolean().withDefault(const Constant(false))();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   IntColumn get restSeconds => integer().withDefault(const Constant(0))();
+  RealColumn get distanceMeters => real().nullable()();
+  IntColumn get durationSeconds => integer().nullable()();
+  IntColumn get intensity => integer().nullable()();
   DateTimeColumn get completedAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get deletedAt => dateTime().nullable()();

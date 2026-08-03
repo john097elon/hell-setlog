@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
-import 'package:heal_setlog/domain/entities/exercise.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 import 'package:heal_setlog/features/character/application/character_identity_controller.dart';
 import 'package:heal_setlog/features/character/application/character_providers.dart';
@@ -13,7 +13,7 @@ import 'package:heal_setlog/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('캐릭터를 아직 안 만들었으면 만들기부터 안내한다', (tester) async {
-    await _pump(tester, volumes: const <MuscleGroup, double>{}, identity: null);
+    await _pump(tester, volumes: const <Discipline, double>{}, identity: null);
 
     expect(find.text('함께 운동할 캐릭터를 만들어요'), findsOneWidget);
     expect(find.text('캐릭터 만들기'), findsOneWidget);
@@ -22,21 +22,18 @@ void main() {
   testWidgets('내가 지은 이름과 성향을 캐릭터 카드에 보여준다', (tester) async {
     await _pump(
       tester,
-      volumes: <MuscleGroup, double>{MuscleGroup.chest: 3000},
+      volumes: <Discipline, double>{Discipline.strength: 300},
     );
 
     expect(find.text('불꽃이'), findsOneWidget);
-    expect(find.textContaining('파워형'), findsWidgets);
+    expect(find.textContaining('리프터'), findsWidgets);
   });
 
-  testWidgets('부위별 레벨과 이번 주 경험치를 보여준다', (tester) async {
+  testWidgets('능력치와 이번 주 경험치를 보여준다', (tester) async {
     await _pump(
       tester,
-      volumes: <MuscleGroup, double>{
-        MuscleGroup.chest: 12000,
-        MuscleGroup.legs: 6000,
-      },
-      weekly: <MuscleGroup, double>{MuscleGroup.chest: 3000},
+      volumes: <Discipline, double>{Discipline.strength: 300, Discipline.running: 150},
+      weekly: <Discipline, double>{Discipline.strength: 30},
     );
 
     expect(find.text('+30 XP'), findsOneWidget);
@@ -44,15 +41,15 @@ void main() {
     // 부위별 목록은 화면 아래에 있다.
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
     await tester.pumpAndSettle();
-    expect(find.text('가슴'), findsOneWidget);
-    expect(find.text('하체'), findsOneWidget);
-    expect(find.text('Lv. 3'), findsOneWidget);
+    expect(find.text('근력'), findsOneWidget);
+    expect(find.text('지구력'), findsOneWidget);
+    expect(find.text('기술'), findsOneWidget);
   });
 
   testWidgets('레벨이 올랐으면 축하 배너를 띄운다', (tester) async {
     await _pump(
       tester,
-      volumes: <MuscleGroup, double>{MuscleGroup.chest: 12000},
+      volumes: <Discipline, double>{Discipline.strength: 300},
       seenLevel: 5,
     );
 
@@ -64,7 +61,7 @@ void main() {
   testWidgets('처음 보는 사용자에게는 축하 배너를 띄우지 않는다', (tester) async {
     await _pump(
       tester,
-      volumes: <MuscleGroup, double>{MuscleGroup.chest: 12000},
+      volumes: <Discipline, double>{Discipline.strength: 300},
     );
 
     expect(find.byType(LevelUpBanner), findsNothing);
@@ -79,7 +76,7 @@ void main() {
 
       await _pump(
         tester,
-        volumes: <MuscleGroup, double>{MuscleGroup.chest: 3000},
+        volumes: <Discipline, double>{Discipline.strength: 300},
         identity: const CharacterIdentity(
           species: CharacterSpecies.cat,
           trait: CharacterTrait.power,
@@ -95,10 +92,10 @@ void main() {
 
 Future<void> _pump(
   WidgetTester tester, {
-  required Map<MuscleGroup, double> volumes,
-  Map<MuscleGroup, double> weekly = const <MuscleGroup, double>{},
+  required Map<Discipline, double> volumes,
+  Map<Discipline, double> weekly = const <Discipline, double>{},
   int? seenLevel,
-  int? seenEvolutionStage = 0,
+  int? seenEvolutionStage = 4,
   CharacterIdentity? identity = const CharacterIdentity(
     species: CharacterSpecies.cat,
     trait: CharacterTrait.power,
@@ -111,7 +108,7 @@ Future<void> _pump(
       overrides: <Override>[
         characterGrowthProvider.overrideWith(
           (ref) async =>
-              calculateCharacterGrowth(volumes, weeklyVolumes: weekly),
+              calculateCharacterGrowth(volumes, weeklyEffort: weekly),
         ),
         seenCharacterLevelProvider.overrideWith((ref) async => seenLevel),
         seenCharacterEvolutionStageProvider.overrideWith(

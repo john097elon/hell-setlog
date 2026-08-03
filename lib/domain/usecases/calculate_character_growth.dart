@@ -1,41 +1,26 @@
 import 'dart:math' as math;
 
+import '../entities/character_attribute.dart';
 import '../entities/character_identity.dart';
-import '../entities/exercise.dart';
-
-/// 캐릭터가 추적하는 부위. 전신/기타는 여기에 나눠 담지 않는다.
-const List<MuscleGroup> trackedMuscleGroups = <MuscleGroup>[
-  MuscleGroup.chest,
-  MuscleGroup.back,
-  MuscleGroup.shoulders,
-  MuscleGroup.legs,
-  MuscleGroup.arms,
-  MuscleGroup.core,
-];
-
-/// 볼륨 100kg당 1XP. 벤치 60kg × 10회 = 600kg = 6XP.
-const double _kgPerXp = 100;
+import '../entities/discipline.dart';
 
 /// 레벨 n에서 n+1로 가는 데 필요한 XP. 레벨이 오를수록 완만하게 늘어난다.
 const int _baseXpPerLevel = 40;
 
-/// 진화 단계에 필요한 합산 레벨. 5단계 아트가 있어 다섯 구간이다.
-const List<int> evolutionThresholds = <int>[0, 12, 30, 60, 120];
+/// 진화 단계에 필요한 합산 레벨. 능력치 4종이 각각 1에서 시작하므로 4가 바닥이다.
+const List<int> evolutionThresholds = <int>[0, 10, 24, 48, 96];
 
-/// 몸 균형. 상체·하체 볼륨 비율로 정한다.
-enum BodyBalance { upper, lower, balanced }
-
-/// 한 부위의 성장 상태.
-class MuscleGrowth {
-  const MuscleGrowth({
-    required this.group,
+/// 한 능력치의 성장 상태.
+class AttributeGrowth {
+  const AttributeGrowth({
+    required this.attribute,
     required this.xp,
     required this.level,
     required this.xpIntoLevel,
     required this.xpForNextLevel,
   });
 
-  final MuscleGroup group;
+  final CharacterAttribute attribute;
   final int xp;
   final int level;
 
@@ -52,28 +37,36 @@ class MuscleGrowth {
 /// 캐릭터 전체 성장 상태.
 class CharacterGrowth {
   const CharacterGrowth({
-    required this.muscles,
+    required this.attributes,
     required this.totalXp,
     required this.totalLevel,
     required this.evolutionStage,
-    required this.balance,
     required this.weeklyXp,
+    this.primaryDiscipline,
     this.nextEvolutionThreshold,
   });
 
-  final List<MuscleGrowth> muscles;
+  final List<AttributeGrowth> attributes;
   final int totalXp;
   final int totalLevel;
 
   /// 0부터 시작하는 진화 단계 인덱스.
   final int evolutionStage;
-  final BodyBalance balance;
 
   /// 최근 7일 동안 얻은 XP. 지금 성장 중인지 보여준다.
   final int weeklyXp;
+
+  /// 가장 많이 한 종목. 칭호와 복장을 여기서 정한다. 기록이 없으면 null.
+  final Discipline? primaryDiscipline;
   final int? nextEvolutionThreshold;
 
   bool get isMaxStage => nextEvolutionThreshold == null;
+
+  /// 주 종목에 붙는 칭호.
+  String get title => titleForDiscipline(primaryDiscipline);
+
+  /// 주 종목에 맞는 복장 경로. 아트가 아직 없으면 화면에서 무시한다.
+  String? get outfit => outfitAsset(primaryDiscipline);
 
   int get levelsUntilNextEvolution =>
       nextEvolutionThreshold == null ? 0 : nextEvolutionThreshold! - totalLevel;
@@ -87,33 +80,49 @@ class CharacterGrowth {
     return ((totalLevel - start) / span).clamp(0.0, 1.0);
   }
 
-  Map<MuscleGroup, int> get levels => <MuscleGroup, int>{
-    for (final muscle in muscles) muscle.group: muscle.level,
+  Map<CharacterAttribute, int> get levels => <CharacterAttribute, int>{
+    for (final growth in attributes) growth.attribute: growth.level,
   };
 }
 
-/// 누적 볼륨(kg)에서 캐릭터 성장을 계산한다.
+/// 종목별로 쌓인 점수에서 캐릭터 성장을 계산한다.
 ///
-/// [volumes]는 전체 기간 누적, [weeklyVolumes]는 최근 7일치다.
+/// [effortByDiscipline]은 전체 기간 누적, [weeklyEffort]는 최근 7일,
+/// [recentEffort]는 칭호를 정할 최근 구간(기본은 최근 30일)이다.
+/// [recentEffort]가 비어 있으면 전체 누적으로 칭호를 정한다.
 CharacterGrowth calculateCharacterGrowth(
-  Map<MuscleGroup, double> volumes, {
-  Map<MuscleGroup, double> weeklyVolumes = const <MuscleGroup, double>{},
+  Map<Discipline, double> effortByDiscipline, {
+  Map<Discipline, double> weeklyEffort = const <Discipline, double>{},
+  Map<Discipline, double> recentEffort = const <Discipline, double>{},
 }) {
-  final muscles = <MuscleGrowth>[
-    for (final group in trackedMuscleGroups)
-      _growthFor(group, volumes[group] ?? 0),
+  final byAttribute = <CharacterAttribute, double>{};
+  for (final entry in effortByDiscipline.entries) {
+    if (entry.value <= 0) continue;
+    final weights = disciplineAttributes[entry.key];
+    if (weights == null) continue;
+    for (final weight in weights.entries) {
+      byAttribute.update(
+        weight.key,
+        (value) => value + entry.value * weight.value,
+        ifAbsent: () => entry.value * weight.value,
+      );
+    }
+  }
+  final attributes = <AttributeGrowth>[
+    for (final attribute in CharacterAttribute.values)
+      _growthFor(attribute, byAttribute[attribute] ?? 0),
   ];
-  final totalXp = muscles.fold(0, (sum, muscle) => sum + muscle.xp);
-  final totalLevel = muscles.fold(0, (sum, muscle) => sum + muscle.level);
+  final totalXp = attributes.fold(0, (sum, growth) => sum + growth.xp);
+  final totalLevel = attributes.fold(0, (sum, growth) => sum + growth.level);
   final stage = evolutionStageForLevel(totalLevel);
   return CharacterGrowth(
-    muscles: muscles,
+    attributes: attributes,
     totalXp: totalXp,
     totalLevel: totalLevel,
     evolutionStage: stage,
-    balance: _balanceOf(volumes),
-    weeklyXp: xpForVolume(
-      weeklyVolumes.values.fold(0, (sum, volume) => sum + volume),
+    weeklyXp: _round(weeklyEffort.values.fold(0, (sum, value) => sum + value)),
+    primaryDiscipline: primaryDisciplineOf(
+      recentEffort.isEmpty ? effortByDiscipline : recentEffort,
     ),
     nextEvolutionThreshold: stage == evolutionThresholds.length - 1
         ? null
@@ -121,9 +130,18 @@ CharacterGrowth calculateCharacterGrowth(
   );
 }
 
-/// 볼륨을 XP로 바꾼다. 음수 볼륨은 0으로 본다.
-int xpForVolume(double volumeKg) =>
-    volumeKg <= 0 ? 0 : (volumeKg / _kgPerXp).floor();
+/// 가장 많이 한 종목. 동점이면 앞선 종목을 고른다. 기록이 없으면 null.
+Discipline? primaryDisciplineOf(Map<Discipline, double> effort) {
+  Discipline? best;
+  var bestValue = 0.0;
+  for (final entry in effort.entries) {
+    if (entry.value > bestValue) {
+      best = entry.key;
+      bestValue = entry.value;
+    }
+  }
+  return best;
+}
 
 /// 레벨 [level]에서 다음 레벨까지 필요한 XP.
 int xpToReachNextLevel(int level) => _baseXpPerLevel * level;
@@ -134,8 +152,8 @@ int evolutionStageForLevel(int totalLevel) => math.max(
   evolutionThresholds.lastIndexWhere((threshold) => totalLevel >= threshold),
 );
 
-MuscleGrowth _growthFor(MuscleGroup group, double volume) {
-  final xp = xpForVolume(volume);
+AttributeGrowth _growthFor(CharacterAttribute attribute, double points) {
+  final xp = _round(points);
   var remaining = xp;
   var level = 1;
   // 레벨 1→2는 40XP, 2→3은 80XP처럼 필요량이 늘어난다.
@@ -143,8 +161,8 @@ MuscleGrowth _growthFor(MuscleGroup group, double volume) {
     remaining -= xpToReachNextLevel(level);
     level++;
   }
-  return MuscleGrowth(
-    group: group,
+  return AttributeGrowth(
+    attribute: attribute,
     xp: xp,
     level: level,
     xpIntoLevel: remaining,
@@ -152,40 +170,43 @@ MuscleGrowth _growthFor(MuscleGroup group, double volume) {
   );
 }
 
-BodyBalance _balanceOf(Map<MuscleGroup, double> volumes) {
-  final upper = <MuscleGroup>[
-    MuscleGroup.chest,
-    MuscleGroup.back,
-    MuscleGroup.shoulders,
-    MuscleGroup.arms,
-  ].fold<double>(0, (sum, group) => sum + (volumes[group] ?? 0));
-  final lower = volumes[MuscleGroup.legs] ?? 0;
-  final total = upper + lower;
-  if (total <= 0) return BodyBalance.balanced;
-  final upperShare = upper / total;
-  // 하체는 한 부위뿐이라 40%만 넘어도 균형으로 본다.
-  if (upperShare >= 0.75) return BodyBalance.upper;
-  if (upperShare <= 0.4) return BodyBalance.lower;
-  return BodyBalance.balanced;
-}
+int _round(double points) => points <= 0 ? 0 : points.floor();
 
 /// 다음 진화까지 남은 레벨을 사람이 읽는 문구로 만든다.
 String evolutionHint(CharacterGrowth growth) => growth.isMaxStage
     ? '최고 단계에 도달했습니다'
     : '다음 진화까지 레벨 ${growth.levelsUntilNextEvolution}';
 
-/// 성향 보너스가 붙는 반복 수 구간의 배수.
+/// 성향 보너스가 붙는 구간의 배수.
 const double traitBonusMultiplier = 1.25;
 
-/// 성향에 맞는 세트면 경험치를 더 준다.
+/// 성향에 맞는 기록이면 경험치를 더 준다.
 ///
-/// 파워형은 6회 이하, 지구력형은 12회 이상, 균형형은 그 사이(7~11회)를 노린다.
-/// 세 성향이 서로 다른 구간을 가져가 어떤 선택도 손해가 아니다.
-double traitMultiplier(CharacterTrait trait, int reps) {
+/// 웨이트는 반복 수로 가른다. 파워형은 6회 이하, 지구력형은 12회 이상,
+/// 균형형은 그 사이다. 세 성향이 서로 다른 구간을 가져가 어떤 선택도 손해가 아니다.
+/// 웨이트가 아닌 종목은 성향이 겨냥하는 성격에 맞을 때 보너스를 준다.
+double traitMultiplier(
+  CharacterTrait trait,
+  int reps, {
+  Discipline discipline = Discipline.strength,
+}) {
+  if (trackingModeOf(discipline) == TrackingMode.setsReps) {
+    final matches = switch (trait) {
+      CharacterTrait.power => reps > 0 && reps <= 6,
+      CharacterTrait.endurance => reps >= 12,
+      CharacterTrait.balanced => reps >= 7 && reps <= 11,
+    };
+    return matches ? traitBonusMultiplier : 1;
+  }
   final matches = switch (trait) {
-    CharacterTrait.power => reps > 0 && reps <= 6,
-    CharacterTrait.endurance => reps >= 12,
-    CharacterTrait.balanced => reps >= 7 && reps <= 11,
+    // 짧고 강한 운동은 파워형, 오래 가는 운동은 지구력형이 가져간다.
+    CharacterTrait.power => discipline == Discipline.striking,
+    CharacterTrait.endurance =>
+      discipline == Discipline.running ||
+          discipline == Discipline.swimming ||
+          discipline == Discipline.cycling,
+    CharacterTrait.balanced =>
+      discipline == Discipline.grappling || discipline == Discipline.mobility,
   };
   return matches ? traitBonusMultiplier : 1;
 }
@@ -195,15 +216,15 @@ double traitMultiplier(CharacterTrait trait, int reps) {
     switch (trait) {
       CharacterTrait.power => (
         name: '파워형',
-        detail: '6회 이하 고중량 세트에서 경험치를 더 받아요',
+        detail: '6회 이하 고중량 세트와 입식 격투에서 경험치를 더 받아요',
       ),
       CharacterTrait.endurance => (
         name: '지구력형',
-        detail: '12회 이상 고반복 세트에서 경험치를 더 받아요',
+        detail: '12회 이상 고반복 세트와 달리기·수영·사이클에서 경험치를 더 받아요',
       ),
       CharacterTrait.balanced => (
         name: '균형형',
-        detail: '7~11회 중간 반복 세트에서 경험치를 더 받아요',
+        detail: '7~11회 중간 반복 세트와 그래플링·유연성 운동에서 경험치를 더 받아요',
       ),
     };
 

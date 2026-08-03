@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
-import 'package:heal_setlog/domain/entities/exercise.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/entities/party.dart';
 import 'package:heal_setlog/domain/entities/post.dart';
 import 'package:heal_setlog/domain/entities/party_mission.dart';
@@ -72,9 +72,7 @@ Future<void> _pump(
       overrides: <Override>[
         characterIdentityProvider.overrideWith((ref) async => identity),
         characterGrowthProvider.overrideWith(
-          (ref) async => calculateCharacterGrowth(<MuscleGroup, double>{
-            MuscleGroup.chest: 12000,
-          }),
+          (ref) async => calculateCharacterGrowth(<Discipline, double>{Discipline.strength: 12000}),
         ),
         myPartiesProvider.overrideWith(
           (ref) async => parties ?? <Party>[_party],

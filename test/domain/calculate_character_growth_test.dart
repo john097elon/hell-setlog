@@ -1,73 +1,93 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heal_setlog/domain/entities/character_attribute.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
-import 'package:heal_setlog/domain/entities/exercise.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 
 void main() {
-  test('볼륨 100kg마다 1XP를 준다', () {
-    expect(xpForVolume(0), 0);
-    expect(xpForVolume(-10), 0);
-    expect(xpForVolume(99), 0);
-    expect(xpForVolume(600), 6);
-    expect(xpForVolume(12400), 124);
-  });
-
-  test('기록이 없으면 모든 부위가 레벨 1이고 진행률은 0이다', () {
-    final growth = calculateCharacterGrowth(const <MuscleGroup, double>{});
+  test('기록이 없으면 모든 능력치가 레벨 1이고 칭호는 새내기다', () {
+    final growth = calculateCharacterGrowth(const <Discipline, double>{});
 
     expect(growth.totalXp, 0);
-    expect(growth.totalLevel, trackedMuscleGroups.length);
+    expect(growth.totalLevel, CharacterAttribute.values.length);
     expect(growth.evolutionStage, 0);
-    expect(growth.muscles.every((muscle) => muscle.level == 1), isTrue);
-    expect(growth.muscles.first.progress, 0);
+    expect(growth.attributes.every((item) => item.level == 1), isTrue);
+    expect(growth.primaryDiscipline, isNull);
+    expect(growth.title, '새내기');
   });
 
-  test('레벨은 누적 XP를 단계별로 소진하며 오른다', () {
-    // 40XP면 레벨 2, 추가 80XP면 레벨 3이 된다. 즉 12,000kg에서 레벨 3.
-    final growth = calculateCharacterGrowth(<MuscleGroup, double>{
-      MuscleGroup.chest: 12000,
+  test('웨이트는 근력을, 러닝은 지구력을 올린다', () {
+    final lifter = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.strength: 200,
     });
-    final chest = growth.muscles.firstWhere(
-      (muscle) => muscle.group == MuscleGroup.chest,
+    final runner = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.running: 200,
+    });
+
+    int levelOf(CharacterGrowth growth, CharacterAttribute attribute) =>
+        growth.levels[attribute]!;
+
+    expect(
+      levelOf(lifter, CharacterAttribute.strength),
+      greaterThan(levelOf(lifter, CharacterAttribute.endurance)),
+    );
+    expect(
+      levelOf(runner, CharacterAttribute.endurance),
+      greaterThan(levelOf(runner, CharacterAttribute.strength)),
+    );
+  });
+
+  test('그래플링은 기술과 근력·지구력을 함께 올린다', () {
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.grappling: 300,
+    });
+
+    expect(growth.levels[CharacterAttribute.technique]! > 1, isTrue);
+    expect(growth.levels[CharacterAttribute.strength]! > 1, isTrue);
+    expect(growth.levels[CharacterAttribute.endurance]! > 1, isTrue);
+    expect(growth.levels[CharacterAttribute.mobility], 1);
+  });
+
+  test('가장 많이 한 종목이 칭호가 된다', () {
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.strength: 100,
+      Discipline.grappling: 400,
+      Discipline.running: 50,
+    });
+
+    expect(growth.primaryDiscipline, Discipline.grappling);
+    expect(growth.title, '그래플러');
+    expect(growth.outfit, 'assets/character/outfit/grappling.png');
+  });
+
+  test('칭호는 최근 기록을 우선한다', () {
+    // 예전에는 웨이트만 했지만 요즘은 달리기를 한다면 러너다.
+    final growth = calculateCharacterGrowth(
+      <Discipline, double>{
+        Discipline.strength: 5000,
+        Discipline.running: 100,
+      },
+      recentEffort: <Discipline, double>{Discipline.running: 200},
     );
 
-    expect(chest.xp, 120);
-    expect(chest.level, 3);
-    expect(chest.xpIntoLevel, 0);
-    expect(chest.xpForNextLevel, 120);
-    expect(chest.progress, 0);
+    expect(growth.primaryDiscipline, Discipline.running);
+    expect(growth.title, '러너');
   });
 
-  test('레벨 중간 진행률이 남은 XP로 계산된다', () {
-    final growth = calculateCharacterGrowth(<MuscleGroup, double>{
-      MuscleGroup.back: 6000,
-    });
-    final back = growth.muscles.firstWhere(
-      (muscle) => muscle.group == MuscleGroup.back,
+  test('레벨이 오르면 진화 단계도 오른다', () {
+    expect(evolutionStageForLevel(4), 0);
+    expect(evolutionStageForLevel(10), 1);
+    expect(evolutionStageForLevel(47), 2);
+    expect(evolutionStageForLevel(48), 3);
+    expect(
+      evolutionStageForLevel(9999),
+      evolutionThresholds.length - 1,
     );
-
-    expect(back.xp, 60);
-    expect(back.level, 2);
-    expect(back.xpIntoLevel, 20);
-    expect(back.xpForNextLevel, 80);
-    expect(back.progress, closeTo(0.25, 0.001));
-  });
-
-  test('합산 레벨이 오르면 진화 단계도 오른다', () {
-    final start = calculateCharacterGrowth(const <MuscleGroup, double>{});
-    expect(start.evolutionStage, 0);
-    expect(start.nextEvolutionThreshold, evolutionThresholds[1]);
-
-    expect(evolutionStageForLevel(11), 0);
-    expect(evolutionStageForLevel(12), 1);
-    expect(evolutionStageForLevel(59), 2);
-    expect(evolutionStageForLevel(60), 3);
-    expect(evolutionStageForLevel(999), evolutionThresholds.length - 1);
   });
 
   test('최고 단계에서는 다음 임계값이 없다', () {
-    final growth = calculateCharacterGrowth(<MuscleGroup, double>{
-      for (final group in trackedMuscleGroups) group: 5000000,
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      for (final discipline in Discipline.values) discipline: 5000000,
     });
 
     expect(growth.isMaxStage, isTrue);
@@ -75,53 +95,71 @@ void main() {
     expect(evolutionHint(growth), '최고 단계에 도달했습니다');
   });
 
-  test('상하체 비중으로 몸 균형을 판단한다', () {
-    expect(
-      calculateCharacterGrowth(<MuscleGroup, double>{
-        MuscleGroup.chest: 9000,
-        MuscleGroup.legs: 1000,
-      }).balance,
-      BodyBalance.upper,
+  test('레벨 중간 진행률이 남은 XP로 계산된다', () {
+    // 근력 60XP면 레벨 2에 20XP를 쌓은 상태다(1→2에 40 필요).
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.strength: 60,
+    });
+    final strength = growth.attributes.firstWhere(
+      (item) => item.attribute == CharacterAttribute.strength,
     );
-    expect(
-      calculateCharacterGrowth(<MuscleGroup, double>{
-        MuscleGroup.chest: 2000,
-        MuscleGroup.legs: 8000,
-      }).balance,
-      BodyBalance.lower,
-    );
-    expect(
-      calculateCharacterGrowth(<MuscleGroup, double>{
-        MuscleGroup.chest: 5000,
-        MuscleGroup.legs: 5000,
-      }).balance,
-      BodyBalance.balanced,
-    );
+
+    expect(strength.xp, 60);
+    expect(strength.level, 2);
+    expect(strength.xpIntoLevel, 20);
+    expect(strength.xpForNextLevel, 80);
+    expect(strength.progress, closeTo(0.25, 0.001));
   });
 
-  test('성향은 서로 다른 반복 구간에서 보너스를 준다', () {
-    // 세 성향이 겹치지 않는 구간을 가져가 어떤 선택도 손해가 아니다.
+  test('이번 주 XP는 최근 기록만 센다', () {
+    final growth = calculateCharacterGrowth(
+      <Discipline, double>{Discipline.running: 500},
+      weeklyEffort: <Discipline, double>{Discipline.running: 30},
+    );
+
+    expect(growth.weeklyXp, 30);
+  });
+
+  test('웨이트 성향 보너스는 반복 구간으로 가른다', () {
     expect(traitMultiplier(CharacterTrait.power, 5), traitBonusMultiplier);
     expect(traitMultiplier(CharacterTrait.power, 9), 1);
     expect(traitMultiplier(CharacterTrait.balanced, 9), traitBonusMultiplier);
-    expect(traitMultiplier(CharacterTrait.balanced, 15), 1);
     expect(traitMultiplier(CharacterTrait.endurance, 15), traitBonusMultiplier);
-    expect(traitMultiplier(CharacterTrait.endurance, 5), 1);
   });
 
-  test('반복 수가 0이면 어떤 성향도 보너스를 주지 않는다', () {
-    for (final trait in CharacterTrait.values) {
-      expect(traitMultiplier(trait, 0), 1);
-    }
-  });
-
-  test('이번 주 XP는 최근 볼륨만 센다', () {
-    final growth = calculateCharacterGrowth(
-      <MuscleGroup, double>{MuscleGroup.legs: 20000},
-      weeklyVolumes: <MuscleGroup, double>{MuscleGroup.legs: 3000},
+  test('웨이트가 아닌 종목도 성향 보너스를 받는다', () {
+    expect(
+      traitMultiplier(
+        CharacterTrait.endurance,
+        0,
+        discipline: Discipline.running,
+      ),
+      traitBonusMultiplier,
     );
-
-    expect(growth.totalXp, 200);
-    expect(growth.weeklyXp, 30);
+    expect(
+      traitMultiplier(
+        CharacterTrait.power,
+        0,
+        discipline: Discipline.striking,
+      ),
+      traitBonusMultiplier,
+    );
+    expect(
+      traitMultiplier(
+        CharacterTrait.balanced,
+        0,
+        discipline: Discipline.grappling,
+      ),
+      traitBonusMultiplier,
+    );
+    // 맞지 않는 조합은 보너스가 없다.
+    expect(
+      traitMultiplier(
+        CharacterTrait.power,
+        0,
+        discipline: Discipline.running,
+      ),
+      1,
+    );
   });
 }

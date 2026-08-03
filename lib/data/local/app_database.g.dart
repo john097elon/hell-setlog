@@ -128,6 +128,18 @@ class $ExercisesTable extends Exercises
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _disciplineMeta = const VerificationMeta(
+    'discipline',
+  );
+  @override
+  late final GeneratedColumn<int> discipline = GeneratedColumn<int>(
+    'discipline',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _syncStatusMeta = const VerificationMeta(
     'syncStatus',
   );
@@ -153,6 +165,7 @@ class $ExercisesTable extends Exercises
     createdAt,
     updatedAt,
     deletedAt,
+    discipline,
     syncStatus,
   ];
   @override
@@ -246,6 +259,12 @@ class $ExercisesTable extends Exercises
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('discipline')) {
+      context.handle(
+        _disciplineMeta,
+        discipline.isAcceptableOrUnknown(data['discipline']!, _disciplineMeta),
+      );
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
         _syncStatusMeta,
@@ -305,6 +324,10 @@ class $ExercisesTable extends Exercises
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      discipline: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}discipline'],
+      )!,
       syncStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sync_status'],
@@ -330,6 +353,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+
+  /// Discipline enum의 index. 기본값은 웨이트(0).
+  final int discipline;
   final int syncStatus;
   const Exercise({
     required this.id,
@@ -343,6 +369,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
+    required this.discipline,
     required this.syncStatus,
   });
   @override
@@ -365,6 +392,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['discipline'] = Variable<int>(discipline);
     map['sync_status'] = Variable<int>(syncStatus);
     return map;
   }
@@ -388,6 +416,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      discipline: Value(discipline),
       syncStatus: Value(syncStatus),
     );
   }
@@ -409,6 +438,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      discipline: serializer.fromJson<int>(json['discipline']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
     );
   }
@@ -427,6 +457,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'discipline': serializer.toJson<int>(discipline),
       'syncStatus': serializer.toJson<int>(syncStatus),
     };
   }
@@ -443,6 +474,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    int? discipline,
     int? syncStatus,
   }) => Exercise(
     id: id ?? this.id,
@@ -456,6 +488,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    discipline: discipline ?? this.discipline,
     syncStatus: syncStatus ?? this.syncStatus,
   );
   Exercise copyWithCompanion(ExercisesCompanion data) {
@@ -475,6 +508,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      discipline: data.discipline.present
+          ? data.discipline.value
+          : this.discipline,
       syncStatus: data.syncStatus.present
           ? data.syncStatus.value
           : this.syncStatus,
@@ -495,6 +531,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('discipline: $discipline, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
@@ -513,6 +550,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     createdAt,
     updatedAt,
     deletedAt,
+    discipline,
     syncStatus,
   );
   @override
@@ -530,6 +568,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.discipline == this.discipline &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -545,6 +584,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<int> discipline;
   final Value<int> syncStatus;
   final Value<int> rowid;
   const ExercisesCompanion({
@@ -559,6 +599,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.discipline = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -574,6 +615,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.discipline = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -593,6 +635,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<int>? discipline,
     Expression<int>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -608,6 +651,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (discipline != null) 'discipline': discipline,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -625,6 +669,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
+    Value<int>? discipline,
     Value<int>? syncStatus,
     Value<int>? rowid,
   }) {
@@ -640,6 +685,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      discipline: discipline ?? this.discipline,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -681,6 +727,9 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (discipline.present) {
+      map['discipline'] = Variable<int>(discipline.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<int>(syncStatus.value);
     }
@@ -704,6 +753,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('discipline: $discipline, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1486,6 +1536,39 @@ class $WorkoutSetsTable extends WorkoutSets
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _distanceMetersMeta = const VerificationMeta(
+    'distanceMeters',
+  );
+  @override
+  late final GeneratedColumn<double> distanceMeters = GeneratedColumn<double>(
+    'distance_meters',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _intensityMeta = const VerificationMeta(
+    'intensity',
+  );
+  @override
+  late final GeneratedColumn<int> intensity = GeneratedColumn<int>(
+    'intensity',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _completedAtMeta = const VerificationMeta(
     'completedAt',
   );
@@ -1543,6 +1626,9 @@ class $WorkoutSetsTable extends WorkoutSets
     isWarmup,
     isCompleted,
     restSeconds,
+    distanceMeters,
+    durationSeconds,
+    intensity,
     completedAt,
     updatedAt,
     deletedAt,
@@ -1635,6 +1721,30 @@ class $WorkoutSetsTable extends WorkoutSets
         ),
       );
     }
+    if (data.containsKey('distance_meters')) {
+      context.handle(
+        _distanceMetersMeta,
+        distanceMeters.isAcceptableOrUnknown(
+          data['distance_meters']!,
+          _distanceMetersMeta,
+        ),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('intensity')) {
+      context.handle(
+        _intensityMeta,
+        intensity.isAcceptableOrUnknown(data['intensity']!, _intensityMeta),
+      );
+    }
     if (data.containsKey('completed_at')) {
       context.handle(
         _completedAtMeta,
@@ -1713,6 +1823,18 @@ class $WorkoutSetsTable extends WorkoutSets
         DriftSqlType.int,
         data['${effectivePrefix}rest_seconds'],
       )!,
+      distanceMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}distance_meters'],
+      ),
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      ),
+      intensity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}intensity'],
+      ),
       completedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
@@ -1749,6 +1871,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
   final bool isWarmup;
   final bool isCompleted;
   final int restSeconds;
+  final double? distanceMeters;
+  final int? durationSeconds;
+  final int? intensity;
   final DateTime? completedAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -1764,6 +1889,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     required this.isWarmup,
     required this.isCompleted,
     required this.restSeconds,
+    this.distanceMeters,
+    this.durationSeconds,
+    this.intensity,
     this.completedAt,
     required this.updatedAt,
     this.deletedAt,
@@ -1784,6 +1912,15 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     map['is_warmup'] = Variable<bool>(isWarmup);
     map['is_completed'] = Variable<bool>(isCompleted);
     map['rest_seconds'] = Variable<int>(restSeconds);
+    if (!nullToAbsent || distanceMeters != null) {
+      map['distance_meters'] = Variable<double>(distanceMeters);
+    }
+    if (!nullToAbsent || durationSeconds != null) {
+      map['duration_seconds'] = Variable<int>(durationSeconds);
+    }
+    if (!nullToAbsent || intensity != null) {
+      map['intensity'] = Variable<int>(intensity);
+    }
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
     }
@@ -1807,6 +1944,15 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       isWarmup: Value(isWarmup),
       isCompleted: Value(isCompleted),
       restSeconds: Value(restSeconds),
+      distanceMeters: distanceMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(distanceMeters),
+      durationSeconds: durationSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationSeconds),
+      intensity: intensity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intensity),
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
@@ -1834,6 +1980,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       isWarmup: serializer.fromJson<bool>(json['isWarmup']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       restSeconds: serializer.fromJson<int>(json['restSeconds']),
+      distanceMeters: serializer.fromJson<double?>(json['distanceMeters']),
+      durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
+      intensity: serializer.fromJson<int?>(json['intensity']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -1854,6 +2003,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       'isWarmup': serializer.toJson<bool>(isWarmup),
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'restSeconds': serializer.toJson<int>(restSeconds),
+      'distanceMeters': serializer.toJson<double?>(distanceMeters),
+      'durationSeconds': serializer.toJson<int?>(durationSeconds),
+      'intensity': serializer.toJson<int?>(intensity),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -1872,6 +2024,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     bool? isWarmup,
     bool? isCompleted,
     int? restSeconds,
+    Value<double?> distanceMeters = const Value.absent(),
+    Value<int?> durationSeconds = const Value.absent(),
+    Value<int?> intensity = const Value.absent(),
     Value<DateTime?> completedAt = const Value.absent(),
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -1887,6 +2042,13 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     isWarmup: isWarmup ?? this.isWarmup,
     isCompleted: isCompleted ?? this.isCompleted,
     restSeconds: restSeconds ?? this.restSeconds,
+    distanceMeters: distanceMeters.present
+        ? distanceMeters.value
+        : this.distanceMeters,
+    durationSeconds: durationSeconds.present
+        ? durationSeconds.value
+        : this.durationSeconds,
+    intensity: intensity.present ? intensity.value : this.intensity,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -1910,6 +2072,13 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       restSeconds: data.restSeconds.present
           ? data.restSeconds.value
           : this.restSeconds,
+      distanceMeters: data.distanceMeters.present
+          ? data.distanceMeters.value
+          : this.distanceMeters,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      intensity: data.intensity.present ? data.intensity.value : this.intensity,
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
@@ -1934,6 +2103,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
           ..write('isWarmup: $isWarmup, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('restSeconds: $restSeconds, ')
+          ..write('distanceMeters: $distanceMeters, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('intensity: $intensity, ')
           ..write('completedAt: $completedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -1954,6 +2126,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     isWarmup,
     isCompleted,
     restSeconds,
+    distanceMeters,
+    durationSeconds,
+    intensity,
     completedAt,
     updatedAt,
     deletedAt,
@@ -1973,6 +2148,9 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
           other.isWarmup == this.isWarmup &&
           other.isCompleted == this.isCompleted &&
           other.restSeconds == this.restSeconds &&
+          other.distanceMeters == this.distanceMeters &&
+          other.durationSeconds == this.durationSeconds &&
+          other.intensity == this.intensity &&
           other.completedAt == this.completedAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
@@ -1990,6 +2168,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
   final Value<bool> isWarmup;
   final Value<bool> isCompleted;
   final Value<int> restSeconds;
+  final Value<double?> distanceMeters;
+  final Value<int?> durationSeconds;
+  final Value<int?> intensity;
   final Value<DateTime?> completedAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -2006,6 +2187,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     this.isWarmup = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.restSeconds = const Value.absent(),
+    this.distanceMeters = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.intensity = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -2023,6 +2207,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     this.isWarmup = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.restSeconds = const Value.absent(),
+    this.distanceMeters = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.intensity = const Value.absent(),
     this.completedAt = const Value.absent(),
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -2046,6 +2233,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     Expression<bool>? isWarmup,
     Expression<bool>? isCompleted,
     Expression<int>? restSeconds,
+    Expression<double>? distanceMeters,
+    Expression<int>? durationSeconds,
+    Expression<int>? intensity,
     Expression<DateTime>? completedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -2063,6 +2253,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
       if (isWarmup != null) 'is_warmup': isWarmup,
       if (isCompleted != null) 'is_completed': isCompleted,
       if (restSeconds != null) 'rest_seconds': restSeconds,
+      if (distanceMeters != null) 'distance_meters': distanceMeters,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (intensity != null) 'intensity': intensity,
       if (completedAt != null) 'completed_at': completedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -2082,6 +2275,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     Value<bool>? isWarmup,
     Value<bool>? isCompleted,
     Value<int>? restSeconds,
+    Value<double?>? distanceMeters,
+    Value<int?>? durationSeconds,
+    Value<int?>? intensity,
     Value<DateTime?>? completedAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -2099,6 +2295,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
       isWarmup: isWarmup ?? this.isWarmup,
       isCompleted: isCompleted ?? this.isCompleted,
       restSeconds: restSeconds ?? this.restSeconds,
+      distanceMeters: distanceMeters ?? this.distanceMeters,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      intensity: intensity ?? this.intensity,
       completedAt: completedAt ?? this.completedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -2140,6 +2339,15 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     if (restSeconds.present) {
       map['rest_seconds'] = Variable<int>(restSeconds.value);
     }
+    if (distanceMeters.present) {
+      map['distance_meters'] = Variable<double>(distanceMeters.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (intensity.present) {
+      map['intensity'] = Variable<int>(intensity.value);
+    }
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
@@ -2171,6 +2379,9 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
           ..write('isWarmup: $isWarmup, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('restSeconds: $restSeconds, ')
+          ..write('distanceMeters: $distanceMeters, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('intensity: $intensity, ')
           ..write('completedAt: $completedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -4017,6 +4228,7 @@ typedef $$ExercisesTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<int> discipline,
       Value<int> syncStatus,
       Value<int> rowid,
     });
@@ -4033,6 +4245,7 @@ typedef $$ExercisesTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
+      Value<int> discipline,
       Value<int> syncStatus,
       Value<int> rowid,
     });
@@ -4098,6 +4311,11 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get discipline => $composableBuilder(
+    column: $table.discipline,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4171,6 +4389,11 @@ class $$ExercisesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get discipline => $composableBuilder(
+    column: $table.discipline,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => ColumnOrderings(column),
@@ -4223,6 +4446,11 @@ class $$ExercisesTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<int> get discipline => $composableBuilder(
+    column: $table.discipline,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get syncStatus => $composableBuilder(
     column: $table.syncStatus,
     builder: (column) => column,
@@ -4268,6 +4496,7 @@ class $$ExercisesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> discipline = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion(
@@ -4282,6 +4511,7 @@ class $$ExercisesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                discipline: discipline,
                 syncStatus: syncStatus,
                 rowid: rowid,
               ),
@@ -4298,6 +4528,7 @@ class $$ExercisesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> discipline = const Value.absent(),
                 Value<int> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExercisesCompanion.insert(
@@ -4312,6 +4543,7 @@ class $$ExercisesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
+                discipline: discipline,
                 syncStatus: syncStatus,
                 rowid: rowid,
               ),
@@ -4673,6 +4905,9 @@ typedef $$WorkoutSetsTableCreateCompanionBuilder =
       Value<bool> isWarmup,
       Value<bool> isCompleted,
       Value<int> restSeconds,
+      Value<double?> distanceMeters,
+      Value<int?> durationSeconds,
+      Value<int?> intensity,
       Value<DateTime?> completedAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -4691,6 +4926,9 @@ typedef $$WorkoutSetsTableUpdateCompanionBuilder =
       Value<bool> isWarmup,
       Value<bool> isCompleted,
       Value<int> restSeconds,
+      Value<double?> distanceMeters,
+      Value<int?> durationSeconds,
+      Value<int?> intensity,
       Value<DateTime?> completedAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -4754,6 +4992,21 @@ class $$WorkoutSetsTableFilterComposer
 
   ColumnFilters<int> get restSeconds => $composableBuilder(
     column: $table.restSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intensity => $composableBuilder(
+    column: $table.intensity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4837,6 +5090,21 @@ class $$WorkoutSetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intensity => $composableBuilder(
+    column: $table.intensity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
@@ -4903,6 +5171,19 @@ class $$WorkoutSetsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intensity =>
+      $composableBuilder(column: $table.intensity, builder: (column) => column);
+
   GeneratedColumn<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
     builder: (column) => column,
@@ -4961,6 +5242,9 @@ class $$WorkoutSetsTableTableManager
                 Value<bool> isWarmup = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
                 Value<int> restSeconds = const Value.absent(),
+                Value<double?> distanceMeters = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
+                Value<int?> intensity = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -4977,6 +5261,9 @@ class $$WorkoutSetsTableTableManager
                 isWarmup: isWarmup,
                 isCompleted: isCompleted,
                 restSeconds: restSeconds,
+                distanceMeters: distanceMeters,
+                durationSeconds: durationSeconds,
+                intensity: intensity,
                 completedAt: completedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -4995,6 +5282,9 @@ class $$WorkoutSetsTableTableManager
                 Value<bool> isWarmup = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
                 Value<int> restSeconds = const Value.absent(),
+                Value<double?> distanceMeters = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
+                Value<int?> intensity = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -5011,6 +5301,9 @@ class $$WorkoutSetsTableTableManager
                 isWarmup: isWarmup,
                 isCompleted: isCompleted,
                 restSeconds: restSeconds,
+                distanceMeters: distanceMeters,
+                durationSeconds: durationSeconds,
+                intensity: intensity,
                 completedAt: completedAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,

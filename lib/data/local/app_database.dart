@@ -33,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,8 +61,37 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE exercises SET created_at = CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER), updated_at = CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)",
         );
       }
+      if (from < 6) {
+        // 헬스 외 종목(러닝·수영·주짓수 등)을 담기 위한 열이다.
+        // 기존 기록은 웨이트(discipline 0)로 남는다.
+        // 앞 단계에서 표를 새로 만들었으면 열이 이미 들어 있다. 기기마다
+        // 올라온 경로가 달라 있는지 확인하고 없을 때만 추가한다.
+        await _addColumnIfMissing(migrator, workoutSets, 'distance_meters');
+        await _addColumnIfMissing(migrator, workoutSets, 'duration_seconds');
+        await _addColumnIfMissing(migrator, workoutSets, 'intensity');
+        await _addColumnIfMissing(migrator, exercises, 'discipline');
+      }
     },
   );
+
+  /// 표가 있고 그 열이 없을 때만 추가한다. 이미 있으면 조용히 넘어간다.
+  Future<void> _addColumnIfMissing(
+    Migrator migrator,
+    TableInfo<Table, dynamic> table,
+    String columnName,
+  ) async {
+    final name = table.actualTableName;
+    final exists = await customSelect(
+      "select name from sqlite_master where type = 'table' and name = ?",
+      variables: <Variable<Object>>[Variable<String>(name)],
+    ).getSingleOrNull();
+    if (exists == null) return;
+    final columns = await customSelect('pragma table_info($name)').get();
+    final has = columns.any((row) => row.data['name'] == columnName);
+    if (has) return;
+    final column = table.$columns.firstWhere((item) => item.name == columnName);
+    await migrator.addColumn(table, column);
+  }
 
   /// 로그아웃 시 이 기기에 남은 개인 기록을 지운다. 계정이 바뀌어도 로컬 DB는
   /// 그대로 남아 다음 사용자가 이전 사용자의 루틴과 운동을 보게 되기 때문이다.

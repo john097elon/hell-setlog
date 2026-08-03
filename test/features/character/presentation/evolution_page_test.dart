@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/domain/entities/character_identity.dart';
-import 'package:heal_setlog/domain/entities/exercise.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/usecases/calculate_character_growth.dart';
 import 'package:heal_setlog/features/character/application/character_identity_controller.dart';
 import 'package:heal_setlog/features/character/application/character_providers.dart';
@@ -67,7 +67,10 @@ void main() {
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt(kSeenCharacterEvolutionStageKey), 1);
-    expect(prefs.getInt(kSeenCharacterLevelKey), 12);
+    final expectedLevel = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.strength: 600,
+    }).totalLevel;
+    expect(prefs.getInt(kSeenCharacterLevelKey), expectedLevel);
 
     await tester.tap(find.text('닫기'));
     await tester.pumpAndSettle();
@@ -128,8 +131,8 @@ Future<void> _pumpMonster(WidgetTester tester) async {
       overrides: <Override>[
         characterIdentityProvider.overrideWith((_) async => _identity),
         characterGrowthProvider.overrideWith(
-          (_) async => calculateCharacterGrowth(<MuscleGroup, double>{
-            MuscleGroup.chest: 84000,
+          (_) async => calculateCharacterGrowth(<Discipline, double>{
+            Discipline.strength: 600,
           }),
         ),
       ],

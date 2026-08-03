@@ -12,6 +12,9 @@ class Exercises extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// Discipline enum의 index. 기본값은 웨이트(0).
+  IntColumn get discipline => integer().withDefault(const Constant(0))();
   IntColumn get syncStatus => integer().withDefault(const Constant(0))();
 
   @override

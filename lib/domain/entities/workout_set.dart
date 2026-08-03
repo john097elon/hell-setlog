@@ -15,6 +15,9 @@ class WorkoutSet {
     this.isCompleted = false,
     this.restSeconds = 0,
     this.completedAt,
+    this.distanceMeters,
+    this.durationSeconds,
+    this.intensity,
     required this.updatedAt,
     this.deletedAt,
     this.syncStatus = SyncStatus.local,
@@ -31,6 +34,16 @@ class WorkoutSet {
   final bool isCompleted;
   final int restSeconds;
   final DateTime? completedAt;
+
+  /// 거리 종목(러닝·수영·사이클)의 거리.
+  final double? distanceMeters;
+
+  /// 시간으로 기록하는 종목의 소요 시간.
+  final int? durationSeconds;
+
+  /// 시간 종목의 체감 강도 1~5.
+  final int? intensity;
+
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final SyncStatus syncStatus;
@@ -42,6 +55,9 @@ class WorkoutSet {
     int? setIndex,
     double? weight,
     int? reps,
+    double? distanceMeters,
+    int? durationSeconds,
+    int? intensity,
     double? rpe,
     bool? isWarmup,
     bool? isCompleted,
@@ -59,6 +75,9 @@ class WorkoutSet {
     setIndex: setIndex ?? this.setIndex,
     weight: weight ?? this.weight,
     reps: reps ?? this.reps,
+    distanceMeters: distanceMeters ?? this.distanceMeters,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    intensity: intensity ?? this.intensity,
     rpe: rpe ?? this.rpe,
     isWarmup: isWarmup ?? this.isWarmup,
     isCompleted: isCompleted ?? this.isCompleted,

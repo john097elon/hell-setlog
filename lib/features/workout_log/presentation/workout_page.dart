@@ -11,10 +11,10 @@ import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/personal_record.dart';
-import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../../domain/entities/routine.dart';
 import '../../../domain/entities/workout_session.dart';
 import '../../../domain/entities/workout_set.dart';
+import '../../../domain/usecases/calculate_effort.dart';
 import '../../party/application/party_providers.dart';
 import '../../routine/application/routine_providers.dart';
 import '../../settings/application/settings_controller.dart';
@@ -467,7 +467,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       ..invalidate(characterVolumesProvider)
       ..invalidate(characterWeeklyVolumesProvider);
     final prLabel = await _updatePersonalRecords(session.id);
-    final xp = xpForVolume(volume);
+    final xp = (volume / kgPerEffortPoint).floor();
     // 파티 주간 미션은 파티에 남긴 활동으로 계산한다.
     await _recordToParties(session.id, volume, xp);
     if (!mounted) return;
