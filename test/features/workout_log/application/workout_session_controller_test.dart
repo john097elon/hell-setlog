@@ -10,6 +10,8 @@ import 'package:mocktail/mocktail.dart';
 class _MockWorkoutRepository extends Mock implements WorkoutRepository {}
 
 void main() {
+  setUpAll(() => registerFallbackValue(_set('fallback')));
+
   test('complete draft calls completeSet once', () async {
     final repository = _MockWorkoutRepository();
     final added = _set('added');
@@ -51,6 +53,94 @@ void main() {
     ], 'exercise');
     expect(values.weight, 72.5);
     expect(values.reps, 8);
+  });
+
+  test(
+    'distance draft is stored in distanceMeters before completion',
+    () async {
+      final repository = _MockWorkoutRepository();
+      final added = _set('distance');
+      when(
+        () => repository.addSet(
+          sessionId: any(named: 'sessionId'),
+          exerciseId: any(named: 'exerciseId'),
+          weight: any(named: 'weight'),
+          reps: any(named: 'reps'),
+          rpe: any(named: 'rpe'),
+          isWarmup: any(named: 'isWarmup'),
+          restSeconds: any(named: 'restSeconds'),
+        ),
+      ).thenAnswer((_) async => Ok(added));
+      when(() => repository.updateSet(any())).thenAnswer((invocation) async {
+        return Ok(invocation.positionalArguments.single as WorkoutSet);
+      });
+      when(
+        () => repository.completeSet(any(), completed: any(named: 'completed')),
+      ).thenAnswer((_) async => Ok(added.copyWith(isCompleted: true)));
+      final container = ProviderContainer(
+        overrides: [workoutRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(workoutSessionControllerProvider)
+          .completeDraft(
+            sessionId: 'session',
+            exerciseId: 'running',
+            weight: 0,
+            reps: 0,
+            distanceMeters: 5000,
+          );
+
+      final saved =
+          verify(() => repository.updateSet(captureAny())).captured.single
+              as WorkoutSet;
+      expect(saved.distanceMeters, 5000);
+      expect(saved.durationSeconds, isNull);
+    },
+  );
+
+  test('duration draft stores durationSeconds and intensity', () async {
+    final repository = _MockWorkoutRepository();
+    final added = _set('duration');
+    when(
+      () => repository.addSet(
+        sessionId: any(named: 'sessionId'),
+        exerciseId: any(named: 'exerciseId'),
+        weight: any(named: 'weight'),
+        reps: any(named: 'reps'),
+        rpe: any(named: 'rpe'),
+        isWarmup: any(named: 'isWarmup'),
+        restSeconds: any(named: 'restSeconds'),
+      ),
+    ).thenAnswer((_) async => Ok(added));
+    when(() => repository.updateSet(any())).thenAnswer((invocation) async {
+      return Ok(invocation.positionalArguments.single as WorkoutSet);
+    });
+    when(
+      () => repository.completeSet(any(), completed: any(named: 'completed')),
+    ).thenAnswer((_) async => Ok(added.copyWith(isCompleted: true)));
+    final container = ProviderContainer(
+      overrides: [workoutRepositoryProvider.overrideWithValue(repository)],
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(workoutSessionControllerProvider)
+        .completeDraft(
+          sessionId: 'session',
+          exerciseId: 'grappling',
+          weight: 0,
+          reps: 0,
+          durationSeconds: 3600,
+          intensity: 4,
+        );
+
+    final saved =
+        verify(() => repository.updateSet(captureAny())).captured.single
+            as WorkoutSet;
+    expect(saved.durationSeconds, 3600);
+    expect(saved.intensity, 4);
   });
 }
 

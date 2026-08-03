@@ -9,6 +9,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_list.dart';
 import '../../../core/widgets/app_screen.dart';
 import '../../../core/widgets/app_states.dart';
+import '../../../domain/entities/discipline.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/personal_record.dart';
 import '../../../domain/entities/routine.dart';
@@ -31,7 +32,7 @@ import 'share_workout_sheet.dart';
 import 'widgets/exercise_block.dart';
 import 'widgets/exercise_picker_sheet.dart';
 import 'widgets/rest_timer_bar.dart';
-import 'widgets/set_row.dart';
+import 'widgets/tracking_set_row.dart';
 
 /// Local-first workout recording screen.
 class WorkoutPage extends ConsumerStatefulWidget {
@@ -239,11 +240,13 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
                   name: name,
                   exerciseId: entry.key,
                   equipment: exercise?.equipment ?? Equipment.other,
+                  discipline: exercise?.discipline ?? Discipline.strength,
                   thumbnailUrl: exercise?.thumbnailUrl,
                   setRows: _rowsFor(
                     session,
                     entry.key,
                     entry.value,
+                    exercise?.discipline ?? Discipline.strength,
                     weightUnit,
                   ),
                   weightUnit: weightUnit,
@@ -278,19 +281,29 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     WorkoutSession session,
     String exerciseId,
     List<WorkoutSet> sets,
+    Discipline discipline,
     WeightUnit weightUnit,
   ) {
     final rows = <Widget>[];
     for (final set in sets) {
       rows.add(
-        SetRow(
+        TrackingSetRow(
           index: set.setIndex,
+          discipline: discipline,
           weight: set.weight,
           reps: set.reps,
+          distanceMeters: set.distanceMeters,
+          durationSeconds: set.durationSeconds,
+          intensity: set.intensity,
           set: set,
           weightUnit: weightUnit,
           onWeightChanged: (value) => _updatePlanned(set, weight: value),
           onRepsChanged: (value) => _updatePlanned(set, reps: value),
+          onDistanceChanged: (value) =>
+              _updatePlanned(set, distanceMeters: value),
+          onDurationChanged: (value) =>
+              _updatePlanned(set, durationSeconds: value),
+          onIntensityChanged: (value) => _updatePlanned(set, intensity: value),
           onComplete: set.isCompleted ? () {} : () => _completeExisting(set),
           onDelete: () => _delete(set),
         ),
@@ -300,37 +313,61 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     for (var index = 0; index < drafts.length; index++) {
       final draft = drafts[index];
       rows.add(
-        SetRow(
+        TrackingSetRow(
           // 줄이 사라져도 입력값이 섞이지 않도록 draft 객체를 키로 쓴다.
           key: ObjectKey(draft),
           index: sets.length + index,
+          discipline: discipline,
           weight: draft.weight,
           reps: draft.reps,
+          distanceMeters: draft.distanceMeters,
+          durationSeconds: draft.durationSeconds,
+          intensity: draft.intensity,
           weightUnit: weightUnit,
           onWeightChanged: (value) => setState(() => draft.weight = value),
           onRepsChanged: (value) => setState(() => draft.reps = value),
+          onDistanceChanged: (value) =>
+              setState(() => draft.distanceMeters = value),
+          onDurationChanged: (value) =>
+              setState(() => draft.durationSeconds = value),
+          onIntensityChanged: (value) =>
+              setState(() => draft.intensity = value),
           // 저장 중 연타로 같은 세트가 두 번 기록되던 자리.
           onComplete: draft.isSaving
               ? null
-              : () => _completeDraft(session, exerciseId, draft),
+              : () => _completeDraft(session, exerciseId, discipline, draft),
         ),
       );
     }
     return rows;
   }
 
-  void _updatePlanned(WorkoutSet set, {double? weight, int? reps}) {
+  void _updatePlanned(
+    WorkoutSet set, {
+    double? weight,
+    int? reps,
+    double? distanceMeters,
+    int? durationSeconds,
+    int? intensity,
+  }) {
     if (set.isCompleted) return;
     ref
         .read(workoutSessionControllerProvider)
-        .updatePlannedSet(set, weight: weight, reps: reps);
+        .updatePlannedSet(
+          set,
+          weight: weight,
+          reps: reps,
+          distanceMeters: distanceMeters,
+          durationSeconds: durationSeconds,
+          intensity: intensity,
+        );
   }
 
   void _addDraft(String exerciseId, List<WorkoutSet> sets) {
     final prefill = prefillForExercise(sets, exerciseId);
     _drafts
         .putIfAbsent(exerciseId, () => <_SetDraft>[])
-        .add(_SetDraft(prefill.weight, prefill.reps));
+        .add(_SetDraft(prefill));
   }
 
   void _pickExercise(List<WorkoutSet> sets) =>
@@ -347,6 +384,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   Future<void> _completeDraft(
     WorkoutSession session,
     String exerciseId,
+    Discipline discipline,
     _SetDraft draft,
   ) async {
     if (draft.isSaving) return;
@@ -356,8 +394,23 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         .completeDraft(
           sessionId: session.id,
           exerciseId: exerciseId,
-          weight: draft.weight,
-          reps: draft.reps,
+          weight: trackingModeOf(discipline) == TrackingMode.setsReps
+              ? draft.weight
+              : 0,
+          reps: trackingModeOf(discipline) == TrackingMode.setsReps
+              ? draft.reps
+              : 0,
+          distanceMeters:
+              trackingModeOf(discipline) == TrackingMode.distanceDuration
+              ? draft.distanceMeters
+              : null,
+          durationSeconds: trackingModeOf(discipline) == TrackingMode.setsReps
+              ? null
+              : draft.durationSeconds,
+          intensity:
+              trackingModeOf(discipline) == TrackingMode.durationIntensity
+              ? draft.intensity
+              : null,
         );
     if (!mounted) return;
     result.when(
@@ -430,18 +483,20 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         ref.read(sessionSetsProvider(session.id)).valueOrNull ??
         const <WorkoutSet>[];
     // 세션 볼륨과 같은 기준. 준비 세트는 빼야 수치가 어긋나지 않는다.
-    final completed = sets.where((set) => set.isCompleted && !set.isWarmup);
+    final completed = sets
+        .where((set) => set.isCompleted && !set.isWarmup)
+        .toList(growable: false);
     final volume = completed.fold<double>(
       0,
       (sum, set) => sum + set.weight * set.reps,
     );
     final minutes = DateTime.now().difference(session.startedAt).inMinutes;
     final weightUnit = ref.read(settingsControllerProvider).weightUnit;
-    final tags = <String>[
-      if (volume > 0) formatWeightWithUnit(volume, unit: weightUnit),
-      if (minutes > 0) '$minutes분',
-      '${completed.length}세트',
-    ];
+    final tags = workoutSummaryTags(
+      completed,
+      sessionMinutes: minutes,
+      weightUnit: weightUnit,
+    );
     final result = await ref
         .read(workoutSessionControllerProvider)
         .endSession(session.id);
@@ -524,11 +579,56 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
   }
 }
 
+/// 운동 종료 공유 시트에 표시할 종목 중립적인 요약 문구를 만든다.
+List<String> workoutSummaryTags(
+  Iterable<WorkoutSet> completedSets, {
+  required int sessionMinutes,
+  required WeightUnit weightUnit,
+}) {
+  final sets = completedSets.toList(growable: false);
+  final volume = sets.fold<double>(
+    0,
+    (sum, set) => sum + set.weight * set.reps,
+  );
+  final distanceMeters = sets.fold<double>(
+    0,
+    (sum, set) => sum + (set.distanceMeters ?? 0),
+  );
+  final trackedDurationSeconds = sets.fold<int>(
+    0,
+    (sum, set) => sum + (set.durationSeconds ?? 0),
+  );
+  final hasTrackedRecords = sets.any(
+    (set) => set.distanceMeters != null || set.durationSeconds != null,
+  );
+  return <String>[
+    if (volume > 0) formatWeightWithUnit(volume, unit: weightUnit),
+    if (distanceMeters > 0) _distanceTag(distanceMeters),
+    if (trackedDurationSeconds > 0)
+      '${(trackedDurationSeconds / 60).ceil()}분'
+    else if (sessionMinutes > 0)
+      '$sessionMinutes분',
+    '${sets.length}${hasTrackedRecords ? '개 기록' : '세트'}',
+  ];
+}
+
+String _distanceTag(double meters) => meters >= 1000
+    ? '${(meters / 1000).toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '')}km'
+    : '${meters.round()}m';
+
 class _SetDraft {
-  _SetDraft(this.weight, this.reps);
+  _SetDraft(SetPrefill prefill)
+    : weight = prefill.weight,
+      reps = prefill.reps,
+      distanceMeters = prefill.distanceMeters,
+      durationSeconds = prefill.durationSeconds,
+      intensity = prefill.intensity;
 
   double weight;
   int reps;
+  double? distanceMeters;
+  int? durationSeconds;
+  int intensity;
   bool isSaving = false;
 }
 
