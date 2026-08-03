@@ -16,11 +16,7 @@ void main() {
 
   test('웨이트는 볼륨 100kg마다 1점이다', () {
     expect(
-      effortPoints(
-        discipline: Discipline.strength,
-        weightKg: 60,
-        reps: 10,
-      ),
+      effortPoints(discipline: Discipline.strength, weightKg: 60, reps: 10),
       6,
     );
     // 러닝 값이 섞여 들어와도 웨이트는 볼륨만 본다.

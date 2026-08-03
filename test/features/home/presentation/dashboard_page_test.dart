@@ -72,7 +72,9 @@ Future<void> _pump(
       overrides: <Override>[
         characterIdentityProvider.overrideWith((ref) async => identity),
         characterGrowthProvider.overrideWith(
-          (ref) async => calculateCharacterGrowth(<Discipline, double>{Discipline.strength: 12000}),
+          (ref) async => calculateCharacterGrowth(<Discipline, double>{
+            Discipline.strength: 12000,
+          }),
         ),
         myPartiesProvider.overrideWith(
           (ref) async => parties ?? <Party>[_party],

@@ -32,7 +32,10 @@ void main() {
   testWidgets('능력치와 이번 주 경험치를 보여준다', (tester) async {
     await _pump(
       tester,
-      volumes: <Discipline, double>{Discipline.strength: 300, Discipline.running: 150},
+      volumes: <Discipline, double>{
+        Discipline.strength: 300,
+        Discipline.running: 150,
+      },
       weekly: <Discipline, double>{Discipline.strength: 30},
     );
 

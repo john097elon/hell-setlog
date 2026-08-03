@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
+import '../../domain/entities/discipline.dart';
 import '../../domain/entities/exercise.dart';
 import '../../domain/repositories/exercise_repository.dart';
 import '../local/app_database.dart' as database;
@@ -13,11 +14,18 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
 
   final ExerciseDao _dao;
 
-  /// Inserts the built-in exercises only when the local table is empty.
+  /// 기본 종목 중 아직 없는 것만 넣는다.
+  ///
+  /// 예전에는 표가 비었을 때만 넣어서, 이미 쓰던 사람에게는 새로 추가한 종목이
+  /// 영영 보이지 않았다. 사용자가 만든 종목과 기록은 건드리지 않는다.
   Future<void> ensureSeeded() async {
-    if ((await _dao.getAll()).isEmpty) {
-      await _dao.insertAll(exerciseSeed.map(_toCompanion).toList());
-    }
+    final existing = (await _dao.getAll()).map((item) => item.id).toSet();
+    final missing = exerciseSeed
+        .where((exercise) => !existing.contains(exercise.id))
+        .map(_toCompanion)
+        .toList(growable: false);
+    if (missing.isEmpty) return;
+    await _dao.insertAll(missing);
   }
 
   @override
@@ -66,6 +74,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
         nameKo: exercise.nameKo,
         muscleGroup: exercise.muscleGroup.index,
         equipment: exercise.equipment.index,
+        discipline: Value(exercise.discipline.index),
         isCustom: Value(exercise.isCustom),
         thumbnailUrl: Value(exercise.thumbnailUrl),
       );
@@ -76,6 +85,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     nameKo: data.nameKo,
     muscleGroup: MuscleGroup.values[data.muscleGroup],
     equipment: Equipment.values[data.equipment],
+    discipline: Discipline.values[data.discipline],
     isCustom: data.isCustom,
     thumbnailUrl: data.thumbnailUrl,
   );

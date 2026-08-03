@@ -63,10 +63,7 @@ void main() {
   test('칭호는 최근 기록을 우선한다', () {
     // 예전에는 웨이트만 했지만 요즘은 달리기를 한다면 러너다.
     final growth = calculateCharacterGrowth(
-      <Discipline, double>{
-        Discipline.strength: 5000,
-        Discipline.running: 100,
-      },
+      <Discipline, double>{Discipline.strength: 5000, Discipline.running: 100},
       recentEffort: <Discipline, double>{Discipline.running: 200},
     );
 
@@ -79,10 +76,7 @@ void main() {
     expect(evolutionStageForLevel(10), 1);
     expect(evolutionStageForLevel(47), 2);
     expect(evolutionStageForLevel(48), 3);
-    expect(
-      evolutionStageForLevel(9999),
-      evolutionThresholds.length - 1,
-    );
+    expect(evolutionStageForLevel(9999), evolutionThresholds.length - 1);
   });
 
   test('최고 단계에서는 다음 임계값이 없다', () {
@@ -137,11 +131,7 @@ void main() {
       traitBonusMultiplier,
     );
     expect(
-      traitMultiplier(
-        CharacterTrait.power,
-        0,
-        discipline: Discipline.striking,
-      ),
+      traitMultiplier(CharacterTrait.power, 0, discipline: Discipline.striking),
       traitBonusMultiplier,
     );
     expect(
@@ -154,11 +144,7 @@ void main() {
     );
     // 맞지 않는 조합은 보너스가 없다.
     expect(
-      traitMultiplier(
-        CharacterTrait.power,
-        0,
-        discipline: Discipline.running,
-      ),
+      traitMultiplier(CharacterTrait.power, 0, discipline: Discipline.running),
       1,
     );
   });
