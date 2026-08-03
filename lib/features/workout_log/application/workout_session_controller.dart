@@ -44,6 +44,9 @@ class WorkoutSessionController {
     required String exerciseId,
     required double weight,
     required int reps,
+    double? distanceMeters,
+    int? durationSeconds,
+    int? intensity,
     int restSeconds = 0,
   }) async {
     final added = await _repository.addSet(
@@ -55,7 +58,22 @@ class WorkoutSessionController {
     );
     return added.when(
       ok: (set) async {
-        return _completeSet(set.id);
+        if (distanceMeters == null &&
+            durationSeconds == null &&
+            intensity == null) {
+          return _completeSet(set.id);
+        }
+        final updated = await _repository.updateSet(
+          set.copyWith(
+            distanceMeters: distanceMeters,
+            durationSeconds: durationSeconds,
+            intensity: intensity,
+          ),
+        );
+        return updated.when(
+          ok: (value) => _completeSet(value.id),
+          err: (failure) async => Err(failure),
+        );
       },
       err: (failure) async => Err(failure),
     );
@@ -85,7 +103,18 @@ class WorkoutSessionController {
     WorkoutSet set, {
     double? weight,
     int? reps,
-  }) => _repository.updateSet(set.copyWith(weight: weight, reps: reps));
+    double? distanceMeters,
+    int? durationSeconds,
+    int? intensity,
+  }) => _repository.updateSet(
+    set.copyWith(
+      weight: weight,
+      reps: reps,
+      distanceMeters: distanceMeters,
+      durationSeconds: durationSeconds,
+      intensity: intensity,
+    ),
+  );
 
   Future<Result<WorkoutSet, Failure>> restoreSet(WorkoutSet set) =>
       _repository.updateSet(set.copyWith(clearDeletedAt: true));
@@ -95,11 +124,27 @@ class WorkoutSessionController {
 SetPrefill prefillForExercise(Iterable<WorkoutSet> sets, String exerciseId) {
   final matching = sets.where((set) => set.exerciseId == exerciseId);
   final previous = matching.isEmpty ? null : matching.last;
-  return SetPrefill(previous?.weight ?? 0, previous?.reps ?? 0);
+  return SetPrefill(
+    weight: previous?.weight ?? 0,
+    reps: previous?.reps ?? 0,
+    distanceMeters: previous?.distanceMeters,
+    durationSeconds: previous?.durationSeconds,
+    intensity: previous?.intensity ?? 3,
+  );
 }
 
 class SetPrefill {
-  const SetPrefill(this.weight, this.reps);
+  const SetPrefill({
+    required this.weight,
+    required this.reps,
+    required this.distanceMeters,
+    required this.durationSeconds,
+    required this.intensity,
+  });
+
   final double weight;
   final int reps;
+  final double? distanceMeters;
+  final int? durationSeconds;
+  final int intensity;
 }

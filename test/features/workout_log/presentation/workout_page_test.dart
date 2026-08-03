@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/result.dart';
+import 'package:heal_setlog/core/formatting/app_format.dart';
 import 'package:heal_setlog/core/theme/app_theme.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/domain/entities/workout_session.dart';
 import 'package:heal_setlog/domain/entities/workout_set.dart';
@@ -163,6 +165,30 @@ void main() {
     expect(find.text('스쿼트'), findsNothing);
   });
 
+  test('거리 세션 종료 요약에는 0kg 대신 거리와 기록 수가 보인다', () {
+    final distanceSet = WorkoutSet(
+      id: 'run-set',
+      sessionId: session.id,
+      exerciseId: 'running-id',
+      setIndex: 0,
+      weight: 0,
+      reps: 0,
+      distanceMeters: 5000,
+      durationSeconds: 1500,
+      isCompleted: true,
+      updatedAt: DateTime(2026),
+    );
+
+    final tags = workoutSummaryTags(
+      [distanceSet],
+      sessionMinutes: 0,
+      weightUnit: WeightUnit.kg,
+    );
+
+    expect(tags, ['5km', '25분', '1개 기록']);
+    expect(tags.where((tag) => tag.contains('kg')), isEmpty);
+  });
+
   testWidgets('adds an exercise through the picker', (tester) async {
     final workoutRepository = _MockWorkoutRepository();
     final exerciseRepository = _MockExerciseRepository();
@@ -190,6 +216,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('스쿼트'), findsOneWidget);
+  });
+
+  testWidgets('갈래 필터를 적용하고 한 세션에 다른 입력판을 함께 보여준다', (tester) async {
+    final workoutRepository = _MockWorkoutRepository();
+    final exerciseRepository = _MockExerciseRepository();
+    const exercises = <Exercise>[
+      Exercise(
+        id: 'squat-id',
+        name: 'Squat',
+        nameKo: '스쿼트',
+        muscleGroup: MuscleGroup.legs,
+        equipment: Equipment.barbell,
+      ),
+      Exercise(
+        id: 'running-id',
+        name: 'Track Run',
+        nameKo: '트랙 달리기',
+        muscleGroup: MuscleGroup.fullBody,
+        equipment: Equipment.other,
+        discipline: Discipline.running,
+      ),
+    ];
+    when(
+      () => exerciseRepository.search(
+        query: any(named: 'query'),
+        muscleGroup: any(named: 'muscleGroup'),
+        equipment: any(named: 'equipment'),
+      ),
+    ).thenAnswer((_) async => const Ok(exercises));
+    await _pumpPage(tester, workoutRepository, session, [
+      recordedSet,
+    ], exerciseRepository: exerciseRepository);
+
+    await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('add-exercise')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, '러닝'));
+    await tester.pump();
+
+    expect(find.text('스쿼트'), findsNothing);
+    expect(find.text('트랙 달리기'), findsOneWidget);
+    await tester.tap(find.text('트랙 달리기'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('set-weight-input')), findsOneWidget);
+    expect(find.byKey(const Key('set-distance-input')), findsOneWidget);
   });
 
   for (final themeId in AppThemeId.values) {
