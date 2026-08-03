@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
+import 'package:heal_setlog/domain/entities/discipline.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 import 'package:heal_setlog/features/stats/application/stats_providers.dart';
 import 'package:heal_setlog/features/stats/presentation/stats_page.dart';
@@ -66,6 +67,22 @@ void main() {
     expect(find.text('아직 기록된 운동이 없어요'), findsOneWidget);
   });
 
+  testWidgets('웨이트 기록이 없어도 종목별 기록 수를 표시한다', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        weekly: const <DateTime, double>{},
+        split: const <MuscleGroup, double>{},
+        disciplineCounts: const <Discipline, int>{Discipline.running: 3},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('종목별 기록'), findsOneWidget);
+    expect(find.text('러닝'), findsOneWidget);
+    expect(find.text('3개'), findsOneWidget);
+    expect(find.text('아직 기록된 운동이 없어요'), findsNothing);
+  });
+
   testWidgets('builds weekly volume bar chart', (tester) async {
     await tester.pumpWidget(
       _app(
@@ -107,6 +124,7 @@ void main() {
 Widget _app({
   required Map<DateTime, double> weekly,
   required Map<MuscleGroup, double> split,
+  Map<Discipline, int> disciplineCounts = const <Discipline, int>{},
   AppThemeId themeId = AppThemeId.appleWhite,
 }) => ProviderScope(
   overrides: <Override>[
@@ -115,6 +133,9 @@ Widget _app({
     ),
     bodyPartSplitProvider().overrideWith(
       (ref) async => Ok<Map<MuscleGroup, double>, Failure>(split),
+    ),
+    weeklyDisciplineCountsProvider().overrideWith(
+      (ref) async => Ok<Map<Discipline, int>, Failure>(disciplineCounts),
     ),
   ],
   child: MaterialApp(

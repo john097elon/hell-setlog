@@ -199,18 +199,20 @@ class _ExerciseByIdProviderElement
   String get id => (origin as ExerciseByIdProvider).id;
 }
 
-String _$exerciseSearchHash() => r'b52f3db0df75cf786c0c6a03fe2e0e9ec6943673';
+String _$exerciseSearchHash() => r'b6192c8c9e114f5499397ee01bc826e0988ffa87';
 
 abstract class _$ExerciseSearch
     extends BuildlessAutoDisposeAsyncNotifier<Result<List<Exercise>, Failure>> {
   late final String? query;
   late final MuscleGroup? muscleGroup;
   late final Equipment? equipment;
+  late final Discipline? discipline;
 
   FutureOr<Result<List<Exercise>, Failure>> build({
     String? query,
     MuscleGroup? muscleGroup,
     Equipment? equipment,
+    Discipline? discipline,
   });
 }
 
@@ -237,11 +239,13 @@ class ExerciseSearchFamily
     String? query,
     MuscleGroup? muscleGroup,
     Equipment? equipment,
+    Discipline? discipline,
   }) {
     return ExerciseSearchProvider(
       query: query,
       muscleGroup: muscleGroup,
       equipment: equipment,
+      discipline: discipline,
     );
   }
 
@@ -253,6 +257,7 @@ class ExerciseSearchFamily
       query: provider.query,
       muscleGroup: provider.muscleGroup,
       equipment: provider.equipment,
+      discipline: provider.discipline,
     );
   }
 
@@ -287,11 +292,13 @@ class ExerciseSearchProvider
     String? query,
     MuscleGroup? muscleGroup,
     Equipment? equipment,
+    Discipline? discipline,
   }) : this._internal(
          () => ExerciseSearch()
            ..query = query
            ..muscleGroup = muscleGroup
-           ..equipment = equipment,
+           ..equipment = equipment
+           ..discipline = discipline,
          from: exerciseSearchProvider,
          name: r'exerciseSearchProvider',
          debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -303,6 +310,7 @@ class ExerciseSearchProvider
          query: query,
          muscleGroup: muscleGroup,
          equipment: equipment,
+         discipline: discipline,
        );
 
   ExerciseSearchProvider._internal(
@@ -315,11 +323,13 @@ class ExerciseSearchProvider
     required this.query,
     required this.muscleGroup,
     required this.equipment,
+    required this.discipline,
   }) : super.internal();
 
   final String? query;
   final MuscleGroup? muscleGroup;
   final Equipment? equipment;
+  final Discipline? discipline;
 
   @override
   FutureOr<Result<List<Exercise>, Failure>> runNotifierBuild(
@@ -329,6 +339,7 @@ class ExerciseSearchProvider
       query: query,
       muscleGroup: muscleGroup,
       equipment: equipment,
+      discipline: discipline,
     );
   }
 
@@ -340,7 +351,8 @@ class ExerciseSearchProvider
         () => create()
           ..query = query
           ..muscleGroup = muscleGroup
-          ..equipment = equipment,
+          ..equipment = equipment
+          ..discipline = discipline,
         from: from,
         name: null,
         dependencies: null,
@@ -349,6 +361,7 @@ class ExerciseSearchProvider
         query: query,
         muscleGroup: muscleGroup,
         equipment: equipment,
+        discipline: discipline,
       ),
     );
   }
@@ -367,7 +380,8 @@ class ExerciseSearchProvider
     return other is ExerciseSearchProvider &&
         other.query == query &&
         other.muscleGroup == muscleGroup &&
-        other.equipment == equipment;
+        other.equipment == equipment &&
+        other.discipline == discipline;
   }
 
   @override
@@ -376,6 +390,7 @@ class ExerciseSearchProvider
     hash = _SystemHash.combine(hash, query.hashCode);
     hash = _SystemHash.combine(hash, muscleGroup.hashCode);
     hash = _SystemHash.combine(hash, equipment.hashCode);
+    hash = _SystemHash.combine(hash, discipline.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -393,6 +408,9 @@ mixin ExerciseSearchRef
 
   /// The parameter `equipment` of this provider.
   Equipment? get equipment;
+
+  /// The parameter `discipline` of this provider.
+  Discipline? get discipline;
 }
 
 class _ExerciseSearchProviderElement
@@ -411,6 +429,8 @@ class _ExerciseSearchProviderElement
       (origin as ExerciseSearchProvider).muscleGroup;
   @override
   Equipment? get equipment => (origin as ExerciseSearchProvider).equipment;
+  @override
+  Discipline? get discipline => (origin as ExerciseSearchProvider).discipline;
 }
 
 // ignore_for_file: type=lint
