@@ -1,3 +1,5 @@
+import 'discipline.dart';
+
 /// 사용자가 고른 스타터 종족. 아트 라인이 종족마다 다르다.
 enum CharacterSpecies { cat, dog, bear }
 
@@ -10,20 +12,29 @@ class CharacterIdentity {
     required this.species,
     required this.trait,
     required this.name,
+    this.preferredDiscipline,
   });
 
   final CharacterSpecies species;
   final CharacterTrait trait;
   final String name;
 
+  /// 사용자가 직접 고른 주 종목. 비워 두면 최근 기록에서 자동으로 정한다.
+  final Discipline? preferredDiscipline;
+
   CharacterIdentity copyWith({
     CharacterSpecies? species,
     CharacterTrait? trait,
     String? name,
+    Discipline? preferredDiscipline,
+    bool clearPreferredDiscipline = false,
   }) => CharacterIdentity(
     species: species ?? this.species,
     trait: trait ?? this.trait,
     name: name ?? this.name,
+    preferredDiscipline: clearPreferredDiscipline
+        ? null
+        : (preferredDiscipline ?? this.preferredDiscipline),
   );
 }
 

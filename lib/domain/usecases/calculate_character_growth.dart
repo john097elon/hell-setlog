@@ -96,6 +96,7 @@ CharacterGrowth calculateCharacterGrowth(
   Map<Discipline, double> effortByDiscipline, {
   Map<Discipline, double> weeklyEffort = const <Discipline, double>{},
   Map<Discipline, double> recentEffort = const <Discipline, double>{},
+  Discipline? preferredDiscipline,
 }) {
   final byAttribute = <CharacterAttribute, double>{};
   for (final entry in effortByDiscipline.entries) {
@@ -123,9 +124,12 @@ CharacterGrowth calculateCharacterGrowth(
     totalLevel: totalLevel,
     evolutionStage: stage,
     weeklyXp: _round(weeklyEffort.values.fold(0, (sum, value) => sum + value)),
-    primaryDiscipline: primaryDisciplineOf(
-      recentEffort.isEmpty ? effortByDiscipline : recentEffort,
-    ),
+    // 사용자가 직접 고른 종목이 있으면 기록보다 그 선택을 따른다.
+    primaryDiscipline:
+        preferredDiscipline ??
+        primaryDisciplineOf(
+          recentEffort.isEmpty ? effortByDiscipline : recentEffort,
+        ),
     nextEvolutionThreshold: stage == evolutionThresholds.length - 1
         ? null
         : evolutionThresholds[stage + 1],

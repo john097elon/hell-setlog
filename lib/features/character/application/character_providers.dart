@@ -35,10 +35,12 @@ final characterGrowthProvider = FutureProvider<CharacterGrowth>((ref) async {
   final total = await ref.watch(characterVolumesProvider.future);
   final weekly = await ref.watch(characterWeeklyVolumesProvider.future);
   final recent = await ref.watch(characterRecentVolumesProvider.future);
+  final identity = await ref.watch(characterIdentityProvider.future);
   return calculateCharacterGrowth(
     total,
     weeklyEffort: weekly,
     recentEffort: recent,
+    preferredDiscipline: identity?.preferredDiscipline,
   );
 });
 

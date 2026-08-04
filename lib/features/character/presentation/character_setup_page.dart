@@ -5,6 +5,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_list.dart';
 import '../../../domain/entities/character_identity.dart';
+import '../../../domain/entities/discipline.dart';
+import '../../../domain/entities/character_attribute.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
 import '../application/character_identity_controller.dart';
 import 'widgets/growth_view.dart';
@@ -24,6 +26,7 @@ class _CharacterSetupPageState extends ConsumerState<CharacterSetupPage> {
   late CharacterSpecies _species =
       widget.initial?.species ?? CharacterSpecies.cat;
   late CharacterTrait _trait = widget.initial?.trait ?? CharacterTrait.balanced;
+  late Discipline? _preferred = widget.initial?.preferredDiscipline;
   late final TextEditingController _name = TextEditingController(
     text: widget.initial?.name ?? '',
   );
@@ -46,7 +49,14 @@ class _CharacterSetupPageState extends ConsumerState<CharacterSetupPage> {
     setState(() => _saving = true);
     await ref
         .read(characterIdentityControllerProvider)
-        .save(CharacterIdentity(species: _species, trait: _trait, name: name));
+        .save(
+          CharacterIdentity(
+            species: _species,
+            trait: _trait,
+            name: name,
+            preferredDiscipline: _preferred,
+          ),
+        );
     if (!mounted) return;
     setState(() => _saving = false);
     Navigator.of(context).pop(true);
@@ -89,6 +99,25 @@ class _CharacterSetupPageState extends ConsumerState<CharacterSetupPage> {
                   trait: trait,
                   selected: trait == _trait,
                   onTap: () => setState(() => _trait = trait),
+                ),
+            ],
+          ),
+          AppSection(
+            title: '주 종목',
+            footer: '캐릭터가 입는 복장과 칭호를 정해요. 자동으로 두면 요즘 가장 많이 한 운동을 따라갑니다.',
+            children: <Widget>[
+              _DisciplineTile(
+                label: '자동',
+                detail: '최근 30일 기록에서 알아서 정해요',
+                selected: _preferred == null,
+                onTap: () => setState(() => _preferred = null),
+              ),
+              for (final discipline in Discipline.values)
+                _DisciplineTile(
+                  label: disciplineLabel(discipline),
+                  detail: '${titleForDiscipline(discipline)} 칭호',
+                  selected: _preferred == discipline,
+                  onTap: () => setState(() => _preferred = discipline),
                 ),
             ],
           ),
@@ -193,6 +222,34 @@ class _SpeciesTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 주 종목 한 줄. 자동과 각 종목을 같은 모양으로 보여준다.
+class _DisciplineTile extends StatelessWidget {
+  const _DisciplineTile({
+    required this.label,
+    required this.detail,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final String detail;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => AppRow(
+    title: label,
+    subtitle: detail,
+    onTap: onTap,
+    leading: Icon(
+      selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+      size: 20,
+      color: selected ? context.tokens.brand : context.tokens.faintText,
+    ),
+    trailing: const SizedBox.shrink(),
+  );
 }
 
 class _TraitTile extends StatelessWidget {

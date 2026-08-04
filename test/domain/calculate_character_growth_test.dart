@@ -76,6 +76,25 @@ void main() {
     expect(growth.title, '러너');
   });
 
+  test('직접 고른 주 종목이 기록보다 우선한다', () {
+    // 웨이트만 했어도 주 종목을 주짓수로 골랐으면 그래플러다.
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.strength: 500,
+    }, preferredDiscipline: Discipline.grappling);
+
+    expect(growth.primaryDiscipline, Discipline.grappling);
+    expect(growth.title, '그래플러');
+  });
+
+  test('주 종목을 안 고르면 기록을 따라간다', () {
+    final growth = calculateCharacterGrowth(<Discipline, double>{
+      Discipline.running: 300,
+      Discipline.strength: 100,
+    });
+
+    expect(growth.primaryDiscipline, Discipline.running);
+  });
+
   test('레벨이 오르면 진화 단계도 오른다', () {
     expect(evolutionStageForLevel(4), 0);
     expect(evolutionStageForLevel(10), 1);

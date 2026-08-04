@@ -3,10 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/supabase/supabase_init.dart';
 import '../../../domain/entities/character_identity.dart';
+import '../../../domain/entities/discipline.dart';
 
 const String _speciesKey = 'character_species';
 const String _traitKey = 'character_trait';
 const String _nameKey = 'character_name';
+const String _preferredKey = 'character_preferred_discipline';
 
 /// 내가 만든 캐릭터. 아직 고르지 않았으면 null이다.
 final characterIdentityProvider = FutureProvider<CharacterIdentity?>((
@@ -23,7 +25,10 @@ final characterIdentityProvider = FutureProvider<CharacterIdentity?>((
   try {
     final row = await client
         .from('profiles')
-        .select('character_species, character_trait, character_name')
+        .select(
+          'character_species, character_trait, character_name, '
+          'character_preferred_discipline',
+        )
         .eq('user_id', userId)
         .maybeSingle();
     final name = (row?['character_name'] as String?)?.trim();
@@ -32,6 +37,9 @@ final characterIdentityProvider = FutureProvider<CharacterIdentity?>((
       species: speciesFrom(row?['character_species'] as String?),
       trait: traitFrom(row?['character_trait'] as String?),
       name: name,
+      preferredDiscipline: _preferredFrom(
+        row?['character_preferred_discipline'] as String?,
+      ),
     );
     await _write(prefs, identity);
     return identity;
@@ -70,6 +78,10 @@ class CharacterIdentityController {
             'character_species': speciesKey(identity.species),
             'character_trait': traitKey(identity.trait),
             'character_name': identity.name,
+            'character_preferred_discipline':
+                identity.preferredDiscipline == null
+                ? null
+                : disciplineKey(identity.preferredDiscipline!),
           })
           .eq('user_id', userId);
     } on Object {
@@ -85,6 +97,7 @@ CharacterIdentity? _read(SharedPreferences prefs) {
     species: speciesFrom(prefs.getString(_speciesKey)),
     trait: traitFrom(prefs.getString(_traitKey)),
     name: name,
+    preferredDiscipline: _preferredFrom(prefs.getString(_preferredKey)),
   );
 }
 
@@ -92,4 +105,14 @@ Future<void> _write(SharedPreferences prefs, CharacterIdentity identity) async {
   await prefs.setString(_speciesKey, speciesKey(identity.species));
   await prefs.setString(_traitKey, traitKey(identity.trait));
   await prefs.setString(_nameKey, identity.name);
+  final preferred = identity.preferredDiscipline;
+  if (preferred == null) {
+    await prefs.remove(_preferredKey);
+  } else {
+    await prefs.setString(_preferredKey, disciplineKey(preferred));
+  }
 }
+
+/// 저장된 값이 없으면 자동(기록 따라감)이다.
+Discipline? _preferredFrom(String? raw) =>
+    (raw == null || raw.isEmpty) ? null : disciplineFrom(raw);
