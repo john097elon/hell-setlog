@@ -9,6 +9,7 @@ import '../../domain/entities/workout_set.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../../domain/usecases/calculate_session_volume.dart';
 import '../local/app_database.dart' as database;
+import 'workout_set_mapper.dart';
 import '../local/daos/workout_dao.dart';
 
 class WorkoutRepositoryImpl implements WorkoutRepository {
@@ -68,7 +69,9 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
       final stored = await _dao.getSessionById(sessionId);
       if (stored == null) return const Err(NotFoundFailure());
       final session = _sessionFromData(stored);
-      final sets = (await _dao.getSetsBySession(sessionId)).map(_setFromData);
+      final sets = (await _dao.getSetsBySession(
+        sessionId,
+      )).map(workoutSetFromRow);
       final now = DateTime.now();
       final ended = session.copyWith(
         endedAt: now,
@@ -114,7 +117,7 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
           ),
         ),
       );
-      return Ok(_setFromData(set));
+      return Ok(workoutSetFromRow(set));
     } on Exception catch (error) {
       return Err(DatabaseFailure(error.toString()));
     }
@@ -142,7 +145,7 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
       final stored = await _dao.getSetById(setId);
       if (stored == null) return const Err(NotFoundFailure());
       final now = DateTime.now();
-      final set = _setFromData(stored).copyWith(
+      final set = workoutSetFromRow(stored).copyWith(
         isCompleted: completed,
         completedAt: completed ? now : stored.completedAt,
         updatedAt: now,
@@ -159,7 +162,7 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
     try {
       final stored = await _dao.getSetById(setId);
       if (stored == null) return const Err(NotFoundFailure());
-      final set = _setFromData(
+      final set = workoutSetFromRow(
         stored,
       ).copyWith(deletedAt: DateTime.now(), updatedAt: DateTime.now());
       await _dao.updateSet(_setCompanion(set));
@@ -170,8 +173,9 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }
 
   @override
-  Stream<List<WorkoutSet>> watchSets(String sessionId) =>
-      _dao.watchSets(sessionId).map((sets) => sets.map(_setFromData).toList());
+  Stream<List<WorkoutSet>> watchSets(String sessionId) => _dao
+      .watchSets(sessionId)
+      .map((sets) => sets.map(workoutSetFromRow).toList());
 
   database.WorkoutSessionsCompanion _sessionCompanion(WorkoutSession session) =>
       database.WorkoutSessionsCompanion.insert(
@@ -197,6 +201,9 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
         weight: set.weight,
         reps: set.reps,
         rpe: Value(set.rpe),
+        distanceMeters: Value(set.distanceMeters),
+        durationSeconds: Value(set.durationSeconds),
+        intensity: Value(set.intensity),
         isWarmup: Value(set.isWarmup),
         isCompleted: Value(set.isCompleted),
         restSeconds: Value(set.restSeconds),
@@ -220,21 +227,4 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
         deletedAt: session.deletedAt,
         syncStatus: SyncStatus.values[session.syncStatus],
       );
-
-  WorkoutSet _setFromData(database.WorkoutSet set) => WorkoutSet(
-    id: set.id,
-    sessionId: set.sessionId,
-    exerciseId: set.exerciseId,
-    setIndex: set.setIndex,
-    weight: set.weight,
-    reps: set.reps,
-    rpe: set.rpe,
-    isWarmup: set.isWarmup,
-    isCompleted: set.isCompleted,
-    restSeconds: set.restSeconds,
-    completedAt: set.completedAt,
-    updatedAt: set.updatedAt,
-    deletedAt: set.deletedAt,
-    syncStatus: SyncStatus.values[set.syncStatus],
-  );
 }

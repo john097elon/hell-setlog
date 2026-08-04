@@ -12,6 +12,7 @@ import '../../domain/repositories/stats_repository.dart';
 import '../../domain/usecases/aggregate_stats.dart';
 import '../../domain/usecases/calculate_one_rep_max.dart';
 import '../local/app_database.dart' as database;
+import 'workout_set_mapper.dart';
 import '../local/daos/stats_dao.dart';
 
 class StatsRepositoryImpl implements StatsRepository {
@@ -32,7 +33,7 @@ class StatsRepositoryImpl implements StatsRepository {
       return Ok(
         dailyVolume(
           sessions.map(_sessionFromData),
-          sets.map(_setFromData),
+          sets.map(workoutSetFromRow),
           days: days,
         ),
       );
@@ -54,7 +55,7 @@ class StatsRepositoryImpl implements StatsRepository {
         sets.map((set) => set.exerciseId),
       );
       return Ok(
-        bodyPartVolume(sets.map(_setFromData), {
+        bodyPartVolume(sets.map(workoutSetFromRow), {
           for (final exercise in exercises)
             exercise.id: MuscleGroup.values[exercise.muscleGroup],
         }),
@@ -88,7 +89,7 @@ class StatsRepositoryImpl implements StatsRepository {
       if (session == null) return const Err(NotFoundFailure());
       final sets = (await _dao.setsForSession(
         sessionId,
-      )).map(_setFromData).where(_isWorkingSet);
+      )).map(workoutSetFromRow).where(_isWorkingSet);
       final byExercise = <String, List<WorkoutSet>>{};
       for (final set in sets) {
         byExercise.putIfAbsent(set.exerciseId, () => []).add(set);
@@ -224,22 +225,6 @@ class StatsRepositoryImpl implements StatsRepository {
         deletedAt: session.deletedAt,
         syncStatus: SyncStatus.values[session.syncStatus],
       );
-  WorkoutSet _setFromData(database.WorkoutSet set) => WorkoutSet(
-    id: set.id,
-    sessionId: set.sessionId,
-    exerciseId: set.exerciseId,
-    setIndex: set.setIndex,
-    weight: set.weight,
-    reps: set.reps,
-    rpe: set.rpe,
-    isWarmup: set.isWarmup,
-    isCompleted: set.isCompleted,
-    restSeconds: set.restSeconds,
-    completedAt: set.completedAt,
-    updatedAt: set.updatedAt,
-    deletedAt: set.deletedAt,
-    syncStatus: SyncStatus.values[set.syncStatus],
-  );
   PersonalRecord _recordFromData(database.PersonalRecord record) =>
       PersonalRecord(
         id: record.id,
