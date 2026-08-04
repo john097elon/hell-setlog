@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/formatting/app_format.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/number_input.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../domain/entities/discipline.dart';
 import '../../../../domain/entities/workout_set.dart';
@@ -462,6 +463,7 @@ class _NumberField extends StatelessWidget {
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
       ],
       onChanged: onChanged,
+      onTap: selectAllOnTap(controller),
       textAlign: TextAlign.center,
       style: Theme.of(
         context,

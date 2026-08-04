@@ -87,6 +87,38 @@ void main() {
     verify(() => workoutRepository.completeSet('draft')).called(1);
   });
 
+  testWidgets('세트를 완료하면 다음 세트 줄이 이어서 뜬다', (tester) async {
+    final workoutRepository = _MockWorkoutRepository();
+    final added = recordedSet.copyWith(id: 'draft', isCompleted: false);
+    when(
+      () => workoutRepository.addSet(
+        sessionId: any(named: 'sessionId'),
+        exerciseId: any(named: 'exerciseId'),
+        weight: any(named: 'weight'),
+        reps: any(named: 'reps'),
+        rpe: any(named: 'rpe'),
+        isWarmup: any(named: 'isWarmup'),
+        restSeconds: any(named: 'restSeconds'),
+      ),
+    ).thenAnswer((_) async => Ok(added));
+    when(
+      () => workoutRepository.completeSet(
+        any(),
+        completed: any(named: 'completed'),
+      ),
+    ).thenAnswer((_) async => Ok(added.copyWith(isCompleted: true)));
+    await _pumpPage(tester, workoutRepository, session, [recordedSet]);
+
+    await tester.tap(find.byKey(const Key('add-set-벤치 프레스')));
+    await tester.pump();
+    final before = find.byKey(const Key('complete-set')).evaluate().length;
+    await tester.tap(find.byKey(const Key('complete-set')).last);
+    await tester.pump();
+
+    // 세트마다 추가 버튼을 다시 누르지 않아도 되도록 빈 줄이 남아 있어야 한다.
+    expect(find.byKey(const Key('complete-set')), findsNWidgets(before));
+  });
+
   testWidgets('앞 세트를 완료해도 뒤 세트에 입력한 값이 남는다', (tester) async {
     final workoutRepository = _MockWorkoutRepository();
     final added = recordedSet.copyWith(id: 'draft', isCompleted: false);

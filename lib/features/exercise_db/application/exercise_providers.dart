@@ -57,6 +57,35 @@ class ExerciseSearch extends _$ExerciseSearch {
   }
 }
 
+/// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+/// 정렬 기준은 마지막으로 기록한 시각이다.
+@riverpod
+Future<List<Exercise>> recentExercises(
+  RecentExercisesRef ref, {
+  int limit = 8,
+}) async {
+  final database = ref.watch(appDatabaseProvider);
+  final sets = await database.statsDao.allSets();
+  final lastUsed = <String, DateTime>{};
+  for (final set in sets) {
+    if (set.deletedAt != null) continue;
+    final at = set.completedAt ?? set.updatedAt;
+    final known = lastUsed[set.exerciseId];
+    if (known == null || at.isAfter(known)) lastUsed[set.exerciseId] = at;
+  }
+  if (lastUsed.isEmpty) return const <Exercise>[];
+  final ids = lastUsed.keys.toList()
+    ..sort((a, b) => lastUsed[b]!.compareTo(lastUsed[a]!));
+  final trimmed = ids.take(limit);
+  final repository = await ref.watch(exerciseRepositoryProvider.future);
+  final found = <Exercise>[];
+  for (final id in trimmed) {
+    final result = await repository.getById(id);
+    result.when(ok: found.add, err: (_) {});
+  }
+  return found;
+}
+
 /// Loads the full exercise metadata used outside the exercise picker.
 @riverpod
 Future<Result<Exercise, Failure>> exerciseById(

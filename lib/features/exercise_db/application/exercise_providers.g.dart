@@ -43,7 +43,7 @@ final exerciseRepositoryProvider = FutureProvider<ExerciseRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ExerciseRepositoryRef = FutureProviderRef<ExerciseRepository>;
-String _$exerciseByIdHash() => r'ac4401f95677ade76a986682dee73ec63c46a743';
+String _$recentExercisesHash() => r'da402988ad02930b5a55395ac0c90f646d469b2e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -65,6 +65,145 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+/// 정렬 기준은 마지막으로 기록한 시각이다.
+///
+/// Copied from [recentExercises].
+@ProviderFor(recentExercises)
+const recentExercisesProvider = RecentExercisesFamily();
+
+/// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+/// 정렬 기준은 마지막으로 기록한 시각이다.
+///
+/// Copied from [recentExercises].
+class RecentExercisesFamily extends Family<AsyncValue<List<Exercise>>> {
+  /// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+  /// 정렬 기준은 마지막으로 기록한 시각이다.
+  ///
+  /// Copied from [recentExercises].
+  const RecentExercisesFamily();
+
+  /// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+  /// 정렬 기준은 마지막으로 기록한 시각이다.
+  ///
+  /// Copied from [recentExercises].
+  RecentExercisesProvider call({int limit = 8}) {
+    return RecentExercisesProvider(limit: limit);
+  }
+
+  @override
+  RecentExercisesProvider getProviderOverride(
+    covariant RecentExercisesProvider provider,
+  ) {
+    return call(limit: provider.limit);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'recentExercisesProvider';
+}
+
+/// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+/// 정렬 기준은 마지막으로 기록한 시각이다.
+///
+/// Copied from [recentExercises].
+class RecentExercisesProvider
+    extends AutoDisposeFutureProvider<List<Exercise>> {
+  /// 최근에 기록한 순서대로 운동을 돌려준다. 매번 목록을 뒤지지 않게 하려는 것이라
+  /// 정렬 기준은 마지막으로 기록한 시각이다.
+  ///
+  /// Copied from [recentExercises].
+  RecentExercisesProvider({int limit = 8})
+    : this._internal(
+        (ref) => recentExercises(ref as RecentExercisesRef, limit: limit),
+        from: recentExercisesProvider,
+        name: r'recentExercisesProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$recentExercisesHash,
+        dependencies: RecentExercisesFamily._dependencies,
+        allTransitiveDependencies:
+            RecentExercisesFamily._allTransitiveDependencies,
+        limit: limit,
+      );
+
+  RecentExercisesProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.limit,
+  }) : super.internal();
+
+  final int limit;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Exercise>> Function(RecentExercisesRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: RecentExercisesProvider._internal(
+        (ref) => create(ref as RecentExercisesRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        limit: limit,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Exercise>> createElement() {
+    return _RecentExercisesProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RecentExercisesProvider && other.limit == limit;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, limit.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin RecentExercisesRef on AutoDisposeFutureProviderRef<List<Exercise>> {
+  /// The parameter `limit` of this provider.
+  int get limit;
+}
+
+class _RecentExercisesProviderElement
+    extends AutoDisposeFutureProviderElement<List<Exercise>>
+    with RecentExercisesRef {
+  _RecentExercisesProviderElement(super.provider);
+
+  @override
+  int get limit => (origin as RecentExercisesProvider).limit;
+}
+
+String _$exerciseByIdHash() => r'ac4401f95677ade76a986682dee73ec63c46a743';
 
 /// Loads the full exercise metadata used outside the exercise picker.
 ///

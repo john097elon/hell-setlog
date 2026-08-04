@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/theme/app_tokens.dart';
 import '../../auth/application/auth_service.dart';
@@ -141,7 +143,6 @@ class _MediaPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
     if (!media.isVideo) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -151,22 +152,95 @@ class _MediaPreview extends StatelessWidget {
         ),
       );
     }
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        decoration: BoxDecoration(
-          color: t.card,
+    return _VideoPreview(path: media.file.path);
+  }
+}
+
+/// 방금 찍은 영상을 그 자리에서 확인한다. 올리기 전에 뭘 찍었는지 봐야 한다.
+class _VideoPreview extends StatefulWidget {
+  const _VideoPreview({required this.path});
+  final String path;
+
+  @override
+  State<_VideoPreview> createState() => _VideoPreviewState();
+}
+
+class _VideoPreviewState extends State<_VideoPreview> {
+  late final VideoPlayerController _controller = VideoPlayerController.file(
+    File(widget.path),
+  );
+  late final Future<void> _ready = _controller.initialize();
+
+  @override
+  void dispose() {
+    unawaited(_controller.dispose());
+    super.dispose();
+  }
+
+  void _toggle() {
+    if (_controller.value.isPlaying) {
+      _controller.pause();
+    } else {
+      if (_controller.value.isCompleted) _controller.seekTo(Duration.zero);
+      _controller.play();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return FutureBuilder<void>(
+      future: _ready,
+      builder: (context, snapshot) {
+        final failed =
+            snapshot.hasError ||
+            (snapshot.connectionState == ConnectionState.done &&
+                !_controller.value.isInitialized);
+        if (snapshot.connectionState != ConnectionState.done || failed) {
+          return AspectRatio(
+            aspectRatio: 16 / 9,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: t.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: t.border),
+              ),
+              child: Center(
+                child: failed
+                    ? Icon(Icons.videocam_off_outlined, color: t.faintText)
+                    : const CircularProgressIndicator(),
+              ),
+            ),
+          );
+        }
+        return ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: t.border),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.play_circle_outline_rounded,
-            size: 48,
-            color: t.text,
+          child: AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: GestureDetector(
+              onTap: _toggle,
+              child: ValueListenableBuilder<VideoPlayerValue>(
+                valueListenable: _controller,
+                builder: (context, value, child) => Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    child!,
+                    if (!value.isPlaying)
+                      Center(
+                        child: Icon(
+                          Icons.play_circle_fill_rounded,
+                          size: 56,
+                          color: t.text.withValues(alpha: 0.85),
+                        ),
+                      ),
+                  ],
+                ),
+                child: VideoPlayer(_controller),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

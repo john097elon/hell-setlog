@@ -69,7 +69,8 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: TextField(
-                autofocus: true,
+                // 자동으로 키보드가 올라오면 목록 절반이 가려진다. 대개는 최근 운동에서
+                // 바로 고르므로 검색은 필요할 때만 연다.
                 onChanged: (value) => setState(() => _query = value),
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
@@ -77,6 +78,7 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                 ),
               ),
             ),
+            if (_query.trim().isEmpty && _discipline == null) _recent(),
             SizedBox(
               height: 360,
               child: results.when(
@@ -152,6 +154,38 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                 error: (_, _) => const SizedBox.shrink(),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 최근에 한 운동을 칩으로 먼저 보여준다. 대부분 여기서 끝난다.
+  Widget _recent() {
+    final recent = ref.watch(recentExercisesProvider()).valueOrNull;
+    if (recent == null || recent.isEmpty) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        child: Row(
+          children: <Widget>[
+            for (final exercise in recent) ...<Widget>[
+              ActionChip(
+                label: Text(exercise.nameKo),
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onSelected(exercise);
+                },
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
           ],
         ),
       ),

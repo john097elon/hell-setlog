@@ -415,9 +415,14 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     if (!mounted) return;
     result.when(
       // 완료된 세트는 커밋되어 목록에 남으므로 해당 draft 한 줄만 걷어낸다.
-      ok: (_) => setState(
-        () => _drafts[exerciseId]?.removeWhere((row) => identical(row, draft)),
-      ),
+      // 대신 방금 값 그대로 다음 줄을 깔아 둔다. 세트마다 추가 버튼을 누르면
+      // 운동 중에 손이 너무 많이 간다.
+      ok: (_) => setState(() {
+        final rows = _drafts[exerciseId];
+        if (rows == null) return;
+        rows.removeWhere((row) => identical(row, draft));
+        if (rows.isEmpty) rows.add(_SetDraft(draft.asPrefill()));
+      }),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),
@@ -634,6 +639,14 @@ class _SetDraft {
   int? durationSeconds;
   int intensity;
   bool isSaving = false;
+
+  SetPrefill asPrefill() => SetPrefill(
+    weight: weight,
+    reps: reps,
+    distanceMeters: distanceMeters,
+    durationSeconds: durationSeconds,
+    intensity: intensity,
+  );
 }
 
 /// 빈 세션으로 바로 시작하는 히어로 CTA 카드(잉크블랙).
