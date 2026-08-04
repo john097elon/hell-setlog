@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../../../data/repositories/stats_repository_impl.dart';
 import '../../../domain/entities/discipline.dart';
 import '../../../domain/entities/exercise.dart';
+import '../../../domain/entities/personal_record.dart';
 import '../../../domain/repositories/stats_repository.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 
@@ -25,6 +26,13 @@ Future<Result<Map<MuscleGroup, double>, Failure>> bodyPartSplit(
   BodyPartSplitRef ref, {
   int days = 30,
 }) => ref.watch(statsRepositoryProvider).bodyPartSplit(days: days);
+
+/// Loads the personal records for one exercise.
+@riverpod
+Future<Result<List<PersonalRecord>, Failure>> personalRecords(
+  PersonalRecordsRef ref,
+  String exerciseId,
+) => ref.watch(statsRepositoryProvider).personalRecords(exerciseId);
 
 /// Counts completed weekly records by discipline, including non-weight sports.
 @riverpod

@@ -199,6 +199,26 @@ class _ExerciseByIdProviderElement
   String get id => (origin as ExerciseByIdProvider).id;
 }
 
+String _$customExerciseControllerHash() =>
+    r'9a59375376d8ec2ada3cbf5d657e5ae8de0123d2';
+
+/// See also [customExerciseController].
+@ProviderFor(customExerciseController)
+final customExerciseControllerProvider =
+    AutoDisposeProvider<CustomExerciseController>.internal(
+      customExerciseController,
+      name: r'customExerciseControllerProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$customExerciseControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CustomExerciseControllerRef =
+    AutoDisposeProviderRef<CustomExerciseController>;
 String _$exerciseSearchHash() => r'b6192c8c9e114f5499397ee01bc826e0988ffa87';
 
 abstract class _$ExerciseSearch

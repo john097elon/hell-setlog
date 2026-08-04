@@ -264,6 +264,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterAll => '전체';
 
   @override
+  String customExerciseDirectCreate(String name) {
+    return '\'$name\' 직접 만들기';
+  }
+
+  @override
+  String get customExerciseCreateTitle => '종목 만들기';
+
+  @override
+  String get customExerciseDisciplinePrompt => '갈래를 선택해 주세요';
+
+  @override
+  String get customExerciseDisciplineHelp => '갈래가 기록 방식과 캐릭터 능력치를 정합니다.';
+
+  @override
+  String get customExerciseCreate => '만들기';
+
+  @override
+  String get customExerciseDelete => '삭제';
+
+  @override
+  String get customExerciseDeleteTooltip => '직접 만든 종목 삭제';
+
+  @override
+  String customExerciseDeleteConfirm(String name) {
+    return '\'$name\' 종목을 삭제할까요?';
+  }
+
+  @override
+  String get personalRecordsTitle => '개인 기록';
+
+  @override
+  String get personalRecordsEmpty => '아직 기록이 없어요';
+
+  @override
+  String get personalRecordsLoadError => '개인 기록을 불러오지 못했습니다';
+
+  @override
   String get myParties => '내 파티';
 
   @override

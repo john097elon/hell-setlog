@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heal_setlog/core/error/failure.dart';
 import 'package:heal_setlog/core/error/result.dart';
 import 'package:heal_setlog/data/local/app_database.dart' hide Exercise;
+import 'package:heal_setlog/data/local/seed/exercise_seed.dart';
 import 'package:heal_setlog/data/repositories/exercise_repository_impl.dart';
 import 'package:heal_setlog/domain/entities/exercise.dart';
 
@@ -18,14 +19,14 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('seeds 88 exercises with Korean names', () async {
+  test('seeds every exercise with a Korean name', () async {
     final result = await repository.getAll();
 
     final exercises = result.when(
       ok: (value) => value,
       err: (_) => <Exercise>[],
     );
-    expect(exercises, hasLength(88));
+    expect(exercises, hasLength(exerciseSeed.length));
     expect(exercises.every((exercise) => exercise.nameKo.isNotEmpty), isTrue);
   });
 
@@ -60,7 +61,7 @@ void main() {
   test('search without filters returns all exercises', () async {
     final result = await repository.search();
 
-    expect(_names(result), hasLength(88));
+    expect(_names(result), hasLength(exerciseSeed.length));
   });
 
   test('missing id returns NotFoundFailure', () async {

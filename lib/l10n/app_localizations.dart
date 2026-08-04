@@ -592,6 +592,72 @@ abstract class AppLocalizations {
   /// **'전체'**
   String get filterAll;
 
+  /// No description provided for @customExerciseDirectCreate.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{name}\' 직접 만들기'**
+  String customExerciseDirectCreate(String name);
+
+  /// No description provided for @customExerciseCreateTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목 만들기'**
+  String get customExerciseCreateTitle;
+
+  /// No description provided for @customExerciseDisciplinePrompt.
+  ///
+  /// In ko, this message translates to:
+  /// **'갈래를 선택해 주세요'**
+  String get customExerciseDisciplinePrompt;
+
+  /// No description provided for @customExerciseDisciplineHelp.
+  ///
+  /// In ko, this message translates to:
+  /// **'갈래가 기록 방식과 캐릭터 능력치를 정합니다.'**
+  String get customExerciseDisciplineHelp;
+
+  /// No description provided for @customExerciseCreate.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들기'**
+  String get customExerciseCreate;
+
+  /// No description provided for @customExerciseDelete.
+  ///
+  /// In ko, this message translates to:
+  /// **'삭제'**
+  String get customExerciseDelete;
+
+  /// No description provided for @customExerciseDeleteTooltip.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 만든 종목 삭제'**
+  String get customExerciseDeleteTooltip;
+
+  /// No description provided for @customExerciseDeleteConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{name}\' 종목을 삭제할까요?'**
+  String customExerciseDeleteConfirm(String name);
+
+  /// No description provided for @personalRecordsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인 기록'**
+  String get personalRecordsTitle;
+
+  /// No description provided for @personalRecordsEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 기록이 없어요'**
+  String get personalRecordsEmpty;
+
+  /// No description provided for @personalRecordsLoadError.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인 기록을 불러오지 못했습니다'**
+  String get personalRecordsLoadError;
+
   /// No description provided for @myParties.
   ///
   /// In ko, this message translates to:

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/extensions/build_context_x.dart';
+import '../../../core/formatting/app_format.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_list.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/exercise_guide.dart';
+import '../../../domain/entities/personal_record.dart';
+import '../../stats/application/stats_providers.dart';
 import '../application/exercise_guide_provider.dart';
 import '../application/exercise_providers.dart';
 import 'widgets/exercise_thumbnail.dart';
@@ -47,16 +53,21 @@ class _DetailBody extends StatelessWidget {
     final t = context.tokens;
     final item = guide;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.xxl,
+      ),
       children: <Widget>[
         Row(
           children: <Widget>[
             ExerciseThumbnail(
               equipment: exercise.equipment,
               thumbnailUrl: exercise.thumbnailUrl,
-              size: 96,
+              size: AppSpacing.xxl * 3,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,10 +76,10 @@ class _DetailBody extends StatelessWidget {
                     exercise.nameKo,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: <Widget>[
                       _Chip(label: equipmentLabelKo(exercise.equipment)),
                       _Chip(label: _muscleGroupLabel(exercise.muscleGroup)),
@@ -79,13 +90,14 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: AppSpacing.xxl),
+        _PersonalRecords(exerciseId: exercise.id),
         if (item == null)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: t.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(color: t.border),
             ),
             child: const Text('가이드 준비 중입니다'),
@@ -122,8 +134,8 @@ class _DetailBody extends StatelessWidget {
           _Section(
             title: '주동근',
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
               children: <Widget>[
                 for (final muscle in item.primaryMuscles) _Chip(label: muscle),
               ],
@@ -135,18 +147,72 @@ class _DetailBody extends StatelessWidget {
   }
 }
 
+class _PersonalRecords extends ConsumerWidget {
+  const _PersonalRecords({required this.exerciseId});
+
+  final String exerciseId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(personalRecordsProvider(exerciseId))
+      .when(
+        loading: () => AppSection(
+          title: context.l10n.personalRecordsTitle,
+          children: const <Widget>[
+            SizedBox(
+              height: AppSpacing.xl * 2,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ],
+        ),
+        error: (_, _) =>
+            _messageSection(context, context.l10n.personalRecordsLoadError),
+        data: (result) => result.when(
+          ok: (records) => AppSection(
+            title: context.l10n.personalRecordsTitle,
+            children: records.isEmpty
+                ? <Widget>[AppRow(title: context.l10n.personalRecordsEmpty)]
+                : <Widget>[
+                    for (final record in records)
+                      AppRow(
+                        title: prTypeLabel(record.type),
+                        value: _recordValue(record),
+                      ),
+                  ],
+          ),
+          err: (_) =>
+              _messageSection(context, context.l10n.personalRecordsLoadError),
+        ),
+      );
+
+  AppSection _messageSection(BuildContext context, String message) =>
+      AppSection(
+        title: context.l10n.personalRecordsTitle,
+        children: <Widget>[AppRow(title: message)],
+      );
+}
+
+String _recordValue(PersonalRecord record) => switch (record.type) {
+  PrType.oneRm => formatWeightWithUnit(record.value),
+  PrType.volume => formatCompactWeight(record.value),
+  PrType.reps => '${formatInt(record.value)}회',
+  PrType.distance => formatDistance(record.value),
+  PrType.duration => formatDuration(record.value.round()),
+  PrType.speed => formatPace(record.value),
+};
+
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.child});
   final String title;
   final Widget child;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 24),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(title, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.md),
         child,
       ],
     ),
@@ -167,12 +233,12 @@ class _Line extends StatelessWidget {
             child: Text(icon as String, style: TextStyle(color: t.mutedText)),
           );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           leading,
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(text)),
         ],
       ),
@@ -187,10 +253,13 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: t.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: t.border),
       ),
       child: Text(label, style: TextStyle(color: t.mutedText)),

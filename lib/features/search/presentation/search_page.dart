@@ -294,6 +294,20 @@ class _ExerciseResultsState extends ConsumerState<_ExerciseResults> {
                                 ),
                                 title: item.nameKo,
                                 subtitle: disciplineLabel(item.discipline),
+                                trailing: item.isCustom
+                                    ? IconButton(
+                                        key: ValueKey<String>(
+                                          'delete-${item.id}',
+                                        ),
+                                        tooltip: context
+                                            .l10n
+                                            .customExerciseDeleteTooltip,
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                        ),
+                                        onPressed: () => _delete(item),
+                                      )
+                                    : null,
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute<void>(
                                     builder: (_) =>
@@ -324,4 +338,39 @@ class _ExerciseResultsState extends ConsumerState<_ExerciseResults> {
         MuscleGroup.fullBody => context.l10n.muscleFullBody,
         MuscleGroup.other => context.l10n.muscleOther,
       };
+
+  Future<void> _delete(Exercise exercise) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: Text(
+          dialogContext.l10n.customExerciseDeleteConfirm(exercise.nameKo),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(dialogContext.l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: dialogContext.tokens.like,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(dialogContext.l10n.customExerciseDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final result = await ref
+        .read(customExerciseControllerProvider)
+        .delete(exercise.id);
+    if (!mounted) return;
+    result.when(
+      ok: (_) {},
+      err: (failure) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message))),
+    );
+  }
 }

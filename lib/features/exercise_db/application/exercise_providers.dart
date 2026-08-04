@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
@@ -64,4 +65,40 @@ Future<Result<Exercise, Failure>> exerciseById(
 ) async {
   final repository = await ref.watch(exerciseRepositoryProvider.future);
   return repository.getById(id);
+}
+
+@riverpod
+CustomExerciseController customExerciseController(
+  CustomExerciseControllerRef ref,
+) =>
+    CustomExerciseController(ref.watch(exerciseRepositoryProvider.future), ref);
+
+/// Keeps custom exercise mutations and their cache refreshes out of widgets.
+class CustomExerciseController {
+  const CustomExerciseController(this._repository, this._ref);
+
+  final Future<ExerciseRepository> _repository;
+  final Ref _ref;
+
+  Future<Result<Exercise, Failure>> create({
+    required String nameKo,
+    required Discipline discipline,
+  }) async {
+    final result = await (await _repository).createCustom(
+      nameKo: nameKo,
+      discipline: discipline,
+    );
+    if (result.isOk) _ref.invalidate(exerciseSearchProvider);
+    return result;
+  }
+
+  Future<Result<void, Failure>> delete(String id) async {
+    final result = await (await _repository).deleteCustom(id);
+    if (result.isOk) {
+      _ref
+        ..invalidate(exerciseSearchProvider)
+        ..invalidate(exerciseByIdProvider(id));
+    }
+    return result;
+  }
 }

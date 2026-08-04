@@ -303,6 +303,146 @@ class _BodyPartSplitProviderElement
   int get days => (origin as BodyPartSplitProvider).days;
 }
 
+String _$personalRecordsHash() => r'76bcc6124edd91adaf1e6a32aa90a8dff4b33647';
+
+/// Loads the personal records for one exercise.
+///
+/// Copied from [personalRecords].
+@ProviderFor(personalRecords)
+const personalRecordsProvider = PersonalRecordsFamily();
+
+/// Loads the personal records for one exercise.
+///
+/// Copied from [personalRecords].
+class PersonalRecordsFamily
+    extends Family<AsyncValue<Result<List<PersonalRecord>, Failure>>> {
+  /// Loads the personal records for one exercise.
+  ///
+  /// Copied from [personalRecords].
+  const PersonalRecordsFamily();
+
+  /// Loads the personal records for one exercise.
+  ///
+  /// Copied from [personalRecords].
+  PersonalRecordsProvider call(String exerciseId) {
+    return PersonalRecordsProvider(exerciseId);
+  }
+
+  @override
+  PersonalRecordsProvider getProviderOverride(
+    covariant PersonalRecordsProvider provider,
+  ) {
+    return call(provider.exerciseId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'personalRecordsProvider';
+}
+
+/// Loads the personal records for one exercise.
+///
+/// Copied from [personalRecords].
+class PersonalRecordsProvider
+    extends AutoDisposeFutureProvider<Result<List<PersonalRecord>, Failure>> {
+  /// Loads the personal records for one exercise.
+  ///
+  /// Copied from [personalRecords].
+  PersonalRecordsProvider(String exerciseId)
+    : this._internal(
+        (ref) => personalRecords(ref as PersonalRecordsRef, exerciseId),
+        from: personalRecordsProvider,
+        name: r'personalRecordsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$personalRecordsHash,
+        dependencies: PersonalRecordsFamily._dependencies,
+        allTransitiveDependencies:
+            PersonalRecordsFamily._allTransitiveDependencies,
+        exerciseId: exerciseId,
+      );
+
+  PersonalRecordsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.exerciseId,
+  }) : super.internal();
+
+  final String exerciseId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Result<List<PersonalRecord>, Failure>> Function(
+      PersonalRecordsRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PersonalRecordsProvider._internal(
+        (ref) => create(ref as PersonalRecordsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        exerciseId: exerciseId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Result<List<PersonalRecord>, Failure>>
+  createElement() {
+    return _PersonalRecordsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PersonalRecordsProvider && other.exerciseId == exerciseId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, exerciseId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PersonalRecordsRef
+    on AutoDisposeFutureProviderRef<Result<List<PersonalRecord>, Failure>> {
+  /// The parameter `exerciseId` of this provider.
+  String get exerciseId;
+}
+
+class _PersonalRecordsProviderElement
+    extends
+        AutoDisposeFutureProviderElement<Result<List<PersonalRecord>, Failure>>
+    with PersonalRecordsRef {
+  _PersonalRecordsProviderElement(super.provider);
+
+  @override
+  String get exerciseId => (origin as PersonalRecordsProvider).exerciseId;
+}
+
 String _$weeklyDisciplineCountsHash() =>
     r'98bde82df6dad6f52cfeebc482d60b24c478f2b2';
 

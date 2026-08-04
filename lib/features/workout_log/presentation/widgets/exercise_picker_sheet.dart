@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_list.dart';
+import '../../../../core/widgets/app_screen.dart';
 import '../../../../domain/entities/discipline.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../exercise_db/application/exercise_providers.dart';
@@ -85,6 +87,28 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                         : items
                               .where((item) => item.discipline == _discipline)
                               .toList(growable: false);
+                    if (filtered.isEmpty && _query.trim().isNotEmpty) {
+                      return ListView(
+                        children: <Widget>[
+                          AppPagePadding(
+                            child: AppSection(
+                              children: <Widget>[
+                                AppRow(
+                                  title: context.l10n
+                                      .customExerciseDirectCreate(
+                                        _query.trim(),
+                                      ),
+                                  subtitle:
+                                      context.l10n.customExerciseDisciplineHelp,
+                                  leading: const Icon(Icons.add_rounded),
+                                  onTap: () => _createCustom(_query.trim()),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }
                     return ListView.builder(
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
@@ -131,6 +155,111 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _createCustom(String nameKo) async {
+    FocusScope.of(context).unfocus();
+    final created = await showModalBottomSheet<Exercise>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _CreateCustomExerciseSheet(nameKo: nameKo),
+    );
+    if (created != null && mounted) {
+      setState(() => _discipline = created.discipline);
+    }
+  }
+}
+
+class _CreateCustomExerciseSheet extends ConsumerStatefulWidget {
+  const _CreateCustomExerciseSheet({required this.nameKo});
+
+  final String nameKo;
+
+  @override
+  ConsumerState<_CreateCustomExerciseSheet> createState() =>
+      _CreateCustomExerciseSheetState();
+}
+
+class _CreateCustomExerciseSheetState
+    extends ConsumerState<_CreateCustomExerciseSheet> {
+  Discipline? _discipline;
+  bool _saving = false;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: AppPagePadding(
+      top: AppSpacing.lg,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              context.l10n.customExerciseCreateTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(widget.nameKo),
+            const SizedBox(height: AppSpacing.lg),
+            AppSection(
+              footer: context.l10n.customExerciseDisciplineHelp,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: DropdownButtonFormField<Discipline>(
+                    initialValue: _discipline,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.customExerciseDisciplinePrompt,
+                    ),
+                    items: <DropdownMenuItem<Discipline>>[
+                      for (final discipline in Discipline.values)
+                        DropdownMenuItem<Discipline>(
+                          value: discipline,
+                          child: Text(disciplineLabel(discipline)),
+                        ),
+                    ],
+                    onChanged: _saving
+                        ? null
+                        : (value) => setState(() => _discipline = value),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 48,
+              child: FilledButton(
+                onPressed: _discipline == null || _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox.square(
+                        dimension: AppSpacing.xl,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(context.l10n.customExerciseCreate),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final result = await ref
+        .read(customExerciseControllerProvider)
+        .create(nameKo: widget.nameKo, discipline: _discipline!);
+    if (!mounted) return;
+    result.when(
+      ok: (exercise) => Navigator.pop(context, exercise),
+      err: (failure) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
+      },
     );
   }
 }
