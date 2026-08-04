@@ -65,8 +65,10 @@ String titleForDiscipline(Discipline? discipline) => switch (discipline) {
   null => '새내기',
 };
 
-/// 주 종목에 맞춰 입는 복장. 아트는 나중에 채우고 지금은 경로 규칙만 정해 둔다.
-/// 파일이 없으면 화면에서 기본 캐릭터만 그린다.
-String? outfitAsset(Discipline? discipline) => discipline == null
-    ? null
-    : 'assets/character/outfit/${disciplineKey(discipline)}.png';
+/// 주 종목 복장을 입은 캐릭터 스프라이트 경로.
+///
+/// 종족·종목·단계마다 그림이 다르다. 아직 없는 조합은 호출 쪽에서 기본
+/// 스프라이트로 떨어지므로 화면이 비지 않는다.
+String outfitAsset(String speciesKey, Discipline discipline, int stage) =>
+    'assets/character/outfit/${speciesKey}_${disciplineKey(discipline)}'
+    '_stage${stage + 1}.png';

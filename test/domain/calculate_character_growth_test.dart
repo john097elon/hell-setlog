@@ -57,7 +57,12 @@ void main() {
 
     expect(growth.primaryDiscipline, Discipline.grappling);
     expect(growth.title, '그래플러');
-    expect(growth.outfit, 'assets/character/outfit/grappling.png');
+    // 복장 그림은 종족·종목·진화 단계마다 다르다.
+    expect(
+      growth.outfitFor('cat'),
+      'assets/character/outfit/cat_grappling_stage'
+      '${growth.evolutionStage + 1}.png',
+    );
   });
 
   test('칭호는 최근 기록을 우선한다', () {

@@ -24,10 +24,9 @@ void main() {
     expect(created.isCustom, isTrue);
     expect(created.discipline, Discipline.striking);
 
-    final stored = (await repository.getById(created.id)).when(
-      ok: (item) => item,
-      err: (failure) => throw failure,
-    );
+    final stored = (await repository.getById(
+      created.id,
+    )).when(ok: (item) => item, err: (failure) => throw failure);
     expect(stored.nameKo, '카포에라');
     expect(stored.discipline, Discipline.striking);
   });

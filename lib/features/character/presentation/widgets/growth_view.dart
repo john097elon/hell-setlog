@@ -17,6 +17,46 @@ const List<String> kStageNames = <String>[
   '냥관왕',
 ];
 
+/// 주 종목 복장을 입은 모습을 먼저 그리고, 그 그림이 아직 없으면 기본 모습으로
+/// 떨어진다. 종목 아트를 하나씩 채워 넣어도 화면이 비지 않는다.
+class CharacterSprite extends StatelessWidget {
+  const CharacterSprite({
+    required this.identity,
+    required this.growth,
+    this.size = 168,
+    super.key,
+  });
+
+  final CharacterIdentity identity;
+  final CharacterGrowth growth;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = stageAsset(identity.species, growth.evolutionStage);
+    final outfit = growth.outfitFor(speciesKey(identity.species));
+    final fallback = Image.asset(
+      base,
+      width: size,
+      height: size,
+      filterQuality: FilterQuality.none,
+      errorBuilder: (_, _, _) => Icon(
+        Icons.pets_rounded,
+        size: size * 0.55,
+        color: context.tokens.brand,
+      ),
+    );
+    if (outfit == null) return fallback;
+    return Image.asset(
+      outfit,
+      width: size,
+      height: size,
+      filterQuality: FilterQuality.none,
+      errorBuilder: (_, _, _) => fallback,
+    );
+  }
+}
+
 /// 종족과 단계로 스프라이트 경로를 만든다.
 String stageAsset(CharacterSpecies species, int stage) =>
     'assets/character/${speciesKey(species)}_stage${stage + 1}.png';
@@ -58,14 +98,7 @@ class CharacterHero extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          Image.asset(
-            stageAsset(identity.species, growth.evolutionStage),
-            width: 160,
-            height: 160,
-            filterQuality: FilterQuality.none,
-            errorBuilder: (_, _, _) =>
-                Icon(Icons.pets_rounded, size: 96, color: t.brand),
-          ),
+          CharacterSprite(identity: identity, growth: growth, size: 160),
           const SizedBox(height: AppSpacing.md),
           Text(identity.name, style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xs),

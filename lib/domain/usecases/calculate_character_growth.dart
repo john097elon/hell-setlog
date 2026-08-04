@@ -65,8 +65,10 @@ class CharacterGrowth {
   /// 주 종목에 붙는 칭호.
   String get title => titleForDiscipline(primaryDiscipline);
 
-  /// 주 종목에 맞는 복장 경로. 아트가 아직 없으면 화면에서 무시한다.
-  String? get outfit => outfitAsset(primaryDiscipline);
+  /// 주 종목 복장 스프라이트 경로. 종족을 알아야 해서 화면에서 만든다.
+  String? outfitFor(String speciesKey) => primaryDiscipline == null
+      ? null
+      : outfitAsset(speciesKey, primaryDiscipline!, evolutionStage);
 
   int get levelsUntilNextEvolution =>
       nextEvolutionThreshold == null ? 0 : nextEvolutionThreshold! - totalLevel;
