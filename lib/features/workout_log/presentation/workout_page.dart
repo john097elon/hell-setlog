@@ -559,6 +559,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
         level: growth.totalLevel,
         stage: growth.evolutionStage,
         xp: growth.totalXp,
+        discipline: growth.primaryDiscipline,
       );
       ref.invalidate(myPartiesProvider);
     } on Object {

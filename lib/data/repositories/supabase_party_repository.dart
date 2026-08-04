@@ -6,6 +6,7 @@ import '../remote/row_parse.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/character_identity.dart';
+import '../../domain/entities/discipline.dart';
 import '../../domain/entities/party.dart';
 import '../../domain/entities/party_member.dart';
 import '../../domain/entities/party_mission.dart';
@@ -175,7 +176,9 @@ class SupabasePartyRepository implements PartyRepository {
       final rows = await c
           .from('party_members')
           .select(
-            'user_id,role,joined_at,profiles(nickname,avatar_url,character_name,character_species,character_level,character_stage)',
+            'user_id,role,joined_at,profiles(nickname,avatar_url,character_name,'
+            'character_species,character_level,character_stage,'
+            'character_discipline)',
           )
           .eq('party_id', partyId);
       return Ok(
@@ -208,6 +211,13 @@ class SupabasePartyRepository implements PartyRepository {
             characterStage: profile == null
                 ? null
                 : rowInt(profile, 'character_stage'),
+            characterDiscipline: profile == null
+                ? null
+                : (rowStringOrNull(profile, 'character_discipline') == null
+                      ? null
+                      : disciplineFrom(
+                          rowStringOrNull(profile, 'character_discipline'),
+                        )),
           );
         }).toList(),
       );
@@ -471,6 +481,7 @@ class SupabasePartyRepository implements PartyRepository {
     required int level,
     required int stage,
     required int xp,
+    Discipline? discipline,
   }) async {
     final c = _client;
     final u = _userId;
@@ -482,6 +493,9 @@ class SupabasePartyRepository implements PartyRepository {
             'character_level': level,
             'character_stage': stage,
             'character_xp': xp,
+            'character_discipline': discipline == null
+                ? null
+                : disciplineKey(discipline),
             'character_updated_at': DateTime.now().toUtc().toIso8601String(),
           })
           .eq('user_id', u);

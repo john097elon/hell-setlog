@@ -138,13 +138,11 @@ class _CharacterCard extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 children: <Widget>[
-                  Image.asset(
-                    stageAsset(identity.species, growth?.evolutionStage ?? 0),
-                    width: 84,
-                    height: 84,
-                    filterQuality: FilterQuality.none,
-                    errorBuilder: (_, _, _) =>
-                        Icon(Icons.pets_rounded, size: 60, color: t.brand),
+                  CharacterSprite(
+                    species: identity.species,
+                    stage: growth?.evolutionStage ?? 0,
+                    discipline: growth?.primaryDiscipline,
+                    size: 84,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(

@@ -6,7 +6,7 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/app_states.dart';
 import '../../../../domain/entities/party_member.dart';
 import '../../../character/presentation/widgets/growth_view.dart'
-    show kStageNames, stageAsset;
+    show CharacterSprite;
 import '../../../profile/presentation/user_profile_page.dart';
 import '../../application/party_providers.dart';
 
@@ -86,23 +86,11 @@ class _CharacterCard extends StatelessWidget {
                 SizedBox(
                   height: 88,
                   child: member.hasCharacter
-                      ? Image.asset(
-                          stageAsset(
-                            member.characterSpecies!,
-                            (member.characterStage ?? 0).clamp(
-                              0,
-                              kStageNames.length - 1,
-                            ),
-                          ),
-                          width: 88,
-                          height: 88,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.none,
-                          errorBuilder: (_, _, _) => Icon(
-                            Icons.pets_rounded,
-                            size: 42,
-                            color: t.brand,
-                          ),
+                      ? CharacterSprite(
+                          species: member.characterSpecies!,
+                          stage: member.characterStage ?? 0,
+                          discipline: member.characterDiscipline,
+                          size: 88,
                         )
                       : Center(
                           child: Text(

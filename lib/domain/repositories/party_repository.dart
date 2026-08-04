@@ -1,5 +1,6 @@
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
+import '../entities/discipline.dart';
 import '../entities/party.dart';
 import '../entities/party_member.dart';
 import '../entities/party_mission.dart';
@@ -41,6 +42,7 @@ abstract class PartyRepository {
     required int level,
     required int stage,
     required int xp,
+    Discipline? discipline,
   }) => Future<Result<void, Failure>>.value(const Ok(null));
 
   /// 끝낸 운동을 내가 속한 파티들에 기록한다. 이미 올린 세션은 무시된다.

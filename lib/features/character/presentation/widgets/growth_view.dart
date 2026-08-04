@@ -6,6 +6,7 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/app_screen.dart';
 import '../../../../domain/entities/character_attribute.dart';
 import '../../../../domain/entities/character_identity.dart';
+import '../../../../domain/entities/discipline.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../../domain/usecases/calculate_character_growth.dart';
 
@@ -21,20 +22,41 @@ const List<String> kStageNames = <String>[
 /// 떨어진다. 종목 아트를 하나씩 채워 넣어도 화면이 비지 않는다.
 class CharacterSprite extends StatelessWidget {
   const CharacterSprite({
-    required this.identity,
-    required this.growth,
+    required this.species,
+    required this.stage,
+    this.discipline,
     this.size = 168,
     super.key,
   });
 
-  final CharacterIdentity identity;
-  final CharacterGrowth growth;
+  /// 성장 상태를 그대로 가진 화면에서 쓰는 지름길.
+  CharacterSprite.of({
+    required CharacterIdentity identity,
+    required CharacterGrowth growth,
+    double size = 168,
+    Key? key,
+  }) : this(
+         species: identity.species,
+         stage: growth.evolutionStage,
+         discipline: growth.primaryDiscipline,
+         size: size,
+         key: key,
+       );
+
+  final CharacterSpecies species;
+  final int stage;
+
+  /// 주 종목. 없으면 기본 모습을 그린다.
+  final Discipline? discipline;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final base = stageAsset(identity.species, growth.evolutionStage);
-    final outfit = growth.outfitFor(speciesKey(identity.species));
+    final safeStage = stage.clamp(0, kStageNames.length - 1);
+    final base = stageAsset(species, safeStage);
+    final outfit = discipline == null
+        ? null
+        : outfitAsset(speciesKey(species), discipline!, safeStage);
     final fallback = Image.asset(
       base,
       width: size,
@@ -98,7 +120,7 @@ class CharacterHero extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          CharacterSprite(identity: identity, growth: growth, size: 160),
+          CharacterSprite.of(identity: identity, growth: growth, size: 160),
           const SizedBox(height: AppSpacing.md),
           Text(identity.name, style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xs),
