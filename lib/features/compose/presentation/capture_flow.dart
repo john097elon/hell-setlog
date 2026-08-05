@@ -37,9 +37,10 @@ Future<CapturedMedia?> _capture(
   ImagePicker picker,
   _CaptureAction action,
 ) async {
-  if (action != _CaptureAction.gallery &&
-      !await _hasCameraPermission(context)) {
-    return null;
+  if (action != _CaptureAction.gallery) {
+    if (!await _hasCameraPermission(context)) return null;
+    if (action.isVideo) await _askMicrophone();
+    if (!context.mounted) return null;
   }
   try {
     final file = switch (action) {
@@ -67,8 +68,13 @@ Future<CapturedMedia?> _capture(
   }
 }
 
-/// 시스템 카메라 앱은 녹음을 자기 권한으로 한다. 마이크까지 묶어 두면 마이크를
-/// 거부한 사람은 촬영 자체를 못 한다.
+/// 소리까지 담으려면 마이크를 물어본다. 거부해도 촬영은 그대로 진행한다.
+/// 시스템 카메라 앱이 자기 권한으로 녹음하므로 여기서 막을 이유가 없다.
+Future<void> _askMicrophone() async {
+  final status = await Permission.microphone.status;
+  if (status.isDenied) await Permission.microphone.request();
+}
+
 Future<bool> _hasCameraPermission(BuildContext context) async {
   var status = await Permission.camera.status;
   if (status.isDenied) status = await Permission.camera.request();
