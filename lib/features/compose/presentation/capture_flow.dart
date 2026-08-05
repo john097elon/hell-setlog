@@ -38,7 +38,7 @@ Future<CapturedMedia?> _capture(
   _CaptureAction action,
 ) async {
   if (action != _CaptureAction.gallery &&
-      !await _hasCapturePermissions(context, action.isVideo)) {
+      !await _hasCameraPermission(context)) {
     return null;
   }
   try {
@@ -53,35 +53,54 @@ Future<CapturedMedia?> _capture(
     };
     if (file == null) return null;
     return CapturedMedia(file: file, isVideo: action.isVideo || _isVideo(file));
-  } on PlatformException {
+  } on PlatformException catch (error) {
     if (context.mounted) {
+      // 카메라 앱을 열지 못한 것과 파일을 읽지 못한 것은 사용자가 할 일이 다르다.
+      final message = error.code == 'no_available_camera'
+          ? '이 기기에서 카메라를 열 수 없습니다.'
+          : '미디어를 불러오지 못했습니다.';
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('미디어를 불러오지 못했습니다.')));
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
     return null;
   }
 }
 
-Future<bool> _hasCapturePermissions(
-  BuildContext context,
-  bool needsMicrophone,
-) async {
-  final permissions = <Permission>[
-    Permission.camera,
-    if (needsMicrophone) Permission.microphone,
-  ];
-  final statuses = await permissions.request();
-  final granted = statuses.values.every(
-    (status) => status.isGranted || status.isLimited,
-  );
-  if (granted || !context.mounted) return granted;
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('촬영하려면 카메라 권한이 필요합니다.'),
-      action: SnackBarAction(label: '설정', onPressed: openAppSettings),
-    ),
-  );
+/// 시스템 카메라 앱은 녹음을 자기 권한으로 한다. 마이크까지 묶어 두면 마이크를
+/// 거부한 사람은 촬영 자체를 못 한다.
+Future<bool> _hasCameraPermission(BuildContext context) async {
+  var status = await Permission.camera.status;
+  if (status.isDenied) status = await Permission.camera.request();
+  if (status.isGranted || status.isLimited) return true;
+  if (!context.mounted) return false;
+
+  // 영구 거부는 앱에서 다시 물어볼 수 없다. 설정으로 보내야 한다.
+  if (status.isPermanentlyDenied || status.isRestricted) {
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('카메라 권한이 꺼져 있어요'),
+        content: const Text('촬영하려면 설정에서 카메라 권한을 켜 주세요.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('나중에'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('설정 열기'),
+          ),
+        ],
+      ),
+    );
+    if (open ?? false) await openAppSettings();
+    return false;
+  }
+
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(const SnackBar(content: Text('촬영하려면 카메라 권한이 필요합니다.')));
   return false;
 }
 

@@ -47,5 +47,17 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Android 11부터는 여기 없는 인텐트를 앱이 볼 수 없다. 빠지면 카메라 앱을
+             찾지 못해 촬영 화면이 아예 뜨지 않는다. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE"/>
+        </intent>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT"/>
+            <data android:mimeType="*/*"/>
+        </intent>
     </queries>
 </manifest>
