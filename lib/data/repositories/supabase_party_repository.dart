@@ -39,12 +39,10 @@ class SupabasePartyRepository implements PartyRepository {
       final rows = mine
           ? await c.from('party_members').select('parties(*)').eq('user_id', u)
           : await c.from('parties').select();
-      final values = (rows as List)
-          .map(
-            (r) => Map<String, Object?>.from(
-              mine ? (r as Map)['parties'] as Map : r as Map,
-            ),
-          )
+      final values = rowList(rows)
+          // 정책이 파티를 가리면 조인 결과가 비어 온다. 그때 캐스팅으로 죽지 않는다.
+          .map((r) => mine ? rowNested(r, 'parties') : r)
+          .nonNulls
           .where(
             (r) =>
                 (region == null || r['region'] == region) &&
@@ -66,7 +64,7 @@ class SupabasePartyRepository implements PartyRepository {
             )
             .toList(growable: false),
       );
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -103,7 +101,7 @@ class SupabasePartyRepository implements PartyRepository {
       );
       // 소유자 멤버 행은 parties 트리거가 만든다.
       return Ok(_party(row));
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -138,7 +136,7 @@ class SupabasePartyRepository implements PartyRepository {
         ),
         _ => const Err<void, Failure>(DatabaseFailure('파티에 참여하지 못했습니다')),
       };
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -161,7 +159,7 @@ class SupabasePartyRepository implements PartyRepository {
           .eq('party_id', partyId)
           .eq('user_id', u);
       return const Ok(null);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -221,7 +219,7 @@ class SupabasePartyRepository implements PartyRepository {
           );
         }).toList(),
       );
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -240,12 +238,8 @@ class SupabasePartyRepository implements PartyRepository {
           .eq('party_id', partyId)
           .order('created_at', ascending: false)
           .limit(limit);
-      return Ok(
-        (rows as List)
-            .map((r) => _message(Map<String, Object?>.from(r as Map)))
-            .toList(),
-      );
-    } on Exception catch (e) {
+      return Ok(rowList(rows).map(_message).toList());
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -270,11 +264,12 @@ class SupabasePartyRepository implements PartyRepository {
               .limit(limit)) {
         yield Ok(
           <String, PartyMessage>{
-            for (final row in rows) row['id'] as String: _message(row),
+            for (final row in rowList(rows))
+              rowString(row, 'id'): _message(row),
           }.values.toList(),
         );
       }
-    } on Exception {
+    } on Object {
       yield await fetchMessages(partyId, limit: limit);
     }
   }
@@ -297,7 +292,7 @@ class SupabasePartyRepository implements PartyRepository {
             as Map,
       );
       return Ok(_message(r));
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -314,8 +309,9 @@ class SupabasePartyRepository implements PartyRepository {
           .from('party_members')
           .select('user_id')
           .eq('party_id', partyId);
-      final ids = (members as List)
-          .map((m) => (m as Map)['user_id'] as String)
+      final ids = rowList(members)
+          .map((m) => rowString(m, 'user_id'))
+          .where((id) => id.isNotEmpty)
           .toList();
       if (ids.isEmpty) return const Ok(<Post>[]);
       final rows = await c
@@ -324,12 +320,8 @@ class SupabasePartyRepository implements PartyRepository {
           .inFilter('user_id', ids)
           .order('created_at', ascending: false)
           .limit(limit);
-      return Ok(
-        (rows as List)
-            .map((r) => _post(Map<String, Object?>.from(r as Map)))
-            .toList(),
-      );
-    } on Exception catch (e) {
+      return Ok(rowList(rows).map(_post).toList());
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -412,7 +404,7 @@ class SupabasePartyRepository implements PartyRepository {
           weekStart: weekStart,
         ),
       );
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('미션을 불러오지 못했습니다: $e'));
     }
   }
@@ -449,7 +441,7 @@ class SupabasePartyRepository implements PartyRepository {
             ignoreDuplicates: true,
           );
       return const Ok(null);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('파티에 기록을 남기지 못했습니다: $e'));
     }
   }
@@ -470,7 +462,7 @@ class SupabasePartyRepository implements PartyRepository {
           .eq('id', partyId)
           .eq('owner_id', u);
       return const Ok(null);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('목표를 저장하지 못했습니다: $e'));
     }
   }
@@ -500,7 +492,7 @@ class SupabasePartyRepository implements PartyRepository {
           })
           .eq('user_id', u);
       return const Ok(null);
-    } on Exception catch (e) {
+    } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
   }
@@ -524,7 +516,7 @@ class SupabasePartyRepository implements PartyRepository {
         counts[id] = (counts[id] ?? 0) + 1;
       }
       return counts;
-    } on Exception {
+    } on Object {
       return <String, int>{};
     }
   }
