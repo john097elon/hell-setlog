@@ -101,7 +101,7 @@ class EvolutionPage extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      kStageNames[newStage],
+                      stageName(identity.species, newStage),
                       style: Theme.of(
                         context,
                       ).textTheme.titleLarge?.copyWith(color: t.brandLight),

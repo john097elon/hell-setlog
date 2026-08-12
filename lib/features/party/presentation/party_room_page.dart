@@ -335,8 +335,9 @@ class _PostTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(color: t.border),
         ),
+        // 운동 기록 글에는 사진이 없다. 이미지 아이콘을 쓰면 깨진 것처럼 보인다.
         child: post.mediaUrl.isEmpty
-            ? Icon(Icons.image_outlined, color: t.faintText, size: 18)
+            ? Icon(Icons.fitness_center_rounded, color: t.faintText, size: 16)
             : Image.network(
                 post.mediaUrl,
                 fit: BoxFit.cover,

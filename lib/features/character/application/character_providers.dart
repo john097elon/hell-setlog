@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +8,7 @@ import '../../../domain/entities/discipline.dart';
 import '../../../domain/usecases/calculate_character_growth.dart';
 import '../../../domain/usecases/calculate_effort.dart';
 import '../../exercise_db/application/exercise_providers.dart';
+import '../../party/application/party_providers.dart';
 import 'character_identity_controller.dart';
 
 /// 마지막으로 사용자에게 보여 준 합산 레벨. 레벨업 축하를 한 번만 띄운다.
@@ -36,13 +39,40 @@ final characterGrowthProvider = FutureProvider<CharacterGrowth>((ref) async {
   final weekly = await ref.watch(characterWeeklyVolumesProvider.future);
   final recent = await ref.watch(characterRecentVolumesProvider.future);
   final identity = await ref.watch(characterIdentityProvider.future);
-  return calculateCharacterGrowth(
+  final growth = calculateCharacterGrowth(
     total,
     weeklyEffort: weekly,
     recentEffort: recent,
     preferredDiscipline: identity?.preferredDiscipline,
   );
+  unawaited(_publishIfChanged(ref, growth));
+  return growth;
 });
+
+/// 마지막으로 서버에 올린 성장 수치.
+const String _publishedStatsKey = 'character_published_stats';
+
+/// 파티원이 보는 수치가 낡지 않게 한다.
+///
+/// 예전에는 운동을 끝낼 때만 올렸다. 그래서 계산식이 바뀌거나 다른 기기에서
+/// 기록하면, 파티방에는 예전 레벨이 그대로 남아 있었다.
+Future<void> _publishIfChanged(Ref ref, CharacterGrowth growth) async {
+  final signature =
+      '${growth.totalLevel}/${growth.evolutionStage}/${growth.totalXp.round()}'
+      '/${growth.primaryDiscipline?.name ?? ''}';
+  final prefs = await SharedPreferences.getInstance();
+  if (prefs.getString(_publishedStatsKey) == signature) return;
+  final result = await ref
+      .read(partyRepositoryProvider)
+      .publishCharacterStats(
+        level: growth.totalLevel,
+        stage: growth.evolutionStage,
+        xp: growth.totalXp.round(),
+        discipline: growth.primaryDiscipline,
+      );
+  // 실패하면 기록해 두지 않는다. 다음 계산에서 다시 올린다.
+  if (result.isOk) await prefs.setString(_publishedStatsKey, signature);
+}
 
 DateTime _daysAgo(int days) {
   final now = DateTime.now();

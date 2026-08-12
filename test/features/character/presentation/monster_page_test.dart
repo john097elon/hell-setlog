@@ -12,6 +12,8 @@ import 'package:heal_setlog/features/character/presentation/widgets/growth_view.
 import 'package:heal_setlog/l10n/app_localizations.dart';
 
 void main() {
+  _stageNameTests();
+
   testWidgets('캐릭터를 아직 안 만들었으면 만들기부터 안내한다', (tester) async {
     await _pump(tester, volumes: const <Discipline, double>{}, identity: null);
 
@@ -128,4 +130,15 @@ Future<void> _pump(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+void _stageNameTests() {
+  test('단계 이름은 종족을 따라간다', () {
+    // 강아지에게 "냥"을 붙이던 자리다.
+    expect(stageName(CharacterSpecies.dog, 0), '새싹 멍');
+    expect(stageName(CharacterSpecies.bear, 2), '근육 곰');
+    expect(stageName(CharacterSpecies.cat, 4), '냥관왕');
+    // 범위를 벗어나도 마지막 이름으로 잡아 준다.
+    expect(stageName(CharacterSpecies.dog, 99), '멍관왕');
+  });
 }

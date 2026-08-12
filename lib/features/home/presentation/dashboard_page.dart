@@ -190,7 +190,8 @@ class _CharacterSummary extends StatelessWidget {
         Text(
           value == null
               ? traitCopy(identity.trait).name
-              : 'Lv. ${value.totalLevel} · ${kStageNames[value.evolutionStage]}',
+              : 'Lv. ${value.totalLevel} · '
+                    '${stageName(identity.species, value.evolutionStage)}',
           style: TextStyle(
             fontSize: 12.5,
             color: t.mutedText,
@@ -405,7 +406,9 @@ class _FeedThumb extends StatelessWidget {
             ? ColoredBox(
                 color: t.surface,
                 child: Icon(
-                  isVideo ? Icons.videocam_rounded : Icons.article_outlined,
+                  isVideo
+                      ? Icons.videocam_rounded
+                      : Icons.fitness_center_rounded,
                   size: 15,
                   color: t.faintText,
                 ),

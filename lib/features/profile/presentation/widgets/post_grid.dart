@@ -114,7 +114,7 @@ class PostThumbnail extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Icon(
-          _isVideo ? Icons.videocam_outlined : Icons.article_outlined,
+          _isVideo ? Icons.videocam_outlined : Icons.fitness_center_rounded,
           size: 20,
           color: t.faintText,
         ),

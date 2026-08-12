@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../remote/row_parse.dart';
+import 'author_profiles.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/character_identity.dart';
@@ -320,7 +321,19 @@ class SupabasePartyRepository implements PartyRepository {
           .inFilter('user_id', ids)
           .order('created_at', ascending: false)
           .limit(limit);
-      return Ok(rowList(rows).map(_post).toList());
+      final posts = rowList(rows).map(_post).toList();
+      // 이 줄이 없어 파티원의 글이 전부 "파티원"으로 보였다.
+      final authors = await authorProfiles(c, posts.map((p) => p.userId));
+      return Ok(
+        posts
+            .map(
+              (post) => post.copyWith(
+                authorName: authors[post.userId]?.nickname,
+                authorAvatarUrl: authors[post.userId]?.avatarUrl,
+              ),
+            )
+            .toList(growable: false),
+      );
     } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }

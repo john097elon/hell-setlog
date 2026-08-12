@@ -30,7 +30,7 @@ void main() {
 
     expect(find.byKey(const Key('evolution-stage-0')), findsOneWidget);
     expect(find.text('불꽃이'), findsOneWidget);
-    expect(find.text(kStageNames[1]), findsOneWidget);
+    expect(find.text(stageName(CharacterSpecies.cat, 1)), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 1800));
     expect(find.byKey(const Key('evolution-stage-1')), findsOneWidget);

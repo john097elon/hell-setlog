@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../remote/reaction_counts.dart';
 import '../remote/row_parse.dart';
+import 'author_profiles.dart';
 import '../../core/error/failure.dart';
 import '../../core/error/result.dart';
 import '../../domain/entities/post.dart';
@@ -52,7 +53,7 @@ class SupabasePostRepository implements PostRepository {
           .map((row) => _post(Map<String, Object?>.from(row as Map)))
           .where((post) => !blockedIds.contains(post.userId))
           .toList(growable: false);
-      final authors = await _authorProfiles(
+      final authors = await authorProfiles(
         client,
         posts.map((post) => post.userId),
       );
@@ -323,7 +324,7 @@ class SupabasePostRepository implements PostRepository {
             .order('created_at'),
       );
       // 누가 남긴 댓글인지 보이도록 작성자 프로필을 함께 읽는다.
-      final authors = await _authorProfiles(
+      final authors = await authorProfiles(
         client,
         rows.map((row) => rowString(row, 'user_id')),
       );
@@ -363,7 +364,7 @@ class SupabasePostRepository implements PostRepository {
           .maybeSingle();
       if (row == null) return const Err(NotFoundFailure('게시물을 찾을 수 없습니다'));
       final post = _post(Map<String, Object?>.from(row));
-      final authors = await _authorProfiles(client, <String>[post.userId]);
+      final authors = await authorProfiles(client, <String>[post.userId]);
       final counts = await fetchReactionCounts(client, <String>[
         post.id,
       ], viewerId: client.auth.currentUser?.id);
@@ -394,7 +395,7 @@ class SupabasePostRepository implements PostRepository {
             .eq('post_id', postId)
             .order('created_at', ascending: false),
       );
-      final authors = await _authorProfiles(
+      final authors = await authorProfiles(
         client,
         rows.map((row) => rowString(row, 'user_id')),
       );
@@ -415,25 +416,6 @@ class SupabasePostRepository implements PostRepository {
     } on Exception catch (e) {
       return Err(DatabaseFailure('좋아요를 불러오지 못했습니다: $e'));
     }
-  }
-
-  static Future<Map<String, ({String nickname, String? avatarUrl})>>
-  _authorProfiles(SupabaseClient client, Iterable<String> userIds) async {
-    final ids = userIds.toSet();
-    if (ids.isEmpty) return <String, ({String nickname, String? avatarUrl})>{};
-    final rows = rowList(
-      await client
-          .from('profiles')
-          .select('user_id, nickname, avatar_url')
-          .inFilter('user_id', ids.toList()),
-    );
-    return <String, ({String nickname, String? avatarUrl})>{
-      for (final row in rows)
-        rowString(row, 'user_id'): (
-          nickname: rowString(row, 'nickname', fallback: '회원'),
-          avatarUrl: rowStringOrNull(row, 'avatar_url'),
-        ),
-    };
   }
 
   @override

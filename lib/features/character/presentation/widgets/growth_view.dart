@@ -10,13 +10,23 @@ import '../../../../domain/entities/discipline.dart';
 import '../../../../domain/entities/exercise.dart';
 import '../../../../domain/usecases/calculate_character_growth.dart';
 
-const List<String> kStageNames = <String>[
-  '새싹 냥',
-  '튼튼 냥',
-  '근육 냥',
-  '타이탄 냥',
-  '냥관왕',
-];
+const List<String> _stagePrefixes = <String>['새싹', '튼튼', '근육', '타이탄'];
+
+/// 진화 단계 수. 이름 목록이 아니라 이 값으로 범위를 잡는다.
+const int kStageCount = 5;
+
+/// 종족에 맞는 단계 이름. 강아지에게 "냥"을 붙이던 자리다.
+String stageName(CharacterSpecies species, int stage) {
+  final suffix = switch (species) {
+    CharacterSpecies.cat => '냥',
+    CharacterSpecies.dog => '멍',
+    CharacterSpecies.bear => '곰',
+  };
+  final safe = stage.clamp(0, kStageCount - 1);
+  return safe == _stagePrefixes.length
+      ? '$suffix관왕'
+      : '${_stagePrefixes[safe]} $suffix';
+}
 
 /// 주 종목 복장을 입은 모습을 먼저 그리고, 그 그림이 아직 없으면 기본 모습으로
 /// 떨어진다. 종목 아트를 하나씩 채워 넣어도 화면이 비지 않는다.
@@ -52,7 +62,7 @@ class CharacterSprite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final safeStage = stage.clamp(0, kStageNames.length - 1);
+    final safeStage = stage.clamp(0, kStageCount - 1);
     final base = stageAsset(species, safeStage);
     final outfit = discipline == null
         ? null
@@ -125,7 +135,8 @@ class CharacterHero extends StatelessWidget {
           Text(identity.name, style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${kStageNames[growth.evolutionStage]} · ${traitCopy(identity.trait).name}',
+            '${stageName(identity.species, growth.evolutionStage)} · '
+            '${traitCopy(identity.trait).name}',
             style: TextStyle(fontSize: 12.5, color: t.faintText),
           ),
           const SizedBox(height: AppSpacing.sm),
