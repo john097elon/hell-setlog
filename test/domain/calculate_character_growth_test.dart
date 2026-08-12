@@ -9,7 +9,7 @@ void main() {
     final growth = calculateCharacterGrowth(const <Discipline, double>{});
 
     expect(growth.totalXp, 0);
-    expect(growth.totalLevel, CharacterAttribute.values.length);
+    expect(growth.totalLevel, 1);
     expect(growth.evolutionStage, 0);
     expect(growth.attributes.every((item) => item.level == 1), isTrue);
     expect(growth.primaryDiscipline, isNull);
@@ -96,10 +96,10 @@ void main() {
   });
 
   test('레벨이 오르면 진화 단계도 오른다', () {
-    expect(evolutionStageForLevel(4), 0);
-    expect(evolutionStageForLevel(10), 1);
-    expect(evolutionStageForLevel(47), 2);
-    expect(evolutionStageForLevel(48), 3);
+    expect(evolutionStageForLevel(1), 0);
+    expect(evolutionStageForLevel(7), 1);
+    expect(evolutionStageForLevel(44), 2);
+    expect(evolutionStageForLevel(45), 3);
     expect(evolutionStageForLevel(9999), evolutionThresholds.length - 1);
   });
 

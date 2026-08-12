@@ -113,17 +113,23 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     }
   }
 
-  database.ExercisesCompanion _toCompanion(Exercise exercise) =>
-      database.ExercisesCompanion.insert(
-        id: exercise.id,
-        name: exercise.name,
-        nameKo: exercise.nameKo,
-        muscleGroup: exercise.muscleGroup.index,
-        equipment: exercise.equipment.index,
-        discipline: Value(exercise.discipline.index),
-        isCustom: Value(exercise.isCustom),
-        thumbnailUrl: Value(exercise.thumbnailUrl),
-      );
+  database.ExercisesCompanion _toCompanion(Exercise exercise) {
+    // 업그레이드로 붙은 열에는 SQL 기본값이 없다. 시각을 직접 넣지 않으면
+    // 비어 버리고, 그 행을 읽을 때 종목 목록 전체가 죽는다.
+    final now = DateTime.now();
+    return database.ExercisesCompanion.insert(
+      id: exercise.id,
+      name: exercise.name,
+      nameKo: exercise.nameKo,
+      muscleGroup: exercise.muscleGroup.index,
+      equipment: exercise.equipment.index,
+      discipline: Value(exercise.discipline.index),
+      isCustom: Value(exercise.isCustom),
+      thumbnailUrl: Value(exercise.thumbnailUrl),
+      createdAt: Value(now),
+      updatedAt: Value(now),
+    );
+  }
 
   Exercise _toEntity(database.Exercise data) => Exercise(
     id: data.id,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/widgets/app_list.dart';
 import '../../../../core/widgets/app_screen.dart';
 import '../../../../domain/entities/discipline.dart';
@@ -151,7 +152,19 @@ class _ExercisePickerSheetState extends ConsumerState<_ExercisePickerSheet> {
                   err: (failure) => Center(child: Text(failure.message)),
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, _) => const SizedBox.shrink(),
+                // 빈 위젯으로 삼키면 목록이 없는 것과 실패한 것이 똑같아 보인다.
+                error: (error, _) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Text(
+                        '종목을 불러오지 못했습니다.\n$error',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.tokens.mutedText),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],

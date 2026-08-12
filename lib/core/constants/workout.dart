@@ -5,4 +5,3 @@ const int kDefaultRestSeconds = 90;
 const int kRestTimerIncrementSeconds = 15;
 
 /// Tick interval for the video-sharing mock record indicator.
-const Duration kMockRecordTimerTick = Duration(seconds: 1);

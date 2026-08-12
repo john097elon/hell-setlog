@@ -5,7 +5,6 @@ import '../../../core/extensions/build_context_x.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../feed/application/post_providers.dart';
 import 'models/share_view_data.dart';
-import 'widgets/record_ring_button.dart';
 import '../../profile/application/profile_providers.dart';
 
 /// Shows the local-only video-sharing mock after a workout completes.
@@ -130,10 +129,6 @@ class _ShareWorkoutSheetState extends ConsumerState<_ShareWorkoutSheet> {
                       .toList(growable: false),
                 ),
                 const SizedBox(height: 20),
-                const _CameraPreviewPlaceholder(),
-                const SizedBox(height: 16),
-                const RecordRingButton(),
-                const SizedBox(height: 20),
                 TextField(
                   controller: _captionController,
                   maxLines: 3,
@@ -162,39 +157,4 @@ class _ShareWorkoutSheetState extends ConsumerState<_ShareWorkoutSheet> {
       ),
     );
   }
-}
-
-class _CameraPreviewPlaceholder extends StatelessWidget {
-  const _CameraPreviewPlaceholder();
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-    aspectRatio: 16 / 9,
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: const BorderRadius.all(Radius.circular(16)),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.videocam_outlined,
-              size: 40,
-              color: context.tokens.mutedText,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.cameraPreviewMock,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: context.tokens.mutedText),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }

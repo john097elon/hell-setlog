@@ -8,7 +8,9 @@ import '../entities/discipline.dart';
 const int _baseXpPerLevel = 40;
 
 /// 진화 단계에 필요한 합산 레벨. 능력치 4종이 각각 1에서 시작하므로 4가 바닥이다.
-const List<int> evolutionThresholds = <int>[0, 10, 24, 48, 96];
+/// 진화가 일어나는 합산 레벨. 능력치 넷이 모두 1인 상태가 레벨 1이므로,
+/// 여기 값도 "쌓아 올린 레벨"을 기준으로 센다.
+const List<int> evolutionThresholds = <int>[0, 7, 21, 45, 93];
 
 /// 한 능력치의 성장 상태.
 class AttributeGrowth {
@@ -116,7 +118,10 @@ CharacterGrowth calculateCharacterGrowth(
       _growthFor(attribute, byAttribute[attribute] ?? 0),
   ];
   final totalXp = attributes.fold(0, (sum, growth) => sum + growth.xp);
-  final totalLevel = attributes.fold(0, (sum, growth) => sum + growth.level);
+  // 능력치 넷이 각각 1에서 시작한다. 그대로 더하면 훈련을 하나도 안 한
+  // 캐릭터가 레벨 4로 보인다. 올린 만큼만 세서 1부터 시작하게 한다.
+  final totalLevel =
+      1 + attributes.fold<int>(0, (sum, growth) => sum + growth.level - 1);
   final stage = evolutionStageForLevel(totalLevel);
   return CharacterGrowth(
     attributes: attributes,

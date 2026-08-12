@@ -55,10 +55,10 @@ void main() {
     await _pump(
       tester,
       volumes: <Discipline, double>{Discipline.strength: 300},
-      seenLevel: 5,
+      seenLevel: 2,
     );
 
-    // 부위 6개 기본 레벨 6 + 가슴 2레벨 = 8, 직전에 본 값은 5.
+    // 근력 위주로 쌓아 합산 레벨 5. 직전에 본 값은 2였다.
     expect(find.byType(LevelUpBanner), findsOneWidget);
     expect(find.text('레벨이 3 올랐어요'), findsOneWidget);
   });

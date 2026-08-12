@@ -1420,24 +1420,6 @@ abstract class AppLocalizations {
   /// **'운동 공유'**
   String get shareWorkout;
 
-  /// No description provided for @cameraPreviewMock.
-  ///
-  /// In ko, this message translates to:
-  /// **'카메라 미리보기 (P5)'**
-  String get cameraPreviewMock;
-
-  /// No description provided for @tapToRecord.
-  ///
-  /// In ko, this message translates to:
-  /// **'탭하여 녹화'**
-  String get tapToRecord;
-
-  /// No description provided for @recording.
-  ///
-  /// In ko, this message translates to:
-  /// **'녹화 중'**
-  String get recording;
-
   /// No description provided for @shareCaptionHint.
   ///
   /// In ko, this message translates to:

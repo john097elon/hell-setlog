@@ -221,6 +221,37 @@ void main() {
     expect(tags.where((tag) => tag.contains('kg')), isEmpty);
   });
 
+  test('운동 시간은 세트를 기록한 구간으로 잰다', () {
+    final startedAt = DateTime(2026, 8, 10, 9);
+    WorkoutSet at(DateTime when) => WorkoutSet(
+      id: 'set-${when.hour}',
+      sessionId: 's1',
+      exerciseId: 'e1',
+      setIndex: 0,
+      weight: 40,
+      reps: 10,
+      isCompleted: true,
+      completedAt: when,
+      updatedAt: when,
+    );
+
+    expect(
+      workoutMinutes(startedAt, <WorkoutSet>[
+        at(DateTime(2026, 8, 10, 9, 10)),
+        at(DateTime(2026, 8, 10, 10, 5)),
+      ]),
+      65,
+    );
+
+    // 세션을 며칠 열어 둔 채 앱을 닫아도 하루치 시간이 찍히면 안 된다.
+    expect(
+      workoutMinutes(startedAt, <WorkoutSet>[
+        at(DateTime(2026, 8, 12, 9)),
+      ]),
+      kMaxWorkoutMinutes,
+    );
+  });
+
   testWidgets('adds an exercise through the picker', (tester) async {
     final workoutRepository = _MockWorkoutRepository();
     final exerciseRepository = _MockExerciseRepository();

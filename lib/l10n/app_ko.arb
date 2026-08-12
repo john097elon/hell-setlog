@@ -60,15 +60,33 @@
   "statsThisWeek": "이번 주",
   "statsWorkoutDays": "운동 일수",
   "statsWorkoutDaysValue": "{count}일",
-  "@statsWorkoutDaysValue": {"placeholders": {"count": {"type": "int"}}},
+  "@statsWorkoutDaysValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statsTotalVolume": "총 볼륨",
   "statsVolumeValue": "{volume} kg",
-  "@statsVolumeValue": {"placeholders": {"volume": {"type": "String"}}},
+  "@statsVolumeValue": {
+    "placeholders": {
+      "volume": {
+        "type": "String"
+      }
+    }
+  },
   "statsWeeklyVolume": "주간 볼륨",
   "statsBodyPartSplit": "부위별 볼륨",
   "statsDisciplineActivity": "종목별 기록",
   "statsRecordCount": "{count}개",
-  "@statsRecordCount": {"placeholders": {"count": {"type": "int"}}},
+  "@statsRecordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "statsNoData": "아직 기록된 운동이 없어요",
   "statsNoDataDescription": "운동을 기록하면 이번 주의 변화를 볼 수 있어요.",
   "statsLoadError": "통계를 불러오지 못했어요",
@@ -192,38 +210,77 @@
   "sampleMemberSeoyeon": "서연",
   "rest": "휴식",
   "addSeconds": "+{seconds}초",
-  "@addSeconds": {"placeholders": {"seconds": {"type": "int"}}},
+  "@addSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "skip": "건너뛰기",
   "selectExercise": "종목 선택",
   "setDeleted": "세트를 삭제했어요",
-  "undo": "실행 취소"
-  ,"partyCreateShort": "개설"
-  ,"partyExplore": "탐색"
-  ,"partyChat": "채팅"
-  ,"partyMemberProgress": "{members}/{limit}명"
-  ,"@partyMemberProgress": {"placeholders": {"members": {"type": "int"}, "limit": {"type": "int"}}}
-  ,"partyMissionProgress": "오늘의 미션 {completed}/{target}"
-  ,"@partyMissionProgress": {"placeholders": {"completed": {"type": "int"}, "target": {"type": "int"}}}
-  ,"partyTodayXp": "오늘 +240 XP"
-  ,"partyRandomMatch": "RANDOM MATCH"
-  ,"partyRandomMatchDescription": "지금 함께 운동할 파티를 찾아보세요."
-  ,"partyGo": "GO"
-  ,"partyInviteFriends": "친구 초대"
-  ,"partyLevel": "LV {level}"
-  ,"@partyLevel": {"placeholders": {"level": {"type": "int"}}}
-  ,"partyInvited": "초대됨"
-  ,"partyAll": "전체"
-  ,"muscleLowerBody": "하체"
-  ,"partySearchHint": "파티 검색"
-  ,"partyProTitle": "PRO 파티"
-  ,"partyProDescription": "PRO 전용 파티 혜택을 확인하세요."
-  ,"partyChatHint": "메시지를 입력하세요"
-  ,"partySend": "전송",
+  "undo": "실행 취소",
+  "partyCreateShort": "개설",
+  "partyExplore": "탐색",
+  "partyChat": "채팅",
+  "partyMemberProgress": "{members}/{limit}명",
+  "@partyMemberProgress": {
+    "placeholders": {
+      "members": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "partyMissionProgress": "오늘의 미션 {completed}/{target}",
+  "@partyMissionProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "partyTodayXp": "오늘 +240 XP",
+  "partyRandomMatch": "RANDOM MATCH",
+  "partyRandomMatchDescription": "지금 함께 운동할 파티를 찾아보세요.",
+  "partyGo": "GO",
+  "partyInviteFriends": "친구 초대",
+  "partyLevel": "LV {level}",
+  "@partyLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "partyInvited": "초대됨",
+  "partyAll": "전체",
+  "muscleLowerBody": "하체",
+  "partySearchHint": "파티 검색",
+  "partyProTitle": "PRO 파티",
+  "partyProDescription": "PRO 전용 파티 혜택을 확인하세요.",
+  "partyChatHint": "메시지를 입력하세요",
+  "partySend": "전송",
   "settingsTitle": "설정",
   "settingsProfile": "프로필",
   "settingsEditProfile": "프로필 편집",
   "settingsLevelXp": "LV {level} · {xp} XP",
-  "@settingsLevelXp": {"placeholders": {"level": {"type": "int"}, "xp": {"type": "int"}}},
+  "@settingsLevelXp": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
   "settingsNotifications": "알림",
   "settingsWorkoutReminder": "운동 리마인더",
   "settingsPartyNotification": "파티 알림",
@@ -254,13 +311,9 @@
   "settingsEditName": "이름",
   "settingsEditSave": "완료",
   "settingsPublic": "전체 공개",
-  "settingsPrivate": "비공개"
-,
+  "settingsPrivate": "비공개",
   "close": "닫기",
   "shareWorkout": "운동 공유",
-  "cameraPreviewMock": "카메라 미리보기 (P5)",
-  "tapToRecord": "탭하여 녹화",
-  "recording": "녹화 중",
   "shareCaptionHint": "운동 소감을 남겨보세요",
   "shareToFeed": "피드에 공유",
   "workoutSharedMock": "피드에 공유됨 (mock)",

@@ -498,7 +498,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       0,
       (sum, set) => sum + set.weight * set.reps,
     );
-    final minutes = DateTime.now().difference(session.startedAt).inMinutes;
+    final minutes = workoutMinutes(session.startedAt, completed);
     final weightUnit = ref.read(settingsControllerProvider).weightUnit;
     final tags = workoutSummaryTags(
       completed,
@@ -587,6 +587,32 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     }
   }
 }
+
+/// 세션을 며칠 열어 둔 채 앱을 닫으면 시작 시각과의 차이가 그대로 운동 시간이
+/// 되어 "3074분" 같은 값이 나왔다. 실제로 세트를 기록한 구간을 쓰고, 그 구간을
+/// 알 수 없을 때만 세션 길이로 물러선다.
+int workoutMinutes(DateTime startedAt, Iterable<WorkoutSet> completedSets) {
+  final stamps = completedSets
+      .map((set) => set.completedAt)
+      .nonNulls
+      .toList(growable: false);
+  final endedAt = stamps.isEmpty
+      ? DateTime.now()
+      : stamps.reduce((a, b) => a.isAfter(b) ? a : b);
+  final from = stamps.isEmpty
+      ? startedAt
+      : stamps.reduce((a, b) => a.isBefore(b) ? a : b);
+  // 첫 세트 전 준비 시간을 조금 인정하되, 하루를 넘기지는 않는다.
+  final span = endedAt.difference(
+    from.isBefore(startedAt) ? from : startedAt,
+  );
+  final minutes = span.inMinutes;
+  if (minutes < 0) return 0;
+  return minutes > kMaxWorkoutMinutes ? kMaxWorkoutMinutes : minutes;
+}
+
+/// 한 번의 운동으로 인정하는 최대 시간(분).
+const int kMaxWorkoutMinutes = 6 * 60;
 
 /// 운동 종료 공유 시트에 표시할 종목 중립적인 요약 문구를 만든다.
 List<String> workoutSummaryTags(

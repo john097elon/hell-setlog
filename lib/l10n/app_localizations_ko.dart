@@ -696,15 +696,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shareWorkout => '운동 공유';
 
   @override
-  String get cameraPreviewMock => '카메라 미리보기 (P5)';
-
-  @override
-  String get tapToRecord => '탭하여 녹화';
-
-  @override
-  String get recording => '녹화 중';
-
-  @override
   String get shareCaptionHint => '운동 소감을 남겨보세요';
 
   @override

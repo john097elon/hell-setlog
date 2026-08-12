@@ -33,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -70,6 +70,19 @@ class AppDatabase extends _$AppDatabase {
         await _addColumnIfMissing(migrator, workoutSets, 'duration_seconds');
         await _addColumnIfMissing(migrator, workoutSets, 'intensity');
         await _addColumnIfMissing(migrator, exercises, 'discipline');
+      }
+      if (from < 7) {
+        // 5단계에서 created_at·updated_at을 DEFAULT 없이 붙였다. 그때 있던 행만
+        // 채워 두어서, 그 뒤에 추가된 종목은 값이 비어 버렸다. 값이 빈 행은
+        // 읽는 순간 터지고 종목 목록 전체가 사라진다.
+        await customStatement(
+          "UPDATE exercises SET created_at = CAST(strftime('%s', "
+          'CURRENT_TIMESTAMP) AS INTEGER) WHERE created_at IS NULL',
+        );
+        await customStatement(
+          "UPDATE exercises SET updated_at = CAST(strftime('%s', "
+          'CURRENT_TIMESTAMP) AS INTEGER) WHERE updated_at IS NULL',
+        );
       }
     },
   );
