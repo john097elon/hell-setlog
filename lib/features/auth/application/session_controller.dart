@@ -1,5 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/failure.dart';
+import '../../../core/error/result.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../core/supabase/supabase_init.dart';
 import '../../../data/repositories/supabase_sync_repository.dart';
 import '../../exercise_db/application/exercise_providers.dart';
 import '../../feed/application/post_providers.dart';
@@ -35,6 +40,46 @@ class SessionController {
     if (pushed) await _ref.read(appDatabaseProvider).clearUserData();
     _invalidateAccountScopedCaches();
     return (localDataKept: !pushed);
+  }
+
+  /// 계정과 서버에 남은 모든 기록을 지운다. 되돌릴 수 없다.
+  ///
+  /// 서버가 사용자 행 하나를 지우면 기록·게시물·파티 활동이 함께 사라진다.
+  /// 성공하면 이 기기에 남은 사본도 지우고 로그아웃한다.
+  Future<Result<void, Failure>> deleteAccount() async {
+    final client = _ref.read(supabaseClientProvider);
+    if (client == null || client.auth.currentUser == null) {
+      return const Err(DatabaseFailure('로그인이 필요합니다'));
+    }
+    final userId = client.auth.currentUser!.id;
+    try {
+      // 파일은 Storage API로만 지울 수 있어 서버 함수가 대신 지워 주지 못한다.
+      await _removeUploads(client, userId);
+      await client.rpc<void>('delete_my_account');
+    } on Object catch (error) {
+      return Err(DatabaseFailure('계정을 삭제하지 못했습니다: $error'));
+    }
+    // 서버에서 지워졌으므로 올릴 것도, 남길 것도 없다.
+    await _ref.read(authServiceProvider).signOut();
+    await _ref.read(appDatabaseProvider).clearUserData();
+    _invalidateAccountScopedCaches();
+    return const Ok(null);
+  }
+
+  /// 내가 올린 사진·영상을 지운다. 게시물은 `{uid}/파일`, 프로필 사진은
+  /// `{uid}/avatar/파일`에 있다.
+  Future<void> _removeUploads(SupabaseClient client, String userId) async {
+    final bucket = client.storage.from('post-media');
+    final paths = <String>[];
+    for (final folder in <String>[userId, '$userId/avatar']) {
+      final entries = await bucket.list(path: folder);
+      for (final entry in entries) {
+        // 폴더는 id가 없다. 파일만 모은다.
+        if (entry.id == null) continue;
+        paths.add('$folder/${entry.name}');
+      }
+    }
+    if (paths.isNotEmpty) await bucket.remove(paths);
   }
 
   /// 남은 변경을 서버로 올린다. 실패하면 로컬 데이터를 보존한다.
