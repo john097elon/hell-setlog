@@ -53,7 +53,8 @@ class DashboardPage extends ConsumerWidget {
           ..invalidate(characterVolumesProvider)
           ..invalidate(characterWeeklyVolumesProvider)
           ..invalidate(myPartiesProvider)
-          ..invalidate(weeklyVolumeProvider);
+          ..invalidate(weeklyVolumeProvider)
+          ..invalidate(weeklyWorkoutDaysProvider);
       },
       slivers: <Widget>[
         SliverToBoxAdapter(
@@ -239,7 +240,13 @@ class _WeekSummary extends ConsumerWidget {
         ?.when(ok: (value) => value, err: (_) => null);
     final total =
         volumes?.values.fold<double>(0, (sum, value) => sum + value) ?? 0;
-    final days = volumes?.values.where((value) => value > 0).length ?? 0;
+    // 볼륨이 있는 날만 세면 러닝·주짓수만 한 주가 0일로 보인다.
+    final days =
+        ref
+            .watch(weeklyWorkoutDaysProvider())
+            .valueOrNull
+            ?.when(ok: (value) => value, err: (_) => null) ??
+        0;
     return AppMetricRow(
       metrics: <AppMetric>[
         AppMetric(

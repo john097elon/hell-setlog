@@ -443,6 +443,141 @@ class _PersonalRecordsProviderElement
   String get exerciseId => (origin as PersonalRecordsProvider).exerciseId;
 }
 
+String _$weeklyWorkoutDaysHash() => r'7a3b71f61b6142ec4f5a8dceae42f76e79e413ef';
+
+/// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+///
+/// Copied from [weeklyWorkoutDays].
+@ProviderFor(weeklyWorkoutDays)
+const weeklyWorkoutDaysProvider = WeeklyWorkoutDaysFamily();
+
+/// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+///
+/// Copied from [weeklyWorkoutDays].
+class WeeklyWorkoutDaysFamily extends Family<AsyncValue<Result<int, Failure>>> {
+  /// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+  ///
+  /// Copied from [weeklyWorkoutDays].
+  const WeeklyWorkoutDaysFamily();
+
+  /// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+  ///
+  /// Copied from [weeklyWorkoutDays].
+  WeeklyWorkoutDaysProvider call({int days = 7}) {
+    return WeeklyWorkoutDaysProvider(days: days);
+  }
+
+  @override
+  WeeklyWorkoutDaysProvider getProviderOverride(
+    covariant WeeklyWorkoutDaysProvider provider,
+  ) {
+    return call(days: provider.days);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'weeklyWorkoutDaysProvider';
+}
+
+/// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+///
+/// Copied from [weeklyWorkoutDays].
+class WeeklyWorkoutDaysProvider
+    extends AutoDisposeFutureProvider<Result<int, Failure>> {
+  /// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+  ///
+  /// Copied from [weeklyWorkoutDays].
+  WeeklyWorkoutDaysProvider({int days = 7})
+    : this._internal(
+        (ref) => weeklyWorkoutDays(ref as WeeklyWorkoutDaysRef, days: days),
+        from: weeklyWorkoutDaysProvider,
+        name: r'weeklyWorkoutDaysProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$weeklyWorkoutDaysHash,
+        dependencies: WeeklyWorkoutDaysFamily._dependencies,
+        allTransitiveDependencies:
+            WeeklyWorkoutDaysFamily._allTransitiveDependencies,
+        days: days,
+      );
+
+  WeeklyWorkoutDaysProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.days,
+  }) : super.internal();
+
+  final int days;
+
+  @override
+  Override overrideWith(
+    FutureOr<Result<int, Failure>> Function(WeeklyWorkoutDaysRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: WeeklyWorkoutDaysProvider._internal(
+        (ref) => create(ref as WeeklyWorkoutDaysRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        days: days,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Result<int, Failure>> createElement() {
+    return _WeeklyWorkoutDaysProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is WeeklyWorkoutDaysProvider && other.days == days;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, days.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin WeeklyWorkoutDaysRef
+    on AutoDisposeFutureProviderRef<Result<int, Failure>> {
+  /// The parameter `days` of this provider.
+  int get days;
+}
+
+class _WeeklyWorkoutDaysProviderElement
+    extends AutoDisposeFutureProviderElement<Result<int, Failure>>
+    with WeeklyWorkoutDaysRef {
+  _WeeklyWorkoutDaysProviderElement(super.provider);
+
+  @override
+  int get days => (origin as WeeklyWorkoutDaysProvider).days;
+}
+
 String _$weeklyDisciplineCountsHash() =>
     r'98bde82df6dad6f52cfeebc482d60b24c478f2b2';
 

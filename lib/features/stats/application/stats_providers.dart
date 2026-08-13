@@ -34,6 +34,38 @@ Future<Result<List<PersonalRecord>, Failure>> personalRecords(
   String exerciseId,
 ) => ref.watch(statsRepositoryProvider).personalRecords(exerciseId);
 
+/// 이번 주에 실제로 운동한 날 수. 볼륨으로 세면 러닝·주짓수만 한 주가 0일이 된다.
+@riverpod
+Future<Result<int, Failure>> weeklyWorkoutDays(
+  WeeklyWorkoutDaysRef ref, {
+  int days = 7,
+}) async {
+  try {
+    final dao = ref.watch(appDatabaseProvider).statsDao;
+    final now = DateTime.now();
+    final cutoff = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: days - 1));
+    final sessions = await dao.sessionsSince(cutoff);
+    final startedAt = <String, DateTime>{
+      for (final session in sessions) session.id: session.startedAt,
+    };
+    final sets = await dao.setsForSessions(startedAt.keys);
+    final dates = <DateTime>{};
+    for (final set in sets) {
+      if (!set.isCompleted || set.isWarmup || set.deletedAt != null) continue;
+      final at = set.completedAt ?? startedAt[set.sessionId];
+      if (at == null) continue;
+      dates.add(DateTime(at.year, at.month, at.day));
+    }
+    return Ok(dates.length);
+  } on Exception catch (error) {
+    return Err(DatabaseFailure(error.toString()));
+  }
+}
+
 /// Counts completed weekly records by discipline, including non-weight sports.
 @riverpod
 Future<Result<Map<Discipline, int>, Failure>> weeklyDisciplineCounts(
