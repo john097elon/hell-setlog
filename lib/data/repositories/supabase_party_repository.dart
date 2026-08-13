@@ -239,7 +239,7 @@ class SupabasePartyRepository implements PartyRepository {
           .eq('party_id', partyId)
           .order('created_at', ascending: false)
           .limit(limit);
-      return Ok(rowList(rows).map(_message).toList());
+      return Ok(await _named(c, rowList(rows).map(_message).toList()));
     } on Object catch (e) {
       return Err(DatabaseFailure('$e'));
     }
@@ -263,12 +263,10 @@ class SupabasePartyRepository implements PartyRepository {
               .eq('party_id', partyId)
               .order('created_at', ascending: false)
               .limit(limit)) {
-        yield Ok(
-          <String, PartyMessage>{
-            for (final row in rowList(rows))
-              rowString(row, 'id'): _message(row),
-          }.values.toList(),
-        );
+        final messages = <String, PartyMessage>{
+          for (final row in rowList(rows)) rowString(row, 'id'): _message(row),
+        }.values.toList();
+        yield Ok(await _named(c, messages));
       }
     } on Object {
       yield await fetchMessages(partyId, limit: limit);
@@ -546,6 +544,27 @@ class SupabasePartyRepository implements PartyRepository {
     focus: rowStringOrNull(r, 'focus'),
     joinCode: rowStringOrNull(r, 'join_code'),
   );
+
+  /// 채팅 한 줄마다 누가 썼는지 붙인다. 없으면 전부 "파티원"으로 보인다.
+  static Future<List<PartyMessage>> _named(
+    SupabaseClient client,
+    List<PartyMessage> messages,
+  ) async {
+    if (messages.isEmpty) return messages;
+    final authors = await authorProfiles(
+      client,
+      messages.map((message) => message.userId),
+    );
+    return messages
+        .map(
+          (message) => message.withAuthor(
+            name: authors[message.userId]?.nickname,
+            avatarUrl: authors[message.userId]?.avatarUrl,
+          ),
+        )
+        .toList(growable: false);
+  }
+
   static PartyMessage _message(Map<String, Object?> r) => PartyMessage(
     id: rowString(r, 'id'),
     partyId: rowString(r, 'party_id'),
