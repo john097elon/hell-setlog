@@ -145,8 +145,10 @@ class _NotificationTile extends StatelessWidget {
                     Icon(Icons.person_outline, color: t.faintText, size: 18),
               ),
       ),
+      // 날짜를 옆에 두면 제목이 "준님이 댓글을 남..."처럼 잘린다.
       title: '$actor님이 ${_message(item.kind)}',
-      value: _relativeTime(item.createdAt),
+      subtitle: _relativeTime(item.createdAt),
+      titleMaxLines: 2,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[

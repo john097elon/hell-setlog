@@ -81,6 +81,7 @@ class AppRow extends StatelessWidget {
     this.value,
     this.onTap,
     this.destructive = false,
+    this.titleMaxLines = 1,
     super.key,
   });
 
@@ -95,6 +96,9 @@ class AppRow extends StatelessWidget {
   final String? value;
   final VoidCallback? onTap;
   final bool destructive;
+
+  /// 제목이 곧 내용인 행(알림 등)은 두 줄까지 허용한다.
+  final int titleMaxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +119,7 @@ class AppRow extends StatelessWidget {
               children: <Widget>[
                 Text(
                   title,
-                  maxLines: 1,
+                  maxLines: titleMaxLines,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15.5,

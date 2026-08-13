@@ -25,12 +25,14 @@ class MonsterPage extends ConsumerWidget {
     return identity.when(
       loading: () => const AppScreen(
         title: '몬스터',
+        embedded: true,
         slivers: <Widget>[
           SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
         ],
       ),
       error: (_, _) => const AppScreen(
         title: '몬스터',
+        embedded: true,
         slivers: <Widget>[
           SliverFillRemaining(
             hasScrollBody: false,
@@ -55,6 +57,7 @@ class _NeedsSetup extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppScreen(
     title: '몬스터',
+    embedded: true,
     slivers: <Widget>[
       SliverFillRemaining(
         hasScrollBody: false,
@@ -95,12 +98,14 @@ class _Growth extends ConsumerWidget {
       .when(
         loading: () => const AppScreen(
           title: '몬스터',
+          embedded: true,
           slivers: <Widget>[
             SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
           ],
         ),
         error: (_, _) => const AppScreen(
           title: '몬스터',
+          embedded: true,
           slivers: <Widget>[
             SliverFillRemaining(
               hasScrollBody: false,
@@ -162,6 +167,7 @@ class _GrowthContentState extends ConsumerState<_GrowthContent> {
     final gained = seenLevel == null ? 0 : widget.growth.totalLevel - seenLevel;
     return AppScreen(
       title: '몬스터',
+      embedded: true,
       onRefresh: () async {
         ref
           ..invalidate(characterVolumesProvider)

@@ -14,6 +14,7 @@ class AppScreen extends StatelessWidget {
     required this.slivers,
     this.actions = const <Widget>[],
     this.onRefresh,
+    this.embedded = false,
     super.key,
   });
 
@@ -24,17 +25,29 @@ class AppScreen extends StatelessWidget {
   final List<Widget> actions;
   final Future<void> Function()? onRefresh;
 
+  /// 바깥 탭이 이미 제목을 보여줄 때는 큰 제목을 겹쳐 넣지 않는다.
+  /// 두 제목이 쌓이면 첫 화면의 절반이 여백이 된다.
+  final bool embedded;
+
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final scroll = CustomScrollView(
       slivers: <Widget>[
-        SliverAppBar.large(
-          backgroundColor: t.bg,
-          surfaceTintColor: Colors.transparent,
-          title: Text(title),
-          actions: actions,
-        ),
+        if (embedded)
+          SliverAppBar(
+            backgroundColor: t.bg,
+            surfaceTintColor: Colors.transparent,
+            toolbarHeight: 0,
+            actions: actions,
+          )
+        else
+          SliverAppBar.large(
+            backgroundColor: t.bg,
+            surfaceTintColor: Colors.transparent,
+            title: Text(title),
+            actions: actions,
+          ),
         ...slivers,
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
       ],

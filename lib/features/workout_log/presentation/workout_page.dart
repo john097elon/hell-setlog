@@ -64,12 +64,14 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     return active.when(
       loading: () => AppScreen(
         title: _screenTitle,
+        embedded: widget.embedded,
         slivers: const <Widget>[
           SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
         ],
       ),
       error: (_, _) => AppScreen(
         title: _screenTitle,
+        embedded: widget.embedded,
         slivers: <Widget>[
           SliverFillRemaining(
             hasScrollBody: false,
@@ -106,6 +108,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final routines = ref.watch(routinesProvider);
     return AppScreen(
       title: _screenTitle,
+      embedded: widget.embedded,
       slivers: <Widget>[
         SliverToBoxAdapter(
           child: AppPagePadding(
@@ -164,12 +167,14 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       body: sets.when(
         loading: () => AppScreen(
           title: _screenTitle,
+          embedded: widget.embedded,
           slivers: const <Widget>[
             SliverFillRemaining(hasScrollBody: false, child: AppLoading()),
           ],
         ),
         error: (_, _) => AppScreen(
           title: _screenTitle,
+          embedded: widget.embedded,
           slivers: const <Widget>[
             SliverFillRemaining(hasScrollBody: false, child: SizedBox.shrink()),
           ],
@@ -207,6 +212,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
     final entries = grouped.entries.toList(growable: false);
     return AppScreen(
       title: _screenTitle,
+      embedded: widget.embedded,
       slivers: <Widget>[
         SliverToBoxAdapter(
           child: AppPagePadding(
@@ -526,9 +532,18 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       ..invalidate(activeSessionProvider)
       // 종료했는데 통계와 캐릭터가 이전 값 그대로였다.
       ..invalidate(weeklyVolumeProvider)
+      ..invalidate(weeklyWorkoutDaysProvider)
       ..invalidate(bodyPartSplitProvider)
       ..invalidate(characterVolumesProvider)
       ..invalidate(characterWeeklyVolumesProvider);
+    // 기록이 하나도 없으면 공유할 운동도 없다. 예전에는 "360분 · 0세트"짜리
+    // 빈 운동을 피드에 올릴 수 있었다.
+    if (completed.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('기록한 세트가 없어 그냥 종료했어요')));
+      return;
+    }
     final prLabel = await _updatePersonalRecords(session.id);
     final xp = (volume / kgPerEffortPoint).floor();
     // 파티 주간 미션은 파티에 남긴 활동으로 계산한다.

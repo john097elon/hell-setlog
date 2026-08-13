@@ -27,6 +27,7 @@ class StatsPage extends ConsumerWidget {
       data: (result) => result.when(
         ok: (volumes) => AppScreen(
           title: title,
+          embedded: embedded,
           slivers: <Widget>[
             SliverToBoxAdapter(
               child: AppPagePadding(
@@ -38,6 +39,7 @@ class StatsPage extends ConsumerWidget {
         ),
         err: (_) => AppScreen(
           title: title,
+          embedded: embedded,
           slivers: const <Widget>[
             SliverFillRemaining(hasScrollBody: false, child: _StatsError()),
           ],
@@ -45,6 +47,7 @@ class StatsPage extends ConsumerWidget {
       ),
       loading: () => AppScreen(
         title: title,
+        embedded: embedded,
         slivers: const <Widget>[
           SliverToBoxAdapter(
             child: AppPagePadding(top: AppSpacing.sm, child: _StatsSkeleton()),
@@ -53,6 +56,7 @@ class StatsPage extends ConsumerWidget {
       ),
       error: (_, _) => AppScreen(
         title: title,
+        embedded: embedded,
         slivers: const <Widget>[
           SliverFillRemaining(hasScrollBody: false, child: _StatsError()),
         ],
