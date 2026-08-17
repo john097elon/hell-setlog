@@ -79,13 +79,42 @@ class SupabaseSyncRepository implements SyncRepository {
           await client.from('workout_sets').select().eq('user_id', userId),
         ),
       );
-      await _pushExercises(client, database, userId, remoteExercises);
-      await _pushRoutines(client, database, userId, remoteRoutines);
-      await _pushItems(client, database, userId, remoteItems);
-      await _pushSessions(client, database, userId, remoteSessions);
-      await _pushSets(client, database, userId, remoteSets);
-    } on Exception {
+      // 한 종류가 실패해도 나머지는 올린다. 예전에는 세트 하나가 거부되면
+      // 그 뒤 전부가 함께 멈췄고, 아무도 그 사실을 알지 못했다.
+      await _step(
+        'exercises',
+        () => _pushExercises(client, database, userId, remoteExercises),
+      );
+      await _step(
+        'routines',
+        () => _pushRoutines(client, database, userId, remoteRoutines),
+      );
+      await _step(
+        'routine_items',
+        () => _pushItems(client, database, userId, remoteItems),
+      );
+      await _step(
+        'workout_sessions',
+        () => _pushSessions(client, database, userId, remoteSessions),
+      );
+      await _step(
+        'workout_sets',
+        () => _pushSets(client, database, userId, remoteSets),
+      );
+    } on Object {
       // A later sync retries; never let a network failure interrupt a workout.
+    }
+  }
+
+  /// 마지막 동기화에서 올리지 못한 표와 이유. 비어 있으면 모두 올라갔다.
+  static final Map<String, String> lastPushFailures = <String, String>{};
+
+  static Future<void> _step(String table, Future<void> Function() run) async {
+    try {
+      await run();
+      lastPushFailures.remove(table);
+    } on Object catch (error) {
+      lastPushFailures[table] = '$error';
     }
   }
 
