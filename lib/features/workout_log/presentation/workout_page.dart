@@ -533,6 +533,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
       // 종료했는데 통계와 캐릭터가 이전 값 그대로였다.
       ..invalidate(weeklyVolumeProvider)
       ..invalidate(weeklyWorkoutDaysProvider)
+      ..invalidate(weeklyWorkoutDaysProvider)
       ..invalidate(bodyPartSplitProvider)
       ..invalidate(characterVolumesProvider)
       ..invalidate(characterWeeklyVolumesProvider);
@@ -756,16 +757,23 @@ class _StartHero extends StatelessWidget {
 }
 
 /// 이번 주 요약(볼륨·운동일).
-class _WeekStat extends StatelessWidget {
+class _WeekStat extends ConsumerWidget {
   const _WeekStat({required this.volumes, required this.weightUnit});
 
   final Map<DateTime, double> volumes;
   final WeightUnit weightUnit;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final total = volumes.values.fold<double>(0, (sum, v) => sum + v);
-    final days = volumes.values.where((v) => v > 0).length;
+    // 홈과 같은 기준으로 센다. 볼륨이 있는 날만 세면 러닝만 한 날이 빠지고,
+    // 두 화면이 서로 다른 숫자를 보여 준다.
+    final days =
+        ref
+            .watch(weeklyWorkoutDaysProvider())
+            .valueOrNull
+            ?.when(ok: (value) => value, err: (_) => null) ??
+        0;
     return AppMetricRow(
       metrics: <AppMetric>[
         AppMetric(
