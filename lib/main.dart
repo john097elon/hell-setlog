@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heal_setlog/core/router/app_router.dart';
 import 'package:heal_setlog/core/supabase/supabase_init.dart';
+import 'package:heal_setlog/data/repositories/supabase_sync_repository.dart';
 import 'package:heal_setlog/core/theme/app_themes.dart';
 import 'package:heal_setlog/features/onboarding/presentation/onboarding_page.dart';
 import 'package:heal_setlog/features/settings/application/theme_controller.dart';
@@ -58,6 +59,21 @@ class _HealSetLogAppState extends ConsumerState<HealSetLogApp> {
   late final GoRouter _router = createAppRouter(
     initialLocation: widget.showOnboarding ? '/onboarding' : null,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    // 예전에는 운동을 끝내거나 로그아웃할 때만 올렸다. 그 사이 앱이 꺼지면
+    // 기록이 기기에만 남았고, 다시 켜도 올라갈 기회가 없었다.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncOnStart());
+  }
+
+  Future<void> _syncOnStart() async {
+    if (supabaseClientOrNull?.auth.currentSession == null) return;
+    final sync = ref.read(syncRepositoryProvider);
+    await sync.pushAll();
+    await sync.pullAll();
+  }
 
   @override
   Widget build(BuildContext context) {
