@@ -12,6 +12,9 @@ import '../local/app_database.dart' as database;
 import 'workout_set_mapper.dart';
 import '../local/daos/workout_dao.dart';
 
+/// 이 시간이 지나도록 끝내지 않은 세션은 잊은 것으로 본다.
+const Duration kStaleSessionAfter = Duration(hours: 12);
+
 class WorkoutRepositoryImpl implements WorkoutRepository {
   WorkoutRepositoryImpl(this._dao);
 
@@ -24,7 +27,7 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
     String? partyId,
   }) async {
     try {
-      final current = await _dao.getActiveSession();
+      final current = await _liveSession();
       // 시작 버튼 연타로 활성 세션이 여러 개 만들어지던 자리. 이미 진행 중이면
       // 그 세션을 그대로 돌려준다.
       if (current != null) return Ok(_sessionFromData(current));
@@ -51,7 +54,7 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   @override
   Future<Result<WorkoutSession, Failure>> getActiveSession() async {
     try {
-      final session = await _dao.getActiveSession();
+      final session = await _liveSession();
       return session == null
           ? const Err(NotFoundFailure())
           : Ok(_sessionFromData(session));
@@ -176,6 +179,34 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   Stream<List<WorkoutSet>> watchSets(String sessionId) => _dao
       .watchSets(sessionId)
       .map((sets) => sets.map(workoutSetFromRow).toList());
+
+  /// 아직 진행 중인 세션. 종료를 누르지 않은 채 하루가 지난 세션은 여기서
+  /// 닫는다. 그러지 않으면 어제 세션이 계속 살아 있어 오늘 기록이 거기에 붙고,
+  /// 운동 시간도 며칠짜리로 찍힌다.
+  Future<database.WorkoutSession?> _liveSession() async {
+    final session = await _dao.getActiveSession();
+    if (session == null) return null;
+    final age = DateTime.now().difference(session.startedAt);
+    if (age <= kStaleSessionAfter) return session;
+
+    final sets = (await _dao.getSetsBySession(
+      session.id,
+    )).map(workoutSetFromRow);
+    final stamps = sets.map((set) => set.completedAt).nonNulls;
+    final endedAt = stamps.isEmpty
+        ? session.startedAt
+        : stamps.reduce((a, b) => a.isAfter(b) ? a : b);
+    await _dao.updateSession(
+      _sessionCompanion(
+        _sessionFromData(session).copyWith(
+          endedAt: endedAt,
+          totalVolume: calculateSessionVolume(sets),
+          updatedAt: DateTime.now(),
+        ),
+      ),
+    );
+    return null;
+  }
 
   database.WorkoutSessionsCompanion _sessionCompanion(WorkoutSession session) =>
       database.WorkoutSessionsCompanion.insert(
