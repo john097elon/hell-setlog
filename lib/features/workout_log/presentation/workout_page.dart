@@ -130,7 +130,7 @@ class _WorkoutPageState extends ConsumerState<WorkoutPage> {
                 const SizedBox(height: AppSpacing.xl),
                 Row(
                   children: <Widget>[
-                    Text('내 루틴', style: AppText.sectionLabel(context)),
+                    Text('내 운동', style: AppText.sectionLabel(context)),
                     const Spacer(),
                     TextButton(
                       onPressed: () => context.push('/routines'),
@@ -619,9 +619,7 @@ int workoutMinutes(DateTime startedAt, Iterable<WorkoutSet> completedSets) {
       ? startedAt
       : stamps.reduce((a, b) => a.isBefore(b) ? a : b);
   // 첫 세트 전 준비 시간을 조금 인정하되, 하루를 넘기지는 않는다.
-  final span = endedAt.difference(
-    from.isBefore(startedAt) ? from : startedAt,
-  );
+  final span = endedAt.difference(from.isBefore(startedAt) ? from : startedAt);
   final minutes = span.inMinutes;
   if (minutes < 0) return 0;
   return minutes > kMaxWorkoutMinutes ? kMaxWorkoutMinutes : minutes;
@@ -786,7 +784,7 @@ class _WeekStat extends ConsumerWidget {
   }
 }
 
-/// 내 루틴 카드 목록.
+/// 내 운동 카드 목록.
 class _RoutineList extends StatelessWidget {
   const _RoutineList({required this.routines, required this.onOpen});
 
@@ -799,7 +797,7 @@ class _RoutineList extends StatelessWidget {
       return AppSection(
         children: <Widget>[
           AppRow(
-            title: '루틴 만들기',
+            title: '내 운동 만들기',
             leading: const Icon(Icons.add_rounded),
             onTap: () => context.push('/routines'),
           ),
@@ -812,7 +810,7 @@ class _RoutineList extends StatelessWidget {
         for (final routine in visible)
           AppRow(
             title: routine.name,
-            subtitle: routine.description ?? '루틴',
+            subtitle: routine.description ?? '내 운동',
             leading: const Icon(Icons.list_alt_rounded),
             onTap: () => onOpen(routine),
           ),

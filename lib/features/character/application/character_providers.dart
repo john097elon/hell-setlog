@@ -51,8 +51,11 @@ final characterGrowthProvider = FutureProvider<CharacterGrowth>((ref) async {
   return growth;
 });
 
-/// 마지막으로 서버에 올린 성장 수치.
-const String _publishedStatsKey = 'character_published_stats';
+/// 이번 실행에서 마지막으로 올린 성장 수치.
+///
+/// 기기에 저장해 두면 다른 기기가 서버 값을 덮어썼을 때 그 사실을 모른 채
+/// "이미 올렸다"고 건너뛴다. 실행마다 한 번은 다시 맞추도록 메모리에만 둔다.
+String? _publishedSignature;
 
 /// 파티원이 보는 수치가 낡지 않게 한다.
 ///
@@ -62,8 +65,7 @@ Future<void> _publishIfChanged(Ref ref, CharacterGrowth growth) async {
   final signature =
       '${growth.totalLevel}/${growth.evolutionStage}/${growth.totalXp.round()}'
       '/${growth.primaryDiscipline?.name ?? ''}';
-  final prefs = await SharedPreferences.getInstance();
-  if (prefs.getString(_publishedStatsKey) == signature) return;
+  if (_publishedSignature == signature) return;
   final result = await ref
       .read(partyRepositoryProvider)
       .publishCharacterStats(
@@ -73,7 +75,7 @@ Future<void> _publishIfChanged(Ref ref, CharacterGrowth growth) async {
         discipline: growth.primaryDiscipline,
       );
   // 실패하면 기록해 두지 않는다. 다음 계산에서 다시 올린다.
-  if (result.isOk) await prefs.setString(_publishedStatsKey, signature);
+  if (result.isOk) _publishedSignature = signature;
 }
 
 DateTime _daysAgo(int days) {

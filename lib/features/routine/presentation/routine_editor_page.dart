@@ -67,7 +67,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
         : ref.watch(routineItemsProvider(routineId));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('루틴 편집'),
+        title: const Text('내 운동 편집'),
         actions: <Widget>[
           TextButton(onPressed: _save, child: Text(context.l10n.save)),
         ],
@@ -75,11 +75,11 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: <Widget>[
-          Text('루틴 이름', style: AppText.sectionLabel(context)),
+          Text('이름', style: AppText.sectionLabel(context)),
           const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(hintText: '루틴 이름'),
+            decoration: const InputDecoration(hintText: '예: 상체 집중'),
           ),
           const SizedBox(height: AppSpacing.xl),
           if (items != null)
@@ -113,7 +113,7 @@ class _RoutineEditorPageState extends ConsumerState<RoutineEditorPage> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('루틴 이름을 입력해 주세요')));
+      ).showSnackBar(const SnackBar(content: Text('이름을 입력해 주세요')));
       return;
     }
     final result = await ref

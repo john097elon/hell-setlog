@@ -38,7 +38,7 @@ class RoutineListPage extends ConsumerWidget {
         error: (_, _) => const <Widget>[
           SliverFillRemaining(
             hasScrollBody: false,
-            child: Center(child: Text('루틴을 불러오지 못했습니다')),
+            child: Center(child: Text('내 운동을 불러오지 못했습니다')),
           ),
         ],
         data: (result) => result.when(
@@ -128,7 +128,7 @@ class RoutineListPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        content: Text('‘${routine.name}’ 루틴을 삭제할까요?'),
+        content: Text('‘${routine.name}’을(를) 삭제할까요?'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -149,7 +149,7 @@ class RoutineListPage extends ConsumerWidget {
     result.when(
       ok: (_) => ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('루틴을 삭제했어요'))),
+      ).showSnackBar(const SnackBar(content: Text('삭제했어요'))),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),
@@ -169,22 +169,22 @@ class _EmptyRoutines extends ConsumerWidget {
         Icon(Icons.format_list_bulleted_rounded, size: 48, color: t.brand),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          '추천 루틴으로 시작',
+          '추천 운동으로 시작',
           style: Theme.of(context).textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '내게 맞는 루틴을 선택해 바로 기록을 시작하세요.',
+          '마음에 드는 구성을 골라 내 운동으로 담아 두세요.',
           style: TextStyle(color: t.mutedText),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.xl),
         presets.when(
           loading: () => const AppLoading(),
-          error: (_, _) => const _PresetMessage('추천 루틴을 불러오지 못했습니다'),
+          error: (_, _) => const _PresetMessage('추천 운동을 불러오지 못했습니다'),
           data: (items) => items.isEmpty
-              ? const _PresetMessage('추천 루틴을 준비 중입니다')
+              ? const _PresetMessage('추천 운동을 준비 중입니다')
               : AppSection(
                   children: <Widget>[
                     for (final preset in items) _PresetRow(preset: preset),
@@ -235,7 +235,7 @@ class _PresetRow extends ConsumerWidget {
     result.when(
       ok: (_) => ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('추천 루틴을 저장했습니다'))),
+      ).showSnackBar(const SnackBar(content: Text('내 운동에 담았어요'))),
       err: (failure) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(failure.message))),
@@ -281,12 +281,12 @@ class _RoutineTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             IconButton(
-              tooltip: '루틴 시작',
+              tooltip: '시작',
               onPressed: onStart,
               icon: const Icon(Icons.play_arrow_rounded),
             ),
             PopupMenuButton<_RoutineAction>(
-              tooltip: '루틴 메뉴',
+              tooltip: '더보기',
               onSelected: (action) => switch (action) {
                 _RoutineAction.edit => onEdit(),
                 _RoutineAction.delete => onDelete(),

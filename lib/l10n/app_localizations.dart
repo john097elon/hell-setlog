@@ -277,13 +277,13 @@ abstract class AppLocalizations {
   /// No description provided for @routines.
   ///
   /// In ko, this message translates to:
-  /// **'루틴'**
+  /// **'내 운동'**
   String get routines;
 
   /// No description provided for @routinesDescription.
   ///
   /// In ko, this message translates to:
-  /// **'저장한 루틴을 바로 시작하세요'**
+  /// **'만들어 둔 운동을 바로 시작하세요'**
   String get routinesDescription;
 
   /// No description provided for @streak.

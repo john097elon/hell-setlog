@@ -99,10 +99,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startWorkout => '운동 시작하기';
 
   @override
-  String get routines => '루틴';
+  String get routines => '내 운동';
 
   @override
-  String get routinesDescription => '저장한 루틴을 바로 시작하세요';
+  String get routinesDescription => '만들어 둔 운동을 바로 시작하세요';
 
   @override
   String get streak => '연속 운동';

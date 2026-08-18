@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_list.dart';
-import '../../../core/widgets/app_screen.dart';
 import '../../../domain/entities/exercise.dart';
 import '../../../domain/entities/routine.dart';
 import '../../../domain/entities/routine_item.dart';
@@ -94,37 +93,36 @@ class _RoutineDetailBody extends ConsumerWidget {
                 AppSpacing.lg,
                 AppSpacing.xl,
               ),
-              itemCount: items.length + 3,
+              itemCount: items.length + 2,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _Header(
-                    name: routine?.name ?? '루틴',
+                    name: routine?.name ?? '내 운동',
                     muscleGroup: firstExercise?.muscleGroup,
                   );
                 }
                 if (index == 1) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.xl),
-                    child: _InfoRow(equipment: firstExercise?.equipment),
-                  );
-                }
-                if (index == 2) {
-                  return Padding(
                     padding: const EdgeInsets.only(
-                      top: AppSpacing.xxl,
+                      top: AppSpacing.xl,
                       bottom: AppSpacing.sm,
                     ),
-                    child: Text(
-                      '운동 ${items.length}개',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleLarge?.copyWith(color: t.text),
-                    ),
+                    child: items.isEmpty
+                        ? Text(
+                            '아직 담은 운동이 없어요. 수정에서 운동을 넣어 주세요.',
+                            style: TextStyle(color: t.mutedText),
+                          )
+                        : Text(
+                            '운동 ${items.length}개',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(color: t.text),
+                          ),
                   );
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _RoutineExerciseTile(item: items[index - 3]),
+                  child: _RoutineExerciseTile(item: items[index - 2]),
                 );
               },
             ),
@@ -227,23 +225,6 @@ class _MuscleChip extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.equipment});
-
-  final Equipment? equipment;
-
-  @override
-  Widget build(BuildContext context) => AppMetricRow(
-    metrics: <AppMetric>[
-      AppMetric(
-        label: '장비',
-        value: equipment == null ? '기본 시스템' : equipmentLabelKo(equipment!),
-      ),
-      const AppMetric(label: '1RM', value: '—'),
-    ],
-  );
-}
-
 class _RoutineExerciseTile extends ConsumerWidget {
   const _RoutineExerciseTile({required this.item});
 
@@ -285,5 +266,5 @@ String _muscleGroupLabel(MuscleGroup? group) => switch (group) {
   MuscleGroup.arms => '팔',
   MuscleGroup.core => '코어',
   MuscleGroup.fullBody => '전신',
-  MuscleGroup.other || null => '루틴',
+  MuscleGroup.other || null => '내 운동',
 };
