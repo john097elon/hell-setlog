@@ -45,7 +45,9 @@ final characterGrowthProvider = FutureProvider<CharacterGrowth>((ref) async {
     recentEffort: recent,
     preferredDiscipline: identity?.preferredDiscipline,
   );
-  unawaited(_publishIfChanged(ref, growth));
+  // 기록이 아직 이 기기에 없으면 올리지 않는다. 새 기기에서 방금 로그인한
+  // 상태로 계산하면 레벨 1이 나오고, 그 값이 서버의 진짜 레벨을 덮어쓴다.
+  if (total.isNotEmpty) unawaited(_publishIfChanged(ref, growth));
   return growth;
 });
 
